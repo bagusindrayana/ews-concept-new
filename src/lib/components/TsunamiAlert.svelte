@@ -76,18 +76,18 @@
           class="absolute w-2 h-full m-auto top-0 bottom-0 left-0 overflow-hidden"
         >
           <div
-            class="w-2 h-full strip-bar-red-vertical strip-animation-vertical-reverse"
+            class="w-2 h-full strip-bar-red-vertical loop-strip-vertical-reverse"
           ></div>
         </div>
         <div
           class="absolute w-2 h-full m-auto top-0 bottom-0 right-0 overflow-hidden"
         >
           <div
-            class="w-2 h-full strip-bar-red-vertical strip-animation-vertical"
+            class="w-2 h-full strip-bar-red-vertical loop-strip-vertical"
           ></div>
         </div>
         <div class="w-full h-full p-6">
-          <div class="red-bordered p-2 text-center w-full mb-2">
+          <div class="bordered-red p-2 text-center w-full mb-2">
             <div class="overflow-hidden relative">
               <div class="strip-wrapper">
                 <div
@@ -106,8 +106,8 @@
               </div>
             </div>
           </div>
-          <div class="card red-bordered w-full h-auto">
-            <div class="card-header red-bordered-bottom">
+          <div class="card bordered-red w-full h-auto">
+            <div class="card-header bordered-red-bottom">
               <div class="overflow-hidden relative">
                 <div class="strip-wrapper">
                   <div
@@ -142,7 +142,7 @@
       <div
         class="p-1 bg-black rounded-xl opacity-0 show-pop-up animation-delay-2"
       >
-        <div class="p-1 red-bordered">
+        <div class="p-1 bordered-red">
           <div class="warning-tsunami-yellow"></div>
         </div>
       </div>
@@ -155,7 +155,7 @@
         class="p-1 bg-black rounded-xl opacity-0 show-pop-up"
         style="animation-delay: 2.5s"
       >
-        <div class="p-1 red-bordered">
+        <div class="p-1 bordered-red">
           <div class="warning-tsunami-yellow"></div>
         </div>
       </div>
@@ -166,7 +166,7 @@
         class="p-1 bg-black rounded-xl opacity-0 show-pop-up"
         style="animation-delay: 3s"
       >
-        <div class="p-1 red-bordered">
+        <div class="p-1 bordered-red">
           <div class="warning-tsunami-yellow"></div>
         </div>
       </div>
@@ -179,7 +179,7 @@
         class="p-1 bg-black rounded-xl opacity-0 show-pop-up"
         style="animation-delay: 3.5s"
       >
-        <div class="p-1 red-bordered">
+        <div class="p-1 bordered-red">
           <div class="warning-tsunami-yellow"></div>
         </div>
       </div>
@@ -192,7 +192,7 @@
         class="p-1 bg-black rounded-xl opacity-0 show-pop-up"
         style="animation-delay: 2s"
       >
-        <div class="p-1 red-bordered">
+        <div class="p-1 bordered-red">
           <div class="warning-tsunami-yellow"></div>
         </div>
       </div>
@@ -205,7 +205,7 @@
         class="p-1 bg-black rounded-xl opacity-0 show-pop-up"
         style="animation-delay: 2.5s"
       >
-        <div class="p-1 red-bordered">
+        <div class="p-1 bordered-red">
           <div class="warning-tsunami-yellow"></div>
         </div>
       </div>

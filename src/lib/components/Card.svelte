@@ -14,10 +14,10 @@
   let open = $state(false);
 </script>
 
-<div class="card red-bordered {className}" class:open>
+<div class="card bordered-red {className}" class:open>
   {#if title}
     <div
-      class="card-header red-bordered-bottom"
+      class="card-header bordered-red-bottom"
       onclick={() => {
         open = !open;
         onToggle?.();
@@ -30,7 +30,7 @@
     {@render children()}
   </div>
   {#if footer}
-    <div class="card-footer red-bordered-top">
+    <div class="card-footer bordered-red-top">
       {@render footer()}
     </div>
   {/if}

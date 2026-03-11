@@ -64,18 +64,24 @@
         <div class="warning-black-hex -mt-20 show-pop-up"></div>
       </div>
       <div class="w-full flex justify-center info">
-        <div
-          class="basic-hex -mt-12 -mr-2 opacity-0 show-pop-up flex flex-col justify-center items-center text-glow"
-        >
-          <p class="text-xl">{magnitudo}</p>
-          <p style="font-size: 10px;">MAGNITUDO</p>
+        <div class="h-[80px] -mt-10 -mr-2 opacity-0 show-pop-up">
+          <div
+            class="basic-hex flex flex-col justify-center items-center text-glow"
+          >
+            <p class="text-xl">{magnitudo}</p>
+            <p style="font-size: 10px;">MAGNITUDO</p>
+          </div>
         </div>
-        <div class="basic-hex opacity-0 show-pop-up"></div>
-        <div
-          class="basic-hex -mt-12 -ml-2 opacity-0 show-pop-up flex flex-col justify-center items-center text-glow"
-        >
-          <p class="text-xl">{kedalaman}</p>
-          <p style="font-size: 10px;">KEDALAMAN</p>
+        <div class="h-[80px] mt-2 opacity-0 show-pop-up">
+          <div class="basic-hex"></div>
+        </div>
+        <div class="h-[80px] -mt-10 -ml-2 opacity-0 show-pop-up">
+          <div
+            class="basic-hex flex flex-col justify-center items-center text-glow"
+          >
+            <p class="text-xl">{kedalaman}</p>
+            <p style="font-size: 10px;">KEDALAMAN</p>
+          </div>
         </div>
       </div>
       <div class="w-full flex justify-between show-pop-up">

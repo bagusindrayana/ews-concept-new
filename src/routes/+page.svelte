@@ -565,8 +565,8 @@
           const d = e.features[0].properties;
           const placeholder = document.createElement("div");
           placeholder.innerHTML = `
-          <div class="card red-bordered min-h-48 min-w-48 whitespace-pre-wrap" data-id="${d.id}">
-            <div class="card-header red-bordered-bottom overflow-hidden">
+          <div class="card bordered-red min-h-48 min-w-48 whitespace-pre-wrap" data-id="${d.id}">
+            <div class="card-header bordered-red-bottom overflow-hidden">
               <div class="strip-wrapper"><div class="strip-bar"></div></div>
               <div class="absolute top-0 bottom-0 left-0 right-0 flex justify-center items-center">
                 <p class="p-1 bg-black font-bold text-xs text-glow">GEMPA BUMI</p>
@@ -974,8 +974,8 @@
     map.flyTo({ center: [d.lng, d.lat], zoom: 6, essential: true });
     const placeholder = document.createElement("div");
     placeholder.innerHTML = `
-      <div class="card red-bordered min-h-48 min-w-48 whitespace-pre-wrap" data-id="${d.id}">
-        <div class="card-header red-bordered-bottom overflow-hidden">
+      <div class="card bordered-red min-h-48 min-w-48 whitespace-pre-wrap" data-id="${d.id}">
+        <div class="card-header bordered-red-bottom overflow-hidden">
           <div class="strip-wrapper"><div class="strip-bar"></div></div>
           <div class="absolute top-0 bottom-0 left-0 right-0 flex justify-center items-center">
             <p class="p-1 bg-black font-bold text-xs text-glow">GEMPA BUMI</p>
@@ -1209,7 +1209,7 @@
           </div>
           {#if alertGempaBumi.mag >= 5}
             <div
-              class="red-bordered p-2 overflow-y-auto custom-scrollbar mt-2 pointer-events-auto"
+              class="bordered-red p-2 overflow-y-auto custom-scrollbar mt-2 pointer-events-auto"
               style="max-height:20vh"
             >
               <ul>
@@ -1269,7 +1269,7 @@
           </div>
           {#if infoTsunami.infoTsunami.level?.includes("PD-1") || infoTsunami.infoTsunami.level?.includes("PD-2")}
             <div
-              class="red-bordered p-2 overflow-y-auto custom-scrollbar mt-2 pointer-events-auto"
+              class="bordered-red p-2 overflow-y-auto custom-scrollbar mt-2 pointer-events-auto"
               style="max-height:20vh"
             >
               <ul>
@@ -1379,7 +1379,7 @@
             </div>
             {#if agi.mag >= 5}
               <div
-                class="red-bordered p-2 overflow-y-auto custom-scrollbar mt-2 pointer-events-auto"
+                class="bordered-red p-2 overflow-y-auto custom-scrollbar mt-2 pointer-events-auto"
                 style="max-height:20vh"
               >
                 <ul>
@@ -1834,12 +1834,7 @@
   {#if !loadingScreen}
     {#each alertGempaBumis as v, i}
       <div>
-        <GempaBumiAlert
-          magnitudo={v.mag}
-          kedalaman={v.depth}
-          show={true}
-          closeInSecond={6}
-        />
+        <GempaBumiAlert magnitudo={v.mag} kedalaman={v.depth} show={true} />
       </div>
     {/each}
   {/if}
