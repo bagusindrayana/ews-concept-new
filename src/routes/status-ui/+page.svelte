@@ -154,7 +154,9 @@
                   class="status-node slide-fade-in {item.type === 'danger'
                     ? 'danger'
                     : ''} w-24 h-6 flex flex-grow flex-col items-center justify-center relative mt-6 -mr-2 z-5 text-black text-xs font-bold"
-                  style="animation-delay: {branchIndex * index * 10}ms;"
+                  style="animation-delay: {(branchIndex + 1) *
+                    (index + 1) *
+                    10}ms;"
                 >
                   <!-- {item.type === "danger" ? item.status : ""} -->
                 </div>
@@ -168,7 +170,9 @@
                 <div class="w-24 flex justify-end">
                   <div
                     class="h-[2px] w-24 bg-primary shadow-[0_0_10px_rgba(255,0,0,0.8)] z-0 line-node"
-                    style="animation-delay: {branchIndex * index * 10}ms;"
+                    style="animation-delay: {(branchIndex + 1) *
+                      (index + 1) *
+                      10}ms;"
                   ></div>
                 </div>
               </div>
@@ -181,7 +185,9 @@
                 <div class="w-24 flex justify-start">
                   <div
                     class="h-[2px] w-24 bg-primary shadow-[0_0_10px_rgba(255,0,0,0.8)] z-0 line-node"
-                    style="animation-delay: {branchIndex * index * 10}ms;"
+                    style="animation-delay: {(branchIndex + 1) *
+                      (index + 1) *
+                      10}ms;"
                   ></div>
                 </div>
                 <!-- Label -->
@@ -189,7 +195,9 @@
                   class="status-node-flip slide-fade-in {item.type === 'danger'
                     ? 'danger'
                     : ''} w-24 h-6 flex flex-col items-center justify-center relative mt-6 -ml-2 z-5 text-black text-xs font-bold"
-                  style="animation-delay: {branchIndex * index * 10}ms;"
+                  style="animation-delay: {(branchIndex + 1) *
+                    (index + 1) *
+                    10}ms;"
                 >
                   <!-- {item.type === "danger" ? item.status : ""} -->
                 </div>
