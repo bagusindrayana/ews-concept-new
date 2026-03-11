@@ -24,7 +24,7 @@
 
     // Responsive Canvas dimensions
     let width = 1200;
-    let height = 300;
+    let height = 600;
     
     // Time View Window (how many milliseconds are visible on screen)
     // E.g., 10000ms = 10 seconds of data on screen at once
@@ -51,6 +51,7 @@
         
         const rect = container.getBoundingClientRect();
         width = rect.width;
+        height = rect.height;
         
         canvas.width = width;
         canvas.height = height;
@@ -90,7 +91,6 @@
     function handleMouseDown(e: MouseEvent) {
         isDragging = true;
         lastMouseX = e.clientX;
-        canvas.style.cursor = 'grabbing';
     }
     
     function handleMouseMove(e: MouseEvent) {
@@ -111,29 +111,25 @@
     
     function handleMouseUp() {
         isDragging = false;
-        canvas.style.cursor = 'grab';
     }
 
-    function formatTime(ms: number) {
+    function formatTimeStr(ms: number) {
         const d = new Date(ms);
-        const hh = d.getHours().toString().padStart(2, '0');
-        const mm = d.getMinutes().toString().padStart(2, '0');
-        const ss = d.getSeconds().toString().padStart(2, '0');
-        return `${hh}:${mm}:${ss}`;
+        return d.toISOString().substring(11, 19); // HH:MM:SS
     }
 
     function draw() {
         if (!ctx || !canvas) return;
 
-        ctx.fillStyle = '#111827';
+        ctx.fillStyle = '#000000';
         ctx.fillRect(0, 0, width, height);
 
         if (dataBuffer.length === 0) {
             // Draw empty state
-            ctx.fillStyle = '#9CA3AF';
-            ctx.font = '14px Inter';
+            ctx.fillStyle = '#ff6600';
+            ctx.font = 'bold 16px "Inter", sans-serif';
             ctx.textAlign = 'center';
-            ctx.fillText("Menunggu Data...", width/2, height/2);
+            ctx.fillText("WAITING FOR SIGNAL...", width/2, height/2);
             return;
         }
 
@@ -142,79 +138,138 @@
         const rightEdgeTime = latestTime - timeOffsetMs;
         const leftEdgeTime = rightEdgeTime - timeWindowMs;
 
-        // Draw grid lines & Labels
-        ctx.strokeStyle = '#374151'; // Tailwind gray-700
+        const leftPadding = 70;
+        const bottomPadding = 40;
+        const drawWidth = width - leftPadding;
+        const drawHeight = height - bottomPadding;
+
+        // X-Axis Grid inside graph area (Neon Green with Crosshairs)
+        ctx.strokeStyle = '#33cc55'; 
         ctx.lineWidth = 1;
-        ctx.fillStyle = '#9CA3AF'; // Tailwind gray-400
-        ctx.font = '10px "Inter", sans-serif';
+        ctx.beginPath();
+
+        const xGridStep = drawWidth / 8; 
+        const yGridStep = drawHeight / 12; // 12 divisions like the EVANGELION reference
+        
+        for (let xPos = leftPadding; xPos <= width; xPos += xGridStep) {
+            ctx.moveTo(xPos, 0);
+            ctx.lineTo(xPos, drawHeight);
+            
+            // Draw crosshairs
+            for (let yPos = 0; yPos <= drawHeight; yPos += yGridStep) {
+                // Crosshairs length: 10px
+                ctx.moveTo(xPos - 5, yPos);
+                ctx.lineTo(xPos + 5, yPos);
+            }
+        }
+        ctx.stroke();
+
+        // Left Label Ruler (Amplitude)
+        ctx.strokeStyle = '#ff6600';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(leftPadding, 0);
+        ctx.lineTo(leftPadding, drawHeight);
+        
+        ctx.fillStyle = '#ff6600';
+        ctx.font = 'bold 14px "Inter", sans-serif';
         ctx.textAlign = 'right';
         ctx.textBaseline = 'middle';
         
-        ctx.beginPath();
-        
-        // Y-Axis (Amplitude)
-        const yGridStep = height / 6;
-        for (let y = 0; y <= height; y += yGridStep) {
-            ctx.moveTo(0, y);
-            ctx.lineTo(width, y);
-            
-            if (y !== height / 2) { 
-                const realValue = (height / 2 - y) / zoomLevel;
-                ctx.fillText(Math.round(realValue).toString(), width - 10, y - 8);
-            }
-        }
-        
-        // X-Axis (Time)
-        const xGridStep = width / 8; // 8 vertical grid lines
-        for (let x = 0; x <= width; x += xGridStep) {
-            ctx.moveTo(x, 0);
-            ctx.lineTo(x, height);
-            
-            // Map pixel X to timestamp
-            // Screen is leftEdgeTime (x=0) to rightEdgeTime (x=width)
-            const timeAtX = leftEdgeTime + (x / width) * timeWindowMs;
-            
-            ctx.textAlign = 'center';
-            ctx.fillText(formatTime(timeAtX), x, height - 10);
+        for (let y = 0; y <= drawHeight; y += yGridStep) {
+            // Ticks
+            ctx.moveTo(leftPadding - 8, y);
+            ctx.lineTo(leftPadding, y);
+
+            const actualValue = (drawHeight / 2 - y) / zoomLevel;
+            // Format to integer since amplitude counts are generally large or zero
+            ctx.fillText(Math.round(actualValue).toString(), leftPadding - 10, y);
         }
         ctx.stroke();
 
-        // Draw center baseline (Zero amplitude)
-        ctx.strokeStyle = '#6B7280'; // Tailwind gray-500
+        // Bottom Ruler (Time/Ticks)
+        ctx.strokeStyle = '#ff6600';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(0, drawHeight);
+        ctx.lineTo(width, drawHeight);
+        ctx.stroke();
+
+        ctx.fillStyle = '#ff6600';
+        ctx.font = 'bold 12px "Inter", sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'top';
+
+        ctx.strokeStyle = '#ff6600';
         ctx.lineWidth = 1.5;
         ctx.beginPath();
-        ctx.moveTo(0, height / 2);
-        ctx.lineTo(width, height / 2);
-        ctx.stroke();
-        
-        // Draw 0 label
-        ctx.textAlign = 'right';
-        ctx.fillStyle = '#D1D5DB';
-        ctx.fillText("0", width - 10, height / 2 - 8);
 
-        // Filter and Draw Waveform Points
-        // We only draw points that fall within or slightly outside our visible time window
+        const pixelsPerMs = drawWidth / timeWindowMs;
+        
+        // Find the first integer second within our visible window
+        const startSecond = Math.floor(leftEdgeTime / 1000);
+        const endSecond = Math.ceil(rightEdgeTime / 1000);
+
+        for (let sec = startSecond; sec <= endSecond; sec++) {
+            const timeAtTick = sec * 1000;
+            const x = leftPadding + (timeAtTick - leftEdgeTime) * pixelsPerMs;
+            
+            if (x >= leftPadding && x <= width) {
+                let tickLen = 6;
+                // Every 10 seconds is a major tick
+                if (sec % 10 === 0) {
+                    tickLen = 20;
+                    let timeLabel = formatTimeStr(timeAtTick);
+                    ctx.fillText(timeLabel, x, drawHeight + 22);
+                } else if (sec % 5 === 0) {
+                    tickLen = 12;
+                } else if (sec % 1 === 0) {
+                    tickLen = 6;
+                }
+                
+                ctx.moveTo(x, drawHeight);
+                ctx.lineTo(x, drawHeight + tickLen);
+                
+                // Minor ticks every 0.25 sec
+                for (let minor = 1; minor < 4; minor++) {
+                    const minorX = x + (minor * 0.25 * 1000) * pixelsPerMs;
+                    if (minorX > leftPadding && minorX <= width) {
+                        ctx.moveTo(minorX, drawHeight);
+                        ctx.lineTo(minorX, drawHeight + 4);
+                    }
+                }
+            }
+        }
+        ctx.stroke();
+
+        // Draw the waveform line
         const visiblePoints = dataBuffer.filter(p => p.t >= leftEdgeTime - 1000 && p.t <= rightEdgeTime + 1000);
 
         if (visiblePoints.length > 0) {
-            ctx.strokeStyle = '#10B981'; // Tailwind emerald-500
-            ctx.lineWidth = 1.5; // Slightly thinner for dense data
+            ctx.save();
+            ctx.beginPath();
+            ctx.rect(leftPadding, 0, drawWidth, drawHeight);
+            ctx.clip();
+
+            ctx.strokeStyle = '#ff9900'; // Bright orange
+            ctx.shadowBlur = 12;
+            ctx.shadowColor = '#ff3300';
+            ctx.lineWidth = 2.5; 
             ctx.lineJoin = 'round';
             ctx.beginPath();
 
             visiblePoints.forEach((p, i) => {
-                // Map time to X pixel
-                // x = 0 is leftEdgeTime, x = width is rightEdgeTime
                 const timeRatio = (p.t - leftEdgeTime) / timeWindowMs;
-                const x = timeRatio * width;
+                const x = leftPadding + (timeRatio * drawWidth);
                 
-                const y = height / 2 - (p.v * zoomLevel);
-
+                const y = drawHeight / 2 - (p.v * zoomLevel);
+                
                 if (i === 0) ctx.moveTo(x, y);
                 else ctx.lineTo(x, y);
             });
 
             ctx.stroke();
+            ctx.restore();
         }
     }
 
@@ -232,9 +287,6 @@
         window.addEventListener('mousemove', handleMouseMove); // Window catches fast drags
         window.addEventListener('mouseup', handleMouseUp);
 
-        // Default cursor
-        canvas.style.cursor = 'grab';
-
         seis = await import("seisplotjs");
 
         const ws = new WebSocket("ws://localhost:8080");
@@ -250,19 +302,15 @@
                 records.forEach((r: any) => {
                     const samples = r.decompress();
                     
-                    // Parse start time. Seisplotjs records usually have .header.start
-                    // which is a moment or luxon date object.
                     let startTimeMs = Date.now();
                     if (r.header && r.header.start) {
                         try {
                             startTimeMs = r.header.start.valueOf(); // Gets milliseconds
                         } catch (e) {
-                            console.warn("Could not parse record start time, falling back to Date.now()");
+                            console.warn("Could not parse record start time");
                         }
                     }
                     
-                    // Determine sample rate multiplier
-                    // r.header.sampleRate is usually samples per second (Hz)
                     let msPerSample = nominalSampleRateMs;
                     if (r.header && r.header.sampleRate) {
                         msPerSample = 1000 / r.header.sampleRate;
@@ -276,14 +324,11 @@
                     }
                 });
                 
-                // Sort buffer just in case packets arrived out of order
                 dataBuffer.sort((a, b) => a.t - b.t);
                 
-                // Trim old data based on MAX_BUFFER_MS
                 const latestTime = dataBuffer[dataBuffer.length - 1].t;
                 const cutoffTime = latestTime - MAX_BUFFER_MS;
                 
-                // Find index of first element that is >= cutoffTime
                 let trimIndex = 0;
                 while (trimIndex < dataBuffer.length && dataBuffer[trimIndex].t < cutoffTime) {
                     trimIndex++;
@@ -293,12 +338,9 @@
                     dataBuffer = dataBuffer.slice(trimIndex);
                 }
 
-                // Smoothly pull viewport back to realtime if not exploring history
                 if (!isDragging && timeOffsetMs === 0) {
                     draw();
                 } else if (!isDragging && timeOffsetMs > 0) {
-                    // Slight auto-scroll to follow new data if we are panned (optional)
-                    // timeOffsetMs += (samples.length * msPerSample);
                     draw();
                 }
             } catch (err) {
@@ -308,7 +350,6 @@
         
         (window as any)._mseedWs = ws;
         
-        // Setup animation frame for smooth continuous drawing even between packets
         function updateLoop() {
             if (!isDragging) {
                 draw();
@@ -337,46 +378,66 @@
     });
 </script>
 
-<div class="p-4 md:p-6 bg-gray-950 min-h-screen text-white flex flex-col items-center justify-center">
-    <div class="w-full max-w-6xl flex flex-col items-center">
-        <h1 class="text-2xl md:text-3xl font-bold mb-2 tracking-wide text-emerald-400">Live Seismic Waveform</h1>
-        <p class="text-gray-400 text-sm mb-6 flex flex-wrap justify-center items-center gap-4">
-            <span class="flex items-center gap-1">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122"></path></svg>
-                Pan: Click & Drag
-            </span>
-            <span class="flex items-center gap-1">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path></svg>
-                Navigate: Horizontal Scroll
-            </span>
-        </p>
+<svelte:head>
+    <title>Live Seismic Waveform - Psychographic</title>
+</svelte:head>
 
-        <div bind:this={container} class="w-full relative overflow-hidden rounded-xl shadow-[0_0_30px_rgba(16,185,129,0.1)] ring-1 ring-gray-800 bg-gray-900 group">
-            <!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
-            <canvas bind:this={canvas} {width} {height} class="block w-full touch-none select-none"></canvas>
+<div class="p-2 md:p-6 bg-black min-h-screen text-white flex flex-col items-center justify-center font-mono select-none">
+    <div class="w-full max-w-[1400px] flex flex-col">
+        <div class="relative w-full h-[75vh] border-b-4 border-l-4 bg-black overflow-hidden flex flex-col items-center" style="border-bottom-color: #ff6600; border-left-color: #ff6600;">
             
-            <div class="absolute top-4 left-4 flex flex-col gap-1">
-                <div class="text-xs font-mono text-gray-400 bg-black/50 px-2 py-1 rounded backdrop-blur-sm border border-gray-700 pointer-events-none transition-opacity">
-                    Zoom (Y): {zoomLevel.toFixed(4)}x
+            <!-- Top Left -->
+            <div class="absolute top-4 left-4 md:left-24 z-10 pointer-events-none">
+                <div class="border-2 rounded p-1 inline-block bg-black/60 shadow-lg" style="border-color: #ff6600;">
+                    <div class="font-bold text-xl md:text-3xl uppercase tracking-tighter px-2 py-0 border rounded-sm mix-blend-screen" style="color: #ff9900; border-color: #ff6600; text-shadow: 0 0 10px #ff6600, 0 0 20px #ff3300;">
+                        SEISMIC WAVEFORM
+                    </div>
                 </div>
-                {#if timeOffsetMs > 0}
-                    <button 
-                        on:click={() => timeOffsetMs = 0}
-                        class="text-xs font-mono text-blue-400 bg-blue-900/30 hover:bg-blue-900/60 px-2 py-1 rounded backdrop-blur-sm border border-blue-800/50 cursor-pointer transition-colors text-left"
-                    >
-                        &rarr; Back to Live
-                    </button>
-                {/if}
+                <div class="font-bold mt-1 tracking-widest text-sm md:text-xl drop-shadow-[0_0_5px_rgba(255,102,0,1)]" style="color: #ff6600;">CHANNEL: BHZ</div>
             </div>
 
-            <div class="absolute top-4 right-4 flex items-center gap-2 bg-black/50 px-3 py-1.5 rounded-full backdrop-blur-sm border border-gray-700">
-                <span class="relative flex h-2.5 w-2.5">
-                  <span class="animate-ping absolute inline-flex h-full w-full rounded-full {timeOffsetMs === 0 ? 'bg-emerald-400' : 'bg-yellow-400'} opacity-75"></span>
-                  <span class="relative inline-flex rounded-full h-2.5 w-2.5 {timeOffsetMs === 0 ? 'bg-emerald-500' : 'bg-yellow-500'}"></span>
-                </span>
-                <span class="text-xs font-bold {timeOffsetMs === 0 ? 'text-emerald-400' : 'text-yellow-400'} tracking-wider">
-                    {timeOffsetMs === 0 ? 'LIVE' : 'HISTORY'}
-                </span>
+            <!-- Top Right -->
+            <div class="absolute top-4 right-4 md:right-16 z-10 pointer-events-none flex flex-col items-end">
+                <div class="border-2 rounded-lg p-1 inline-block bg-black/60 shadow-lg" style="border-color: #ff6600;">
+                    <div class="border rounded px-3 py-1 flex flex-col" style="border-color: #ff6600;">
+                        <div class="font-bold text-[10px] md:text-sm tracking-widest leading-none mb-1" style="color: #ff6600;">STATION:</div>
+                        <div class="font-bold text-2xl md:text-4xl tracking-widest leading-none text-right" style="color: #ff9900; text-shadow: 0 0 10px #ff6600;">GSI GE</div>
+                    </div>
+                </div>
+                <div class="font-bold text-[8px] md:text-xs tracking-widest text-right mt-1 bg-black/60 px-1 drop-shadow-[0_0_5px_rgba(255,102,0,1)]" style="color: #ff6600;">Y: AMPLITUDE (COUNTS) | X: TIME (UTC)</div>
+            </div>
+
+            <div bind:this={container} class="w-full h-full relative cursor-crosshair">
+                <canvas bind:this={canvas} class="absolute inset-0 block w-full h-full touch-none"></canvas>
+            </div>
+        </div>
+        
+        <!-- Controls below -->
+        <div class="flex justify-between items-center mt-2 text-xs uppercase tracking-widest px-2" style="color: #ff6600;">
+            <div class="flex items-center gap-4 flex-wrap">
+                <span>Pan: Click & Drag</span>
+                <span class="hidden md:inline">|</span>
+                <span>Zoom Y: Wheel</span>
+                <span class="hidden md:inline">|</span>
+                <span>Nav: Shift+Wheel</span>
+                <span class="hidden md:inline">|</span>
+                <span>Zoom: {zoomLevel.toFixed(4)}x</span>
+            </div>
+            <div class="flex items-center gap-4">
+                {#if timeOffsetMs > 0}
+                    <button class="bg-orange-950 border hover:bg-orange-800 text-white px-3 py-1 rounded cursor-pointer transition-colors" style="border-color: #ff6600;" on:click={() => timeOffsetMs = 0}>
+                        &rarr; Resume Live
+                    </button>
+                {/if}
+                <div class="flex items-center gap-2">
+                    <span class="relative flex h-3 w-3">
+                      <span class="animate-ping absolute inline-flex h-full w-full rounded-full {timeOffsetMs === 0 ? 'bg-orange-500' : 'bg-yellow-500'} opacity-75"></span>
+                      <span class="relative inline-flex rounded-full h-3 w-3 {timeOffsetMs === 0 ? 'bg-orange-600' : 'bg-yellow-600'}"></span>
+                    </span>
+                    <span class="font-bold {timeOffsetMs === 0 ? 'text-orange-500' : 'text-yellow-500'}">
+                        {timeOffsetMs === 0 ? 'LIVE' : 'HISTORY'}
+                    </span>
+                </div>
             </div>
         </div>
     </div>
