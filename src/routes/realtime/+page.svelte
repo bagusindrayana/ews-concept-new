@@ -155,11 +155,23 @@
             ctx.moveTo(xPos, 0);
             ctx.lineTo(xPos, drawHeight);
 
-            // Draw crosshairs
+            // Draw crosshairs on the lines
             for (let yPos = 0; yPos <= drawHeight; yPos += yGridStep) {
                 // Crosshairs length: 10px
                 ctx.moveTo(xPos - 5, yPos);
                 ctx.lineTo(xPos + 5, yPos);
+            }
+            
+            // Draw floating crosshairs between the vertical lines (shifted by half a grid step)
+            // Only draw if we're not on the very last vertical line to prevent drawing outside the right edge
+            if (xPos + xGridStep <= width) {
+                const midX = xPos + xGridStep / 2;
+                for (let yPos = yGridStep / 2; yPos <= drawHeight; yPos += yGridStep) {
+                    ctx.moveTo(midX - 5, yPos);
+                    ctx.lineTo(midX + 5, yPos);
+                    ctx.moveTo(midX, yPos - 5);
+                    ctx.lineTo(midX, yPos + 5);
+                }
             }
         }
         ctx.stroke();
