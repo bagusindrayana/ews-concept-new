@@ -3,7 +3,14 @@
 
   // Dummy data for the status list
   let statuses = $state<
-    { id: string; title: string; status: string; type: string }[]
+    {
+      id: string;
+      title: string;
+      status: string;
+      type: string;
+      stationCode: string;
+      networkCode: string;
+    }[]
   >([]);
 
   // Jumlah branch yang diinginkan (bisa diubah oleh user)
@@ -71,6 +78,8 @@
               title: `${netCode}-${staCode}`,
               status: endDate ? "ACTIVE" : "OFFLINE",
               type: endDate ? "normal" : "danger",
+              stationCode: `${staCode}`,
+              networkCode: `${netCode}`,
             });
           }
         }
@@ -164,7 +173,10 @@
                 <span
                   class="font-bold text-xs text-glow uppercase absolute z-10 right-6 text-right pt-4"
                 >
-                  {item.title}
+                  <a
+                    href="/realtime?networkCode={item.networkCode}&stationCode={item.stationCode}"
+                    >{item.title}</a
+                  >
                 </span>
                 <!-- Connecting Line to center -->
                 <div class="w-24 flex justify-end">
@@ -205,7 +217,10 @@
                 <span
                   class="font-bold text-xs text-glow uppercase absolute z-10 left-6 text-left pt-4"
                 >
-                  {item.title}
+                  <a
+                    href="/realtime?networkCode={item.networkCode}&stationCode={item.stationCode}"
+                    >{item.title}</a
+                  >
                 </span>
               </div>
             {/if}
