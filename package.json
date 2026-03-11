@@ -18,19 +18,24 @@
 		"@types/geojson": "^7946.0.16",
 		"@types/luxon": "^3.7.1",
 		"@types/mapbox-gl": "^3.1.0",
+		"@types/ws": "^8.18.1",
+		"@ubermanu/sveltekit-websocket": "^0.3.3",
 		"svelte": "^5.51.0",
 		"svelte-check": "^4.4.2",
 		"typescript": "^5.9.3",
 		"vite": "^7.3.1"
 	},
 	"dependencies": {
+		"@sveltejs/adapter-node": "^5.5.4",
 		"@tailwindcss/vite": "^4.2.1",
 		"@turf/turf": "^6.5",
 		"fast-xml-parser": "^4.3.6",
 		"luxon": "^3.4.4",
 		"mapbox-gl": "^3.2.0",
 		"mapbox-gl-animated-popup": "^0.4.0",
+		"seisplotjs": "^3.2.1",
 		"socket.io-client": "^4.7.5",
-		"tailwindcss": "^4.2.1"
+		"tailwindcss": "^4.2.1",
+		"ws": "^8.19.0"
 	}
 }

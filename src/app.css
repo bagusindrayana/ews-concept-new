@@ -196,6 +196,10 @@ body {
     animation-duration: 10s;
 }
 
+.anim-duration-5 {
+    animation-duration: 5s !important;
+}
+
 .anim-duration-10 {
     animation-duration: 10s !important;
 }
@@ -1766,4 +1770,110 @@ table tr td {
 /* Fix mapbox marker positioning */
 .mapboxgl-marker {
     position: absolute !important;
+}
+
+
+.status-node {
+    background-image: url("/images/SkewRectangle_Green.svg");
+    background-size: contain;
+    background-position: center;
+    background-repeat: no-repeat;
+    rotate: -21deg;
+}
+
+.status-node.danger {
+    background-image: url("/images/SkewRectangle_Red.svg");
+}
+
+
+.status-node-flip {
+    background-image: url("/images/SkewRectangle_Green_Flip.svg");
+    background-size: contain;
+    background-position: center;
+    background-repeat: no-repeat;
+    rotate: 21deg;
+}
+
+.status-node-flip.danger {
+    background-image: url("/images/SkewRectangle_Red_Flip.svg");
+}
+
+
+.status-node.slide-fade-in {
+    opacity: 0;
+    transform: translateX(-20px);
+    animation: slideFadeIn 0.5s ease-in-out forwards;
+}
+
+
+.status-node-flip.slide-fade-in {
+    opacity: 0;
+    transform: translateX(20px);
+    animation: slideFadeInFlip 0.5s ease-in-out forwards;
+}
+
+
+/* Slide and fade in animation */
+.slide-fade-in {
+    animation: slideFadeIn 0.5s ease-in-out forwards;
+}
+
+@keyframes slideFadeIn {
+    0% {
+        opacity: 0;
+        transform: translateX(-20px);
+    }
+
+    100% {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.slide-fade-in-flip {
+    animation: slideFadeInFlip 0.5s ease-in-out forwards;
+}
+
+@keyframes slideFadeInFlip {
+    0% {
+        opacity: 0;
+        transform: translateX(20px);
+    }
+
+    100% {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.line-node {
+    width: 0%;
+    animation: slideWidth 0.5s ease-in-out forwards;
+}
+
+
+@keyframes slideWidth {
+    0% {
+        width: 0%;
+    }
+
+    100% {
+        width: calc(var(--spacing) * 24);
+    }
+}
+
+
+.line-central {
+    height: 0%;
+    animation: slideHeight 0.5s ease-in-out forwards;
+}
+
+@keyframes slideHeight {
+    0% {
+        height: 0%;
+    }
+
+    100% {
+        height: 100%;
+    }
 }
