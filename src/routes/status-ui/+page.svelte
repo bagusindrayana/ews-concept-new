@@ -92,7 +92,7 @@
 </svelte:head>
 
 <div
-  class="min-h-screen py-8 flex flex-col items-center overflow-x-hidden font-mono"
+  class="min-h-screen py-8 flex flex-col items-center overflow-hidden font-mono"
 >
   <div class="backgroundline absolute inset-0 pointer-events-none z-10"></div>
   <div class="scanline absolute inset-0 pointer-events-none z-10"></div>
