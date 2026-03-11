@@ -1,12 +1,18 @@
 <script lang="ts">
     import { onMount, onDestroy } from "svelte";
     import { browser } from "$app/environment";
+    import Card from "$lib/components/Card.svelte";
 
+    import type { PageData } from "./$types";
+
+    export let data: PageData;
     let canvas: HTMLCanvasElement;
     let ctx: CanvasRenderingContext2D;
     let container: HTMLDivElement;
 
     let seis: any;
+
+    let stationData: any;
 
     // Data point structure
     interface DataPoint {
@@ -18,7 +24,7 @@
     let dataBuffer: DataPoint[] = [];
 
     // Zoom/Scale factor for Y-axis (Amplitude)
-    let zoomLevel = 0.005;
+    let zoomLevel = 0.05;
     const MIN_ZOOM = 0.0001;
     const MAX_ZOOM = 0.1;
 
@@ -45,6 +51,94 @@
     // Approximate sample rate if not available from miniseed record
     // Usually SeedLink gives 100Hz or 50Hz. Let's assume 100Hz (10ms per sample)
     const nominalSampleRateMs = 10;
+
+    interface XmlAttributes {
+        [key: string]: string;
+    }
+
+    interface JsonNode {
+        "@attributes"?: XmlAttributes;
+        "#text"?: string;
+        [key: string]:
+            | JsonNode
+            | JsonNode[]
+            | string
+            | XmlAttributes
+            | null
+            | undefined;
+    }
+
+    type JsonValue = JsonNode | JsonNode[] | string | null;
+
+    function xmlToJson(xmlString: string): Record<string, JsonValue> {
+        const parser = new DOMParser();
+        const xmlDoc = parser.parseFromString(xmlString, "text/xml");
+
+        const parseError = xmlDoc.querySelector("parsererror");
+        if (parseError) {
+            throw new Error("Invalid XML: " + parseError.textContent);
+        }
+
+        function nodeToJson(node: Element): JsonValue {
+            const obj: JsonNode = {};
+
+            // Handle attributes
+            if (node.attributes && node.attributes.length > 0) {
+                obj["@attributes"] = {};
+                for (const attr of Array.from(node.attributes)) {
+                    (obj["@attributes"] as XmlAttributes)[attr.name] =
+                        attr.value;
+                }
+            }
+
+            // Handle child nodes
+            for (const child of Array.from(node.childNodes)) {
+                // Text node
+                if (child.nodeType === Node.TEXT_NODE) {
+                    const text = child.textContent?.trim();
+                    if (text) {
+                        obj["#text"] = text;
+                    }
+                    continue;
+                }
+
+                // Element node
+                if (child.nodeType === Node.ELEMENT_NODE) {
+                    const childElement = child as Element;
+                    const childJson = nodeToJson(childElement);
+                    const nodeName = childElement.nodeName;
+
+                    if (obj[nodeName] === undefined) {
+                        obj[nodeName] = childJson;
+                    } else if (Array.isArray(obj[nodeName])) {
+                        (obj[nodeName] as JsonNode[]).push(
+                            childJson as JsonNode,
+                        );
+                    } else {
+                        obj[nodeName] = [
+                            obj[nodeName] as JsonNode,
+                            childJson as JsonNode,
+                        ];
+                    }
+                }
+            }
+
+            // If only #text, return the value directly
+            if (Object.keys(obj).length === 1 && obj["#text"] !== undefined) {
+                return obj["#text"];
+            }
+
+            // If empty node
+            if (Object.keys(obj).length === 0) {
+                return null;
+            }
+
+            return obj;
+        }
+
+        const root = xmlDoc.documentElement;
+        return { [root.nodeName]: nodeToJson(root) };
+    }
 
     function resizeCanvas() {
         if (!container || !canvas) return;
@@ -161,12 +255,16 @@
                 ctx.moveTo(xPos - 5, yPos);
                 ctx.lineTo(xPos + 5, yPos);
             }
-            
+
             // Draw floating crosshairs between the vertical lines (shifted by half a grid step)
             // Only draw if we're not on the very last vertical line to prevent drawing outside the right edge
             if (xPos + xGridStep <= width) {
                 const midX = xPos + xGridStep / 2;
-                for (let yPos = yGridStep / 2; yPos <= drawHeight; yPos += yGridStep) {
+                for (
+                    let yPos = yGridStep / 2;
+                    yPos <= drawHeight;
+                    yPos += yGridStep
+                ) {
                     ctx.moveTo(midX - 5, yPos);
                     ctx.lineTo(midX + 5, yPos);
                     ctx.moveTo(midX, yPos - 5);
@@ -291,93 +389,128 @@
         }
     }
 
+    function loadDataStation(network: string, station: string) {
+        const url = `https://geofon.gfz-potsdam.de/fdsnws/station/1/query?network=${network}&station=${station}&level=response&format=xml`;
+
+        fetch(url)
+            .then((response) => {
+                if (!response.ok)
+                    throw new Error("Gagal mengambil data jaringan");
+                // 1. Ubah response dari server menjadi String Teks
+                return response.text();
+            })
+            .then((xmlString) => {
+                stationData = xmlToJson(xmlString).FDSNStationXML;
+                console.log(stationData);
+            })
+            .catch((error) => {
+                console.error("Terjadi kesalahan:", error);
+            });
+    }
+
     onMount(async () => {
         if (!browser) return;
 
-        ctx = canvas.getContext("2d")!;
-
-        resizeCanvas();
-        window.addEventListener("resize", resizeCanvas);
-
-        canvas.addEventListener("wheel", handleWheel, { passive: false });
-        // Add drag events
-        canvas.addEventListener("mousedown", handleMouseDown);
-        window.addEventListener("mousemove", handleMouseMove); // Window catches fast drags
-        window.addEventListener("mouseup", handleMouseUp);
-
-        seis = await import("seisplotjs");
-
-        const ws = new WebSocket("ws://localhost:8080");
-        ws.binaryType = "arraybuffer";
-
-        ws.onmessage = (e) => {
-            const dataBufferIncoming = e.data;
-
-            try {
-                const mseedData = dataBufferIncoming.slice(8);
-                const records = seis.miniseed.parseDataRecords(mseedData);
-
-                records.forEach((r: any) => {
-                    const samples = r.decompress();
-
-                    let startTimeMs = Date.now();
-                    if (r.header && r.header.start) {
-                        try {
-                            startTimeMs = r.header.start.valueOf(); // Gets milliseconds
-                        } catch (e) {
-                            console.warn("Could not parse record start time");
-                        }
-                    }
-
-                    let msPerSample = nominalSampleRateMs;
-                    if (r.header && r.header.sampleRate) {
-                        msPerSample = 1000 / r.header.sampleRate;
-                    }
-
-                    for (let i = 0; i < samples.length; i++) {
-                        dataBuffer.push({
-                            t: startTimeMs + i * msPerSample,
-                            v: samples[i],
-                        });
-                    }
-                });
-
-                dataBuffer.sort((a, b) => a.t - b.t);
-
-                const latestTime = dataBuffer[dataBuffer.length - 1].t;
-                const cutoffTime = latestTime - MAX_BUFFER_MS;
-
-                let trimIndex = 0;
-                while (
-                    trimIndex < dataBuffer.length &&
-                    dataBuffer[trimIndex].t < cutoffTime
-                ) {
-                    trimIndex++;
-                }
-
-                if (trimIndex > 0) {
-                    dataBuffer = dataBuffer.slice(trimIndex);
-                }
-
-                if (!isDragging && timeOffsetMs === 0) {
-                    draw();
-                } else if (!isDragging && timeOffsetMs > 0) {
-                    draw();
-                }
-            } catch (err) {
-                console.error("Error parsing miniSEED data:", err);
-            }
-        };
-
-        (window as any)._mseedWs = ws;
-
-        function updateLoop() {
-            if (!isDragging) {
-                draw();
-            }
-            (window as any)._mseedAnimId = requestAnimationFrame(updateLoop);
+        console.log(data);
+        if (data.networkCode == "" || data.stationCode == "") {
+            return;
         }
-        updateLoop();
+
+        loadDataStation(data.networkCode ?? "GE", data.stationCode ?? "GSI");
+
+        // ctx = canvas.getContext("2d")!;
+
+        // resizeCanvas();
+        // window.addEventListener("resize", resizeCanvas);
+
+        // canvas.addEventListener("wheel", handleWheel, { passive: false });
+        // // Add drag events
+        // canvas.addEventListener("mousedown", handleMouseDown);
+        // window.addEventListener("mousemove", handleMouseMove); // Window catches fast drags
+        // window.addEventListener("mouseup", handleMouseUp);
+
+        // seis = await import("seisplotjs");
+
+        // const ws = new WebSocket("ws://localhost:8080");
+        // ws.binaryType = "arraybuffer";
+
+        // ws.onopen = () => {
+        //     const request = {
+        //         net: data.networkCode ?? "GE",
+        //         sta: data.stationCode ?? "GSI",
+        //         cha: "BHZ",
+        //     };
+        //     ws.send(JSON.stringify(request));
+        // };
+
+        // ws.onmessage = (e) => {
+        //     const dataBufferIncoming = e.data;
+
+        //     try {
+        //         const mseedData = dataBufferIncoming.slice(8);
+        //         const records = seis.miniseed.parseDataRecords(mseedData);
+
+        //         records.forEach((r: any) => {
+        //             const samples = r.decompress();
+
+        //             let startTimeMs = Date.now();
+        //             if (r.header && r.header.start) {
+        //                 try {
+        //                     startTimeMs = r.header.start.valueOf(); // Gets milliseconds
+        //                 } catch (e) {
+        //                     console.warn("Could not parse record start time");
+        //                 }
+        //             }
+
+        //             let msPerSample = nominalSampleRateMs;
+        //             if (r.header && r.header.sampleRate) {
+        //                 msPerSample = 1000 / r.header.sampleRate;
+        //             }
+
+        //             for (let i = 0; i < samples.length; i++) {
+        //                 dataBuffer.push({
+        //                     t: startTimeMs + i * msPerSample,
+        //                     v: samples[i],
+        //                 });
+        //             }
+        //         });
+
+        //         dataBuffer.sort((a, b) => a.t - b.t);
+
+        //         const latestTime = dataBuffer[dataBuffer.length - 1].t;
+        //         const cutoffTime = latestTime - MAX_BUFFER_MS;
+
+        //         let trimIndex = 0;
+        //         while (
+        //             trimIndex < dataBuffer.length &&
+        //             dataBuffer[trimIndex].t < cutoffTime
+        //         ) {
+        //             trimIndex++;
+        //         }
+
+        //         if (trimIndex > 0) {
+        //             dataBuffer = dataBuffer.slice(trimIndex);
+        //         }
+
+        //         if (!isDragging && timeOffsetMs === 0) {
+        //             draw();
+        //         } else if (!isDragging && timeOffsetMs > 0) {
+        //             draw();
+        //         }
+        //     } catch (err) {
+        //         console.error("Error parsing miniSEED data:", err);
+        //     }
+        // };
+
+        // (window as any)._mseedWs = ws;
+
+        // function updateLoop() {
+        //     if (!isDragging) {
+        //         draw();
+        //     }
+        //     (window as any)._mseedAnimId = requestAnimationFrame(updateLoop);
+        // }
+        // updateLoop();
     });
 
     onDestroy(() => {
@@ -404,11 +537,75 @@
 </svelte:head>
 
 <div
-    class="min-h-screen py-8 flex flex-col items-center overflow-hidden font-mono relative"
+    class="min-h-screen py-8 flex justify-center items-start overflow-hidden font-mono relative gap-2"
 >
     <div class="backgroundline absolute inset-0 pointer-events-none z-10"></div>
     <div class="scanline absolute inset-0 pointer-events-none z-10"></div>
-    <div class="w-full max-w-[1400px] flex flex-col">
+    {#if stationData != null}
+        <Card className="w-md mb-4">
+            {#snippet title()}
+                <p class="p-1 text-xl text-glow">STATION INFORMATION</p>
+            {/snippet}
+            {#snippet children()}
+                <div class="w-full flex flex-col md:flex-row gap-2">
+                    <div
+                        class="badge label bordered flex justify-between mb-2 w-full lg:w-32"
+                    >
+                        <div class="flex flex-col items-center p-1">
+                            <div class="text -characters">
+                                {stationData.Network["@attributes"]["code"]}
+                            </div>
+                            <div class="text">
+                                {stationData.Network.Station["@attributes"][
+                                    "code"
+                                ]}
+                            </div>
+                        </div>
+                        <div class="decal">
+                            <div class="w-full h-full strip-bar-vertical"></div>
+                        </div>
+                    </div>
+                    <div class="bordered p-2 w-full">
+                        <table class="w-full">
+                            <tbody>
+                                <tr>
+                                    <td class="text-left p-0"> Site </td>
+                                    <td class="text-right p-0">
+                                        {stationData.Network.Station.Site.Name}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="text-left p-0"> Elevation </td>
+                                    <td class="text-right p-0">
+                                        {stationData.Network.Station.Elevation}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="text-left p-0"> Latitude </td>
+                                    <td class="text-right p-0">
+                                        {stationData.Network.Station.Latitude}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="text-left p-0"> Longitude </td>
+                                    <td class="text-right p-0">
+                                        {stationData.Network.Station.Longitude}
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            {/snippet}
+            {#snippet footer()}
+                <div class="flex justify-center w-full">
+                    <span>{stationData.Network["Description"]}</span>
+                </div>
+            {/snippet}
+        </Card>
+    {/if}
+
+    <div class="w-full max-w-7xl flex flex-col bordered p-1">
         <div
             class="relative w-full h-[75vh] border-b-4 border-l-4 bg-black overflow-hidden flex flex-col items-center"
             style="border-bottom-color: #fa0; border-left-color: #fa0;"
@@ -483,7 +680,7 @@
                 <span class="hidden md:inline">|</span>
                 <span>Zoom: {zoomLevel.toFixed(4)}x</span>
             </div>
-            <div class="flex items-center gap-4">
+            <div class="flex items-center gap-4 h-4">
                 {#if timeOffsetMs > 0}
                     <button
                         class="bg-orange-950 border hover:bg-orange-800 text-white px-3 py-1 rounded cursor-pointer transition-colors"
