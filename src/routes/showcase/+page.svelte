@@ -67,22 +67,18 @@
         <p>Red</p>
         <div class="overflow-hidden">
           <div class="strip-wrapper">
-            <div
-              class="strip-bar strip-bar-red loop-strip anim-duration-20"
-            ></div>
-            <div
-              class="strip-bar strip-bar-red loop-strip anim-duration-20"
-            ></div>
+            <div class="strip-bar-red loop-strip anim-duration-20"></div>
+            <div class="strip-bar-red loop-strip anim-duration-20"></div>
           </div>
         </div>
         <p>Reverse</p>
         <div class="overflow-hidden">
           <div class="strip-wrapper">
             <div
-              class="strip-bar strip-bar-red loop-strip-reverse anim-duration-20"
+              class="strip-bar-red loop-strip-reverse anim-duration-20"
             ></div>
             <div
-              class="strip-bar strip-bar-red loop-strip-reverse anim-duration-20"
+              class="strip-bar-red loop-strip-reverse anim-duration-20"
             ></div>
           </div>
         </div>
@@ -91,19 +87,19 @@
         <div class="overflow-hidden h-[200px] flex gap-2">
           <div class="w-[40px] h-full strip-bar-vertical"></div>
           <div
-            class="w-[40px] h-full strip-bar-vertical strip-animation-vertical anim-duration-20"
+            class="w-[40px] h-full strip-bar-vertical loop-strip-vertical anim-duration-20"
           ></div>
           <div
-            class="w-[40px] h-full strip-bar-red-vertical strip-animation-vertical-reverse anim-duration-20"
+            class="w-[40px] h-full strip-bar-red-vertical loop-strip-vertical-reverse anim-duration-20"
           ></div>
           <div class="w-[40px] blink blink-fast h-full">
             <div
-              class="w-full h-full strip-bar-red-vertical strip-animation-vertical-reverse anim-duration-10"
+              class="w-full h-full strip-bar-red-vertical loop-strip-vertical-reverse anim-duration-10"
             ></div>
           </div>
           <div class="w-[40px] blink blink-fast h-full">
             <div
-              class="w-full h-full strip-bar-vertical strip-animation-vertical anim-duration-10"
+              class="w-full h-full strip-bar-vertical loop-strip-vertical anim-duration-10"
             ></div>
           </div>
         </div>
@@ -195,19 +191,54 @@
       <h2 class="text-xl font-semibold mb-4 border-b border-gray-700 pb-2">
         HEX
       </h2>
-      <div class="flex flex-col gap-2 w-full">
-        <div class="flex gap-2 w-full">
-          <div class="basic-hex"></div>
-          <div class="basic-hex flex flex-col justify-center items-center">
-            <p>LOREM</p>
+      <div class="flex flex-col gap-2 w-full justify-center items-center">
+        <div class="flex gap-2 w-full justify-center items-center">
+          <div class="h-[100px]">
+            <div class="basic-hex flex flex-col justify-center items-center">
+              <p>LOREM</p>
+            </div>
+          </div>
+          <div class="h-[100px]">
+            <div class="basic-hex flex flex-col justify-center items-center">
+              <div
+                class="clip-hex-inner flex flex-col justify-center items-center text-center"
+              >
+                <div class="strip-wrapper bg-black">
+                  <div class="strip-bar loop-strip anim-duration-20"></div>
+                  <div class="strip-bar loop-strip anim-duration-20"></div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
-        <div class="flex gap-2 w-full">
-          <div class="basic-hex rotate-hex"></div>
-          <div
-            class="basic-hex rotate-hex flex flex-col justify-center items-center"
-          >
-            <p>LOREM</p>
+        <div class="flex gap-2 w-full justify-center items-center">
+          <div class="h-[115px]">
+            <div
+              class="basic-hex-yellow rotate-hex flex flex-col justify-center items-center"
+            >
+              <div
+                class="clip-hex-inner flex flex-col justify-center items-center text-center"
+              >
+                <div class="strip-wrapper bg-black">
+                  <div class="strip-bar-red"></div>
+                  <div class="strip-bar-red"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="h-[115px]">
+            <div
+              class="basic-hex rotate-hex flex flex-col justify-center items-center"
+            >
+              <div
+                class="clip-hex-inner flex flex-col justify-center items-center text-center"
+              >
+                <div class="strip-wrapper bg-black">
+                  <div class="strip-bar anim-duration-20"></div>
+                  <div class="strip-bar anim-duration-20"></div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
         <div class="long-hex h-[100px]"></div>
@@ -259,7 +290,7 @@
             </div>
             <div class="decal">
               <div
-                class="w-full h-full strip-bar-vertical strip-animation-vertical-reverse anim-duration-10"
+                class="w-full h-full strip-bar-vertical loop-strip-vertical-reverse anim-duration-10"
               ></div>
             </div>
           </div>
@@ -273,7 +304,7 @@
             </div>
             <div class="decal">
               <div
-                class="w-full h-full strip-bar-red-vertical strip-animation-vertical anim-duration-10"
+                class="w-full h-full strip-bar-red-vertical loop-strip-vertical anim-duration-10"
               ></div>
             </div>
           </div>
@@ -313,7 +344,6 @@
       </div>
     </section>
 
-    <!-- ITEM KOTA TERDAMPAK DEMO -->
     <section>
       <h2 class="text-xl font-semibold mb-4 border-b border-gray-700 pb-2">
         Art <small>(Images)</small>
@@ -326,6 +356,293 @@
       <div class="flex gap-2">
         <div class="warning-black-hex"></div>
         <div class="warning-red-hex"></div>
+      </div>
+    </section>
+
+    <!-- TEXT VARIANTS -->
+    <section>
+      <h2 class="text-xl font-semibold mb-4 border-b border-gray-700 pb-2">
+        Text
+      </h2>
+      <div class="flex flex-col gap-3">
+        <div>
+          <p class="text-gray-500 text-xs mb-1">ews-text</p>
+          <p class="ews-text text-lg">Early Warning System</p>
+        </div>
+        <div>
+          <p class="text-gray-500 text-xs mb-1">ews-text danger</p>
+          <p class="ews-text danger text-lg">PERINGATAN DINI</p>
+        </div>
+        <div>
+          <p class="text-gray-500 text-xs mb-1">ews-text-glow</p>
+          <p class="ews-text-glow text-lg">GLOW TEXT ORANGE</p>
+        </div>
+        <div>
+          <p class="text-gray-500 text-xs mb-1">ews-text-glow danger</p>
+          <p class="ews-text-glow danger text-lg">GLOW TEXT RED</p>
+        </div>
+        <div>
+          <p class="text-gray-500 text-xs mb-1">ews-text-digital</p>
+          <p class="ews-text-digital text-2xl">12:45:30</p>
+        </div>
+        <div>
+          <p class="text-gray-500 text-xs mb-1">ews-text-digital danger</p>
+          <p class="ews-text-digital danger text-2xl">07.8 SR</p>
+        </div>
+        <div>
+          <p class="text-gray-500 text-xs mb-1">ews-text-blink</p>
+          <p class="ews-text-glow danger text-lg ews-text-blink">
+            ⚠ AWAS TSUNAMI ⚠
+          </p>
+        </div>
+        <div>
+          <p class="text-gray-500 text-xs mb-1">ews-text-blink fast</p>
+          <p class="ews-text-glow danger text-lg ews-text-blink fast">
+            ⚠ EVAKUASI SEGERA ⚠
+          </p>
+        </div>
+        <div>
+          <p class="text-gray-500 text-xs mb-1">ews-text-underline</p>
+          <span class="ews-text-underline">Status: Active</span>
+        </div>
+        <div>
+          <p class="text-gray-500 text-xs mb-1">ews-text-underline danger</p>
+          <span class="ews-text-underline danger">Status: Critical</span>
+        </div>
+        <div>
+          <p class="text-gray-500 text-xs mb-1">text-glow (existing)</p>
+          <p class="text-glow">EXISTING GLOW</p>
+        </div>
+        <div>
+          <p class="text-gray-500 text-xs mb-1">text-glow-red (existing)</p>
+          <p class="text-glow-red">EXISTING RED GLOW</p>
+        </div>
+        <div>
+          <p class="text-gray-500 text-xs mb-1">neon-glow (existing)</p>
+          <p class="neon-glow text-lg">NEON GLOW</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- INPUT VARIANTS -->
+    <section>
+      <h2 class="text-xl font-semibold mb-4 border-b border-gray-700 pb-2">
+        Input
+      </h2>
+      <div class="flex flex-col gap-4">
+        <div>
+          <p class="text-gray-500 text-xs mb-1">ews-input (default)</p>
+          <input class="ews-input" type="text" placeholder="Masukkan data..." />
+        </div>
+        <div>
+          <p class="text-gray-500 text-xs mb-1">ews-input danger</p>
+          <input
+            class="ews-input danger"
+            type="text"
+            placeholder="Error state..."
+          />
+        </div>
+
+        <div>
+          <p class="text-gray-500 text-xs mb-1">ews-input underline</p>
+          <input
+            class="ews-input underline"
+            type="text"
+            placeholder="Underline input..."
+          />
+        </div>
+        <div>
+          <p class="text-gray-500 text-xs mb-1">ews-input underline danger</p>
+          <input
+            class="ews-input underline danger"
+            type="text"
+            placeholder="Danger underline..."
+          />
+        </div>
+        <div>
+          <p class="text-gray-500 text-xs mb-1">ews-input disabled</p>
+          <input class="ews-input" type="text" value="DISABLED" disabled />
+        </div>
+        <div>
+          <p class="text-gray-500 text-xs mb-1">ews-select</p>
+          <select class="ews-select">
+            <option>PILIH ZONA WAKTU</option>
+            <option>WIB - JAKARTA</option>
+            <option>WITA - MAKASSAR</option>
+            <option>WIT - JAYAPURA</option>
+          </select>
+        </div>
+        <div>
+          <p class="text-gray-500 text-xs mb-1">ews-select danger</p>
+          <select class="ews-select danger">
+            <option>LEVEL PERINGATAN</option>
+            <option>SIAGA</option>
+            <option>WASPADA</option>
+            <option>AWAS</option>
+          </select>
+        </div>
+        <div>
+          <p class="text-gray-500 text-xs mb-1">ews-textarea</p>
+          <textarea class="ews-textarea" placeholder="Keterangan tambahan..."
+          ></textarea>
+        </div>
+        <div>
+          <p class="text-gray-500 text-xs mb-1">ews-textarea danger</p>
+          <textarea class="ews-textarea danger" placeholder="Pesan darurat..."
+          ></textarea>
+        </div>
+        <div>
+          <p class="text-gray-500 text-xs mb-1">Input + Strip</p>
+          <div class="flex flex-col gap-0">
+            <div class="overflow-hidden">
+              <div class="strip-wrapper">
+                <div
+                  class="strip-bar loop-strip anim-duration-20"
+                  style="height:6px;"
+                ></div>
+                <div
+                  class="strip-bar loop-strip anim-duration-20"
+                  style="height:6px;"
+                ></div>
+              </div>
+            </div>
+            <input
+              class="ews-input"
+              type="text"
+              placeholder="With strip decoration..."
+              style="border-radius: 0;"
+            />
+            <div class="overflow-hidden">
+              <div class="strip-wrapper">
+                <div
+                  class="strip-bar loop-strip-reverse anim-duration-20"
+                  style="height:6px;"
+                ></div>
+                <div
+                  class="strip-bar loop-strip-reverse anim-duration-20"
+                  style="height:6px;"
+                ></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- BUTTON VARIANTS -->
+    <section>
+      <h2 class="text-xl font-semibold mb-4 border-b border-gray-700 pb-2">
+        Button
+      </h2>
+      <div class="flex flex-col gap-3">
+        <div class="flex gap-2">
+          <div>
+            <p class="text-gray-500 text-xs mb-1">ews-btn-primary</p>
+            <button class="bordered p-1 flex items-stretch">
+              <div
+                class="w-full h-full bg-primary p-1 min-w-24 text-black uppercase rounded"
+              >
+                Primary
+              </div>
+            </button>
+          </div>
+          <div>
+            <p class="text-gray-500 text-xs mb-1">ews-btn-danger</p>
+            <button class="bordered-red p-1 flex items-stretch">
+              <div
+                class="w-full h-full bg-danger p-1 min-w-24 text-white uppercase rounded"
+              >
+                Danger
+              </div>
+            </button>
+          </div>
+          <!-- <div>
+            <p class="text-gray-500 text-xs mb-1">ews-btn-danger</p>
+            <button class="ews-btn ews-btn-danger">Danger</button>
+          </div> -->
+        </div>
+        <div class="flex gap-2">
+          <div>
+            <p class="text-gray-500 text-xs mb-1">ews-btn-outline</p>
+            <button class="ews-btn ews-btn-outline">Outline</button>
+          </div>
+          <div>
+            <p class="text-gray-500 text-xs mb-1">ews-btn-outline-danger</p>
+            <button class="ews-btn ews-btn-outline-danger"
+              >Outline Danger</button
+            >
+          </div>
+        </div>
+        <div>
+          <p class="text-gray-500 text-xs mb-1">ews-btn-ghost</p>
+          <button class="ews-btn ews-btn-ghost">Ghost</button>
+          <button class="ews-btn ews-btn-ghost danger">Ghost Danger</button>
+        </div>
+        <div>
+          <p class="text-gray-500 text-xs mb-1">ews-btn-skew</p>
+          <div class="flex gap-2">
+            <button class="ews-btn ews-btn-skew"><span>Skew</span></button>
+            <button class="ews-btn ews-btn-skew danger"
+              ><span>Skew Danger</span></button
+            >
+          </div>
+        </div>
+        <div>
+          <p class="text-gray-500 text-xs mb-1">ews-btn-alert (pulsing)</p>
+          <button class="ews-btn ews-btn-alert">⚠ ALERT</button>
+        </div>
+        <div>
+          <p class="text-gray-500 text-xs mb-1">Sizes: sm / default / lg</p>
+          <div class="flex gap-2 items-center flex-wrap">
+            <button class="ews-btn ews-btn-primary ews-btn-sm">Small</button>
+            <button class="ews-btn ews-btn-primary">Default</button>
+            <button class="ews-btn ews-btn-primary ews-btn-lg">Large</button>
+          </div>
+        </div>
+        <div>
+          <p class="text-gray-500 text-xs mb-1">Disabled</p>
+          <div class="flex gap-2 flex-wrap">
+            <button class="ews-btn ews-btn-primary" disabled>Disabled</button>
+            <button class="ews-btn ews-btn-danger" disabled>Disabled</button>
+            <button class="ews-btn ews-btn-outline" disabled>Disabled</button>
+          </div>
+        </div>
+        <div>
+          <p class="text-gray-500 text-xs mb-1">Button + Strip</p>
+          <div class="flex flex-col gap-2">
+            <div class="flex flex-col">
+              <button
+                class="cursor-pointer p-0 b-0 overflow-hidden flex items-center justify-center bordered p-1"
+              >
+                <div class="strip-wrapper">
+                  <div
+                    class="strip-bar loop-strip-reverse anim-duration-20"
+                  ></div>
+                  <div
+                    class="strip-bar loop-strip-reverse anim-duration-20"
+                  ></div>
+                </div>
+                <span class="absolute bg-black ews-text-glow"
+                  >⚠ EMERGENCY BUTTON</span
+                >
+              </button>
+            </div>
+
+            <div class="flex flex-col">
+              <button
+                class="cursor-pointer p-0 b-0 overflow-hidden flex items-center justify-center bordered-red p-1"
+              >
+                <div class="strip-wrapper">
+                  <div class="strip-bar-red loop-strip anim-duration-20"></div>
+                  <div class="strip-bar-red loop-strip anim-duration-20"></div>
+                </div>
+                <span class="absolute bg-black ews-text-glow danger"
+                  >⚠ EMERGENCY BUTTON</span
+                >
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
     </section>
 
