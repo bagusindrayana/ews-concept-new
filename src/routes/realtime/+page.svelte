@@ -539,8 +539,6 @@
 <div
     class="min-h-screen py-8 flex justify-center items-start overflow-hidden font-mono relative gap-2"
 >
-    <div class="backgroundline absolute inset-0 pointer-events-none z-10"></div>
-    <div class="scanline absolute inset-0 pointer-events-none z-10"></div>
     {#if stationData != null}
         <Card className="w-md mb-4">
             {#snippet title()}

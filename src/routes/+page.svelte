@@ -1108,8 +1108,6 @@
     ><source src={dangerSound} type="audio/mp3" /></audio
   >
   <div bind:this={mapContainer} class="w-full h-screen"></div>
-  <div class="backgroundline absolute inset-0 pointer-events-none z-10"></div>
-  <div class="scanline absolute inset-0 pointer-events-none z-10"></div>
 
   <div
     class="fixed top-12 w-28 md:bottom-auto md:top-2 left-0 right-0 m-auto flex flex-col justify-center items-center gap-2"

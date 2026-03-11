@@ -101,10 +101,8 @@
 </svelte:head>
 
 <div
-  class="min-h-screen py-8 flex flex-col items-center overflow-hidden font-mono"
+  class="min-h-screen py-8 flex flex-col items-center overflow-x-hidden overflow-y-auto font-mono"
 >
-  <div class="backgroundline absolute inset-0 pointer-events-none z-10"></div>
-  <div class="scanline absolute inset-0 pointer-events-none z-10"></div>
   <div
     class="mb-2 text-center p-2 z-10 w-full bordered flex justify-center items-center relative"
   >
@@ -140,13 +138,13 @@
     class="w-full h-[2px] bg-primary shadow-[0_5px_15px_rgba(255,0,0,0.8)]"
   ></div>
   <div
-    class="inline-flex justify-center gap-4 w-full px-4 overflow-x-auto overflow-y-hidden"
+    class="inline-flex h-auto justify-center gap-4 w-full px-4 overflow-none relative"
   >
     {#each chunkedStatuses as branchStatuses, branchIndex}
       <div class="relative py-10 flex flex-col gap-4">
         <!-- Central Spine -->
         <div
-          class="absolute left-1/2 top-0 bottom-0 w-1 bg-primary transform -translate-x-1/2 shadow-[0_0_15px_rgba(255,0,0,0.8)] z-0 line-central"
+          class="absolute h-auto left-1/2 top-0 bottom-0 w-1 bg-primary transform -translate-x-1/2 shadow-[0_0_15px_rgba(255,0,0,0.8)] z-0 line-central"
           style="animation-delay: {branchIndex * 200}ms;"
         ></div>
 
