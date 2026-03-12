@@ -501,6 +501,7 @@ body {
     position: relative;
     height: 40px;
     width: 40px;
+    background-image: url('/images/warning_gempa_black.svg');
     background-size: contain;
     background-position: center;
     background-repeat: no-repeat;
@@ -1998,7 +1999,7 @@ table tr td {
     align-items: center;
     justify-content: center;
     transition: transform 0.2s ease, background-color 0.2s ease;
-    cursor: default;
+    /* cursor: default; */
 }
 
 .hex-hive.bg-hex {
@@ -2014,6 +2015,10 @@ table tr td {
     background-repeat: no-repeat;
 }
 
+.bg-hex.yellow {
+    background-image: url("/images/hex_shape_orange_rotate.svg");
+}
+
 .hex-hive.bg-hex-flat {
     clip-path: polygon(24.96% 100%, 0% 50%, 24.96% 0%, 74.87% 0%, 99.84% 50%, 74.87% 100%);
     display: unset;
@@ -2024,6 +2029,10 @@ table tr td {
     background-size: contain;
     background-position: center;
     background-repeat: no-repeat;
+}
+
+.bg-hex-flat.yellow {
+    background-image: url("/images/hex_shape_orange.svg");
 }
 
 /* .hex-hive:hover {

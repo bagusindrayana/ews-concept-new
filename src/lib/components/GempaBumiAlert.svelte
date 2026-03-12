@@ -64,7 +64,10 @@
         <div class="warning-black-hex -mt-20 show-pop-up"></div>
       </div>
       <div class="w-full flex justify-center info">
-        <div class="h-[80px] -mt-10 -mr-2 opacity-0 show-pop-up">
+        <div
+          class="h-[80px] -mt-10 -mr-2 opacity-0 show-pop-up"
+          style="animation-delay: 2s;"
+        >
           <div
             class="basic-hex flex flex-col justify-center items-center text-glow"
           >
@@ -72,10 +75,16 @@
             <p style="font-size: 10px;">MAGNITUDO</p>
           </div>
         </div>
-        <div class="h-[80px] mt-2 opacity-0 show-pop-up">
+        <div
+          class="h-[80px] mt-2 opacity-0 show-pop-up"
+          style="animation-delay: 2.2s;"
+        >
           <div class="basic-hex"></div>
         </div>
-        <div class="h-[80px] -mt-10 -ml-2 opacity-0 show-pop-up">
+        <div
+          class="h-[80px] -mt-10 -ml-2 opacity-0 show-pop-up"
+          style="animation-delay: 2.4s;"
+        >
           <div
             class="basic-hex flex flex-col justify-center items-center text-glow"
           >

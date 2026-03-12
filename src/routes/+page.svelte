@@ -214,10 +214,13 @@
       ) {
         markerDaerahs.push([p[0], p[1]]);
         const markerParent = document.createElement("div");
-        markerParent.innerHTML =
-          '<p class="uppercase marker-daerah show-pop-up">' +
-          results[x].properties.alt_name +
-          "</p>";
+
+        const markerEl = document.createElement("div");
+        markerEl.innerHTML =
+          '<p class="uppercase">' + results[x].properties.alt_name + "</p>";
+        markerEl.classList.add("marker-daerah");
+        markerEl.classList.add("show-pop-up");
+        markerParent.appendChild(markerEl);
         new mapboxgl.Marker(markerParent).setLngLat([p[0], p[1]]).addTo(map);
       }
     }
@@ -378,15 +381,23 @@
       };
       for (let il = 0; il < tg.areaTerdampak.length; il++) {
         const at = tg.areaTerdampak[il];
+
+        const dist =
+          turf.distance(
+            turf.point([tg.center[0], tg.center[1]]),
+            turf.point([at.center[0], at.center[1]]),
+          ) -
+          tg.sWaveRadius / 1000;
+        const time = Math.floor(dist / 3) * 1000;
+        const timeArrival = new Date(new Date().getTime() + time);
+
         nig.listKotaTerdampak!.push({
           lng: at.center[1],
           lat: at.center[0],
           distance: at.distance,
           name: at.alt_name,
           hit: at.hit,
-          timeArrival: new Date(
-            new Date().getTime() + Math.floor(at.distance / 3) * 1000,
-          ),
+          timeArrival: timeArrival,
         });
       }
       nig.listKotaTerdampak!.sort((a, b) => a.distance - b.distance);
@@ -402,10 +413,12 @@
       ) {
         markerDaerahs.push([p[0], p[1]]);
         const markerParent = document.createElement("div");
-        markerParent.innerHTML =
-          '<p class="uppercase marker-daerah show-pop-up">' +
-          areas[x].properties.alt_name +
-          "</p>";
+        const markerEl = document.createElement("div");
+        markerEl.innerHTML =
+          '<p class="uppercase">' + areas[x].properties.alt_name + "</p>";
+        markerEl.classList.add("marker-daerah");
+        markerEl.classList.add("show-pop-up");
+        markerParent.appendChild(markerEl);
         new mapboxgl.Marker(markerParent).setLngLat([p[0], p[1]]).addTo(map);
       }
     }
@@ -1832,7 +1845,12 @@
   {#if !loadingScreen}
     {#each alertGempaBumis as v, i}
       <div>
-        <GempaBumiAlert magnitudo={v.mag} kedalaman={v.depth} show={true} closeInSecond={6} />
+        <GempaBumiAlert
+          magnitudo={v.mag}
+          kedalaman={v.depth}
+          show={true}
+          closeInSecond={6}
+        />
       </div>
     {/each}
   {/if}
