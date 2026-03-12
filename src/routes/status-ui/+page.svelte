@@ -76,8 +76,8 @@
             statuses.push({
               id: `${netCode}-${staCode}`,
               title: `${netCode}-${staCode}`,
-              status: endDate ? "ACTIVE" : "OFFLINE",
-              type: endDate ? "normal" : "danger",
+              status: endDate ? "OFFLINE" : "ACTIVE",
+              type: endDate ? "danger" : "normal",
               stationCode: `${staCode}`,
               networkCode: `${netCode}`,
             });

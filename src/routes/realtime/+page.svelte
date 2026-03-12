@@ -402,9 +402,13 @@
             .then((xmlString) => {
                 stationData = xmlToJson(xmlString).FDSNStationXML;
                 console.log(stationData);
+                const el = document.getElementById("loading-screen");
+                if (el) el.style.display = "none";
             })
             .catch((error) => {
                 console.error("Terjadi kesalahan:", error);
+                const el = document.getElementById("loading-screen");
+                if (el) el.style.display = "none";
             });
     }
 
@@ -416,101 +420,103 @@
             return;
         }
 
+        ctx = canvas.getContext("2d")!;
+
+        resizeCanvas();
+        window.addEventListener("resize", resizeCanvas);
+
+        canvas.addEventListener("wheel", handleWheel, { passive: false });
+        // Add drag events
+        canvas.addEventListener("mousedown", handleMouseDown);
+        window.addEventListener("mousemove", handleMouseMove); // Window catches fast drags
+        window.addEventListener("mouseup", handleMouseUp);
+
         loadDataStation(data.networkCode ?? "GE", data.stationCode ?? "GSI");
 
-        // ctx = canvas.getContext("2d")!;
+        return;
 
-        // resizeCanvas();
-        // window.addEventListener("resize", resizeCanvas);
+        seis = await import("seisplotjs");
 
-        // canvas.addEventListener("wheel", handleWheel, { passive: false });
-        // // Add drag events
-        // canvas.addEventListener("mousedown", handleMouseDown);
-        // window.addEventListener("mousemove", handleMouseMove); // Window catches fast drags
-        // window.addEventListener("mouseup", handleMouseUp);
+        const ws = new WebSocket("ws://localhost:8080");
+        ws.binaryType = "arraybuffer";
 
-        // seis = await import("seisplotjs");
+        ws.onopen = () => {
+            const request = {
+                net: data.networkCode ?? "GE",
+                sta: data.stationCode ?? "GSI",
+                cha: "HNN",
+            };
+            ws.send(JSON.stringify(request));
+        };
 
-        // const ws = new WebSocket("ws://localhost:8080");
-        // ws.binaryType = "arraybuffer";
+        ws.onmessage = (e) => {
+            const dataBufferIncoming = e.data;
 
-        // ws.onopen = () => {
-        //     const request = {
-        //         net: data.networkCode ?? "GE",
-        //         sta: data.stationCode ?? "GSI",
-        //         cha: "BHZ",
-        //     };
-        //     ws.send(JSON.stringify(request));
-        // };
+            try {
+                const mseedData = dataBufferIncoming.slice(8);
+                const records = seis.miniseed.parseDataRecords(mseedData);
 
-        // ws.onmessage = (e) => {
-        //     const dataBufferIncoming = e.data;
+                records.forEach((r: any) => {
+                    const samples = r.decompress();
 
-        //     try {
-        //         const mseedData = dataBufferIncoming.slice(8);
-        //         const records = seis.miniseed.parseDataRecords(mseedData);
+                    let startTimeMs = Date.now();
+                    if (r.header && r.header.start) {
+                        try {
+                            startTimeMs = r.header.start.valueOf(); // Gets milliseconds
+                        } catch (e) {
+                            console.warn("Could not parse record start time");
+                        }
+                    }
 
-        //         records.forEach((r: any) => {
-        //             const samples = r.decompress();
+                    let msPerSample = nominalSampleRateMs;
+                    if (r.header && r.header.sampleRate) {
+                        msPerSample = 1000 / r.header.sampleRate;
+                    }
 
-        //             let startTimeMs = Date.now();
-        //             if (r.header && r.header.start) {
-        //                 try {
-        //                     startTimeMs = r.header.start.valueOf(); // Gets milliseconds
-        //                 } catch (e) {
-        //                     console.warn("Could not parse record start time");
-        //                 }
-        //             }
+                    for (let i = 0; i < samples.length; i++) {
+                        dataBuffer.push({
+                            t: startTimeMs + i * msPerSample,
+                            v: samples[i],
+                        });
+                    }
+                });
 
-        //             let msPerSample = nominalSampleRateMs;
-        //             if (r.header && r.header.sampleRate) {
-        //                 msPerSample = 1000 / r.header.sampleRate;
-        //             }
+                dataBuffer.sort((a, b) => a.t - b.t);
 
-        //             for (let i = 0; i < samples.length; i++) {
-        //                 dataBuffer.push({
-        //                     t: startTimeMs + i * msPerSample,
-        //                     v: samples[i],
-        //                 });
-        //             }
-        //         });
+                const latestTime = dataBuffer[dataBuffer.length - 1].t;
+                const cutoffTime = latestTime - MAX_BUFFER_MS;
 
-        //         dataBuffer.sort((a, b) => a.t - b.t);
+                let trimIndex = 0;
+                while (
+                    trimIndex < dataBuffer.length &&
+                    dataBuffer[trimIndex].t < cutoffTime
+                ) {
+                    trimIndex++;
+                }
 
-        //         const latestTime = dataBuffer[dataBuffer.length - 1].t;
-        //         const cutoffTime = latestTime - MAX_BUFFER_MS;
+                if (trimIndex > 0) {
+                    dataBuffer = dataBuffer.slice(trimIndex);
+                }
 
-        //         let trimIndex = 0;
-        //         while (
-        //             trimIndex < dataBuffer.length &&
-        //             dataBuffer[trimIndex].t < cutoffTime
-        //         ) {
-        //             trimIndex++;
-        //         }
+                if (!isDragging && timeOffsetMs === 0) {
+                    draw();
+                } else if (!isDragging && timeOffsetMs > 0) {
+                    draw();
+                }
+            } catch (err) {
+                console.error("Error parsing miniSEED data:", err);
+            }
+        };
 
-        //         if (trimIndex > 0) {
-        //             dataBuffer = dataBuffer.slice(trimIndex);
-        //         }
+        (window as any)._mseedWs = ws;
 
-        //         if (!isDragging && timeOffsetMs === 0) {
-        //             draw();
-        //         } else if (!isDragging && timeOffsetMs > 0) {
-        //             draw();
-        //         }
-        //     } catch (err) {
-        //         console.error("Error parsing miniSEED data:", err);
-        //     }
-        // };
-
-        // (window as any)._mseedWs = ws;
-
-        // function updateLoop() {
-        //     if (!isDragging) {
-        //         draw();
-        //     }
-        //     (window as any)._mseedAnimId = requestAnimationFrame(updateLoop);
-        // }
-        // updateLoop();
+        function updateLoop() {
+            if (!isDragging) {
+                draw();
+            }
+            (window as any)._mseedAnimId = requestAnimationFrame(updateLoop);
+        }
+        updateLoop();
     });
 
     onDestroy(() => {
@@ -610,7 +616,7 @@
         >
             <!-- Top Left -->
             <div
-                class="absolute top-4 left-4 md:left-24 z-10 pointer-events-none text-glow"
+                class="absolute top-4 left-4 md:left-24 pointer-events-none text-glow"
             >
                 <div class="rounded p-1 inline-block bg-black/60 shadow-lg">
                     <div
@@ -628,7 +634,7 @@
 
             <!-- Top Right -->
             <div
-                class="absolute top-4 right-4 md:right-16 z-10 pointer-events-none flex flex-col items-end"
+                class="absolute top-4 right-4 md:right-16 pointer-events-none flex flex-col items-end"
             >
                 <div class="rounded-lg p-1 inline-block bg-black/60 shadow-lg">
                     <div class="bordered px-3 py-1 flex flex-col">
@@ -641,7 +647,9 @@
                             class="font-bold text-2xl md:text-4xl tracking-widest leading-none text-right"
                             style="color: #ff9900; text-shadow: 0 0 10px #fa0;"
                         >
-                            GSI GE
+                            {stationData != null
+                                ? `${stationData.Network["@attributes"]["code"]} ${stationData.Network.Station["@attributes"]["code"]}`
+                                : "LOADING..."}
                         </div>
                     </div>
                 </div>
@@ -714,4 +722,13 @@
             </div>
         </div>
     </div>
+</div>
+<div
+    class="fixed m-auto top-0 bottom-0 left-0 right-0 flex flex-col justify-center items-center overlay-bg text-center"
+    id="loading-screen"
+>
+    <span class="loader"></span>
+    <p class="my-2 red-color p-2">
+        INI MERUPAKAN DESAIN KONSEP - DATA STASIUN DARI GEOFON
+    </p>
 </div>
