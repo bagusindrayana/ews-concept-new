@@ -99,9 +99,17 @@
         });
 
         console.log("Ada hasil " + networks.length);
+        setTimeout(() => {
+          const el = document.getElementById("loading-screen");
+          if (el) el.style.display = "none";
+        }, 1000);
       })
       .catch((error) => {
         console.error("Terjadi kesalahan:", error);
+        setTimeout(() => {
+          const el = document.getElementById("loading-screen");
+          if (el) el.style.display = "none";
+        }, 1000);
       });
 
     // Tambahkan event listener untuk resize
@@ -200,7 +208,7 @@
                   ></div>
 
                   <span
-                    class="font-bold text-xs text-glow uppercase absolute left-1 z-10 text-left"
+                    class="font-bold text-xs text-glow uppercase absolute left-1 z-10 text-left top-1"
                   >
                     <a
                       href="/realtime?networkCode={item.networkCode}&stationCode={item.stationCode}"
@@ -224,7 +232,7 @@
                   ></div>
 
                   <span
-                    class="font-bold text-xs text-glow uppercase absolute z-10 right-1 text-right"
+                    class="font-bold text-xs text-glow uppercase absolute z-10 right-1 text-right top-1"
                   >
                     <a
                       href="/realtime?networkCode={item.networkCode}&stationCode={item.stationCode}"
@@ -253,6 +261,17 @@
       </div>
     {/each}
   </div>
+</div>
+
+<!-- LOADING SCREEN -->
+<div
+  class="fixed m-auto top-0 bottom-0 left-0 right-0 flex flex-col justify-center items-center overlay-bg text-center z-10"
+  id="loading-screen"
+>
+  <span class="loader"></span>
+  <p class="my-2 red-color p-2">
+    INI MERUPAKAN DESAIN KONSEP - DATA STATION DARI GEOFON
+  </p>
 </div>
 
 <style>
