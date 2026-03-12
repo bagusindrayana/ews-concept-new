@@ -5,6 +5,7 @@
   import Jam from "$lib/components/Jam.svelte";
   import TsunamiAlert from "$lib/components/TsunamiAlert.svelte";
   import type { TitikTsunami } from "$lib/components/TitikTsunami";
+  import HexGrid from "$lib/components/HexGrid.svelte";
 
   let showGempaBumiAlert = $state(false);
   let showTsunamiAlert = $state(false);
@@ -29,6 +30,17 @@
       message: "Segera evakuasi ke tempat yang lebih tinggi.",
     },
   } as unknown as TitikTsunami);
+
+  // Dynamic Honeycomb Data
+  const hexItems = [
+    { label: "ZONA A", val: "7.2", danger: true },
+    { label: "ZONA B", val: "4.1", warn: true },
+    { label: "ZONA C", val: "2.5" },
+    { label: "ZONA D", val: "6.8", danger: true },
+    { label: "ZONA E", val: "3.3" },
+    { label: "ZONA F", val: "5.9", warn: true },
+    { label: "ZONA G", val: "8.1", danger: true },
+  ];
 </script>
 
 <svelte:head>
@@ -273,132 +285,40 @@
       </h2>
 
       <div class="flex flex-col gap-8">
-
-        <!-- Basic Flat Grid -->
-        <div>
-          <p class="text-gray-500 text-xs mb-3">Basic Flat Hex Grid (CSS clip-path)</p>
-          <div class="hex-grid hex-grid-flat">
-            {#each ['SIAGA', 'AWAS', 'INFO', 'WASPADA', 'AMAN', 'DARURAT', 'MONITOR'] as label, i}
-              <div class="hex-cell hex-cell-flat" class:hex-danger={label === 'AWAS' || label === 'DARURAT'} class:hex-warn={label === 'SIAGA' || label === 'WASPADA'} class:hex-safe={label === 'AMAN'}>
-                <div class="hex-content">
-                  <span class="text-[10px] font-bold tracking-wider">{label}</span>
-                  <span class="text-[8px] opacity-60">#{i + 1}</span>
-                </div>
-              </div>
-            {/each}
-          </div>
-        </div>
-
-        <!-- Honeycomb Offset Grid -->
-        <div>
-          <p class="text-gray-500 text-xs mb-3">Honeycomb Offset Grid</p>
-          <div class="hex-honeycomb">
-            <div class="hex-row">
-              {#each [
-                { label: 'ZONA A', val: '7.2', danger: true },
-                { label: 'ZONA B', val: '4.1', warn: true },
-                { label: 'ZONA C', val: '2.5' },
-                { label: 'ZONA D', val: '6.8', danger: true },
-              ] as item}
-                <div class="hex-hive" class:hex-danger={item.danger} class:hex-warn={item.warn}>
-                  <div class="hex-hive-inner">
-                    <p class="text-[9px] opacity-70 uppercase tracking-widest">{item.label}</p>
-                    <p class="text-base font-bold leading-none" class:text-glow-red={item.danger} class:text-glow={!item.danger && !item.warn}>{item.val}</p>
-                    <p class="text-[8px] opacity-50">SR</p>
+        <div class="w-full flex gap-2">
+          <!-- Honeycomb Offset Grid -->
+          <div class="basis-0 flex-1">
+            <p class="text-gray-500 text-xs mb-3">Honeycomb Offset Grid</p>
+            <HexGrid>
+              {#each { length: 30 } as _, i}
+                <div class="hex-hive bg-hex">
+                  <div
+                    class="w-full h-full flex justify-center items-center text-center"
+                  >
+                    {i}
                   </div>
                 </div>
               {/each}
-            </div>
-            <div class="hex-row hex-row-offset">
-              {#each [
-                { label: 'ZONA E', val: '3.3' },
-                { label: 'ZONA F', val: '5.9', warn: true },
-                { label: 'ZONA G', val: '8.1', danger: true },
-              ] as item}
-                <div class="hex-hive" class:hex-danger={item.danger} class:hex-warn={item.warn}>
-                  <div class="hex-hive-inner">
-                    <p class="text-[9px] opacity-70 uppercase tracking-widest">{item.label}</p>
-                    <p class="text-base font-bold leading-none" class:text-glow-red={item.danger} class:text-glow={!item.danger && !item.warn}>{item.val}</p>
-                    <p class="text-[8px] opacity-50">SR</p>
+            </HexGrid>
+          </div>
+
+          <div class="basis-0 flex-1">
+            <p class="text-gray-500 text-xs mb-3">
+              Honeycomb Variant 2 Offset Grid
+            </p>
+            <HexGrid variant="flat">
+              {#each { length: 30 } as _, i}
+                <div class="hex-hive bg-hex-flat">
+                  <div
+                    class="w-full h-full flex justify-center items-center text-center"
+                  >
+                    {i}
                   </div>
                 </div>
               {/each}
-            </div>
+            </HexGrid>
           </div>
         </div>
-
-        <!-- Animated Status Grid -->
-        <div>
-          <p class="text-gray-500 text-xs mb-3">Animated Status Hex Grid (EWS Themed)</p>
-          <div class="flex flex-wrap gap-3 justify-start">
-            {#each [
-              { zone: 'JAKARTA', status: 'AWAS', level: 3, pulse: true },
-              { zone: 'BANDUNG', status: 'SIAGA', level: 2, pulse: false },
-              { zone: 'SURABAYA', status: 'WASPADA', level: 1, pulse: false },
-              { zone: 'MEDAN', status: 'AMAN', level: 0, pulse: false },
-              { zone: 'BALI', status: 'SIAGA', level: 2, pulse: false },
-              { zone: 'MANADO', status: 'AWAS', level: 3, pulse: true },
-            ] as item}
-              <div
-                class="hex-status-cell"
-                class:hex-danger={item.level === 3}
-                class:hex-warn={item.level === 2}
-                class:hex-caution={item.level === 1}
-                class:hex-safe={item.level === 0}
-                class:hex-pulse={item.pulse}
-              >
-                <div class="hex-status-inner">
-                  <div class="text-[8px] opacity-60 uppercase tracking-widest leading-none mb-1">{item.zone}</div>
-                  <div class="text-[11px] font-bold leading-none"
-                    class:text-glow-red={item.level === 3}
-                    class:text-glow={item.level <= 1}
-                  >{item.status}</div>
-                  <div class="flex gap-[2px] mt-1 justify-center">
-                    {#each [0,1,2] as dot}
-                      <div
-                        class="w-[5px] h-[5px] rounded-full"
-                        class:bg-red-500={item.level === 3}
-                        class:opacity-100={dot < item.level}
-                        class:opacity-20={dot >= item.level}
-                        style:background-color={item.level === 3 ? '#f23' : item.level === 2 ? '#fa0' : item.level === 1 ? '#ff0' : '#0f0'}
-                      ></div>
-                    {/each}
-                  </div>
-                </div>
-              </div>
-            {/each}
-          </div>
-        </div>
-
-        <!-- Hex with Strip Decoration -->
-        <div>
-          <p class="text-gray-500 text-xs mb-3">Hex Grid with Strip Decoration</p>
-          <div class="flex flex-wrap gap-4 justify-start items-center">
-            {#each [
-              { mag: '7.8', depth: '10km', region: 'SUMATRA', danger: true },
-              { mag: '5.2', depth: '35km', region: 'JAWA', danger: false },
-              { mag: '6.4', depth: '20km', region: 'SULAWESI', danger: true },
-            ] as item}
-              <div class="hex-strip-cell" class:hex-danger={item.danger}>
-                <div class="hex-strip-bg">
-                  <div class="overflow-hidden absolute inset-0 opacity-30">
-                    <div class="strip-wrapper">
-                      <div class={`${item.danger ? 'strip-bar-red' : 'strip-bar'} loop-strip anim-duration-20`}></div>
-                      <div class={`${item.danger ? 'strip-bar-red' : 'strip-bar'} loop-strip anim-duration-20`}></div>
-                    </div>
-                  </div>
-                  <div class="hex-strip-content">
-                    <p class="text-[8px] opacity-50 uppercase tracking-widest">{item.region}</p>
-                    <p class="text-xl font-bold leading-none" class:text-glow-red={item.danger} class:text-glow={!item.danger}>{item.mag}</p>
-                    <p class="text-[9px] uppercase">SR</p>
-                    <p class="text-[8px] opacity-50">{item.depth}</p>
-                  </div>
-                </div>
-              </div>
-            {/each}
-          </div>
-        </div>
-
       </div>
     </section>
 

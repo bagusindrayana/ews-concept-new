@@ -1884,26 +1884,22 @@ table tr td {
 
 /* --- Shared hex clip-path (flat-top orientation) --- */
 .hex-clip {
-    clip-path: polygon(
-        24.96% 100%,
-        0% 50%,
-        24.96% 0%,
-        74.87% 0%,
-        99.84% 50%,
-        74.87% 100%
-    );
+    clip-path: polygon(24.96% 100%,
+            0% 50%,
+            24.96% 0%,
+            74.87% 0%,
+            99.84% 50%,
+            74.87% 100%);
 }
 
 /* --- Shared hex clip-path (pointy-top / rotated 90°) --- */
 .hex-clip-pointy {
-    clip-path: polygon(
-        0% 25.13%,
-        50% 0%,
-        100% 25.13%,
-        100% 74.87%,
-        50% 100%,
-        0% 74.87%
-    );
+    clip-path: polygon(0% 25.13%,
+            50% 0%,
+            100% 25.13%,
+            100% 74.87%,
+            50% 100%,
+            0% 74.87%);
 }
 
 /* ---- 1. Basic Flat Hex Grid ---- */
@@ -2005,10 +2001,35 @@ table tr td {
     cursor: default;
 }
 
-.hex-hive:hover {
+.hex-hive.bg-hex {
+    clip-path: polygon(0% 25.13%, 50% 0%, 100% 25.13%, 100% 74.87%, 50% 100%, 0% 74.87%);
+    display: unset;
+    transition: unset;
+    background-color: transparent;
+    /* height: unset; */
+
+    background-image: url("/images/hex_shape_rotate.svg");
+    background-size: contain;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+.hex-hive.bg-hex-flat {
+    clip-path: polygon(24.96% 100%, 0% 50%, 24.96% 0%, 74.87% 0%, 99.84% 50%, 74.87% 100%);
+    display: unset;
+    transition: unset;
+    background-color: transparent;
+
+    background-image: url("/images/hex_shape.svg");
+    background-size: contain;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+/* .hex-hive:hover {
     background-color: rgba(255, 170, 0, 0.2);
     transform: scale(1.05);
-}
+} */
 
 .hex-hive.hex-danger {
     background-color: rgba(255, 34, 51, 0.18);
@@ -2082,9 +2103,12 @@ table tr td {
 }
 
 @keyframes hexPulse {
-    0%, 100% {
+
+    0%,
+    100% {
         filter: drop-shadow(0 0 8px rgba(255, 34, 51, 0.3));
     }
+
     50% {
         filter: drop-shadow(0 0 22px rgba(255, 34, 51, 0.85));
     }
