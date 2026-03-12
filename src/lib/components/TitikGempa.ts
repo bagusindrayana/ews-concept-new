@@ -281,6 +281,7 @@ export class TitikGempa {
         }
 
         const animate = (time: number) => {
+            if (this.finishWave) return;
             if (!this.curTime) this.curTime = time;
 
             const deltaTime = time - this.curTime;
