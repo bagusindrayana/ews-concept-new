@@ -1,5 +1,6 @@
 <script lang="ts">
   import { onMount, onDestroy } from "svelte";
+  import { xmlToJson, type JsonNode } from "$lib/xmlUtils";
 
   // Dummy data for the status list
   let statuses = $state<
@@ -39,39 +40,27 @@
     fetch(url)
       .then((response) => {
         if (!response.ok) throw new Error("Gagal mengambil data jaringan");
-        // 1. Ubah response dari server menjadi String Teks
         return response.text();
       })
       .then((xmlString) => {
-        // 2. Parse string teks tadi menjadi XML Object
-        const parser = new DOMParser();
-        const xmlDoc = parser.parseFromString(xmlString, "text/xml");
+        const data = xmlToJson(xmlString);
+        const fdsn = data.FDSNStationXML as JsonNode;
+        const networksList = fdsn.Network as JsonNode[];
 
-        // 3. Cari semua elemen <Network>
-        const networks = xmlDoc.getElementsByTagName("Network");
+        // Handle both single network and multiple networks
+        const networks = Array.isArray(networksList) ? networksList : [networksList];
 
-        // Looping setiap Network
-        for (let i = 0; i < networks.length; i++) {
-          const netNode = networks[i];
-          const netCode = netNode.getAttribute("code");
+        networks.forEach((networkNode) => {
+          const netCode = (networkNode["@attributes"] as any)?.code || "UNKNOWN";
+          const stationsList = networkNode.Station as JsonNode[];
 
-          // Cari semua elemen <Station> di dalam Network ini
-          const stations = netNode.getElementsByTagName("Station");
+          // Handle both single station and multiple stations
+          const stations = Array.isArray(stationsList) ? stationsList : [stationsList];
 
-          // Looping setiap Station
-          for (let j = 0; j < stations.length; j++) {
-            const staNode = stations[j];
-            const staCode = staNode.getAttribute("code");
-
-            // Ambil atribut penting
-            const startDate = staNode.getAttribute("startDate");
-            const endDate = staNode.getAttribute("endDate"); // Hasilnya null jika atribut ini tidak ada di XML
-
-            // (Opsional) Ambil nama lokasi dari tag <Name> di dalam <Site>
-            const nameNode = staNode.getElementsByTagName("Name")[0];
-            const siteName = nameNode
-              ? nameNode.textContent
-              : "Unknown Location";
+          stations.forEach((stationNode) => {
+            const staCode = (stationNode["@attributes"] as any)?.code || "UNKNOWN";
+            const startDate = (stationNode["@attributes"] as any)?.startDate;
+            const endDate = (stationNode["@attributes"] as any)?.endDate;
 
             statuses.push({
               id: `${netCode}-${staCode}`,
@@ -81,8 +70,8 @@
               stationCode: `${staCode}`,
               networkCode: `${netCode}`,
             });
-          }
-        }
+          });
+        });
 
         console.log("Ada hasil " + networks.length);
       })
