@@ -21,6 +21,7 @@
         0 0 5px rgba(var(--glow-rgb), 0.8),
         0 0 10px rgba(var(--glow-rgb), 0.5),
         0 0 5px rgba(var(--glow-rgb), 0.3);
+    text-box: trim-both cap alphabetic;
 }
 
 .ews-text-glow.danger {

@@ -48,6 +48,14 @@
   let infoTsunami: TitikTsunami | null = $state(null);
   let shakeMap: string | null = $state(null);
 
+  // Settings modal state
+  let showSettingsModal = $state(false);
+  let showEventLog = $state(true);
+  let showGempaDirasakan = $state(true);
+  let showGempaTerdeteksi = $state(true);
+  let showDetailEvent = $state(true);
+  let showShakeMap = $state(true);
+
   // Missing earthquake tracking states
   let GempaDirasakan: TitikGempa | null = $state(null);
   let GempaTerakhir: TitikGempa | null = $state(null);
@@ -580,7 +588,7 @@
           placeholder.innerHTML = `
           <div class="card bordered-red min-h-48 min-w-48 whitespace-pre-wrap" data-id="${d.id}">
             <div class="card-header bordered-red-bottom overflow-hidden">
-              <div class="strip-wrapper"><div class="strip-bar"></div></div>
+              <div class="strip-wrapper"><div class="strip-bar-red loop-strip-reverse anim-duration-20"></div><div class="strip-bar-red loop-strip-reverse anim-duration-20"></div></div>
               <div class="absolute top-0 bottom-0 left-0 right-0 flex justify-center items-center">
                 <p class="p-1 bg-black font-bold text-xs text-glow">GEMPA BUMI</p>
               </div>
@@ -989,7 +997,7 @@
     placeholder.innerHTML = `
       <div class="card bordered-red min-h-48 min-w-48 whitespace-pre-wrap" data-id="${d.id}">
         <div class="card-header bordered-red-bottom overflow-hidden">
-          <div class="strip-wrapper"><div class="strip-bar"></div></div>
+          <div class="strip-wrapper"><div class="strip-bar-red loop-strip-reverse anim-duration-20"></div><div class="strip-bar-red loop-strip-reverse anim-duration-20"></div></div>
           <div class="absolute top-0 bottom-0 left-0 right-0 flex justify-center items-center">
             <p class="p-1 bg-black font-bold text-xs text-glow">GEMPA BUMI</p>
           </div>
@@ -1122,33 +1130,172 @@
   >
   <div bind:this={mapContainer} class="w-full h-screen"></div>
 
+  <!-- SETTINGS BUTTON -->
   <div
-    class="fixed top-12 w-28 md:bottom-auto md:top-2 left-0 right-0 m-auto flex flex-col justify-center items-center gap-2"
+    class="fixed top-2 left-0 right-0 m-auto flex justify-center items-center z-5"
+    style="width:fit-content"
   >
     <button
-      class="bordered w-24 text-sm text-center bg-black cursor-pointer"
-      onclick={testDemoGempa}>TEST GEMPA</button
+      class="settings-btn bordered bg-black cursor-pointer flex items-center gap-1 px-3 py-1"
+      onclick={() => (showSettingsModal = true)}
     >
-    <button
-      class="bordered w-28 text-sm text-center bg-black cursor-pointer"
-      onclick={testDemoTsunami}>TEST TSUNAMI</button
-    >
+      <svg
+        width="18"
+        height="18"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <circle cx="12" cy="12" r="3"></circle>
+        <path
+          d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"
+        ></path>
+      </svg>
+      <span class="text-sm">PENGATURAN</span>
+    </button>
   </div>
+
+  <!-- SETTINGS MODAL -->
+  {#if showSettingsModal}
+    <div
+      class="settings-modal-overlay"
+      onclick={() => (showSettingsModal = false)}
+    >
+      <div
+        class="settings-modal card bordered-red"
+        onclick={(e) => e.stopPropagation()}
+      >
+        <div class="card-header bordered-red-bottom overflow-hidden">
+          <div class="strip-wrapper">
+            <div class="strip-bar loop-strip-reverse anim-duration-20"></div>
+            <div class="strip-bar loop-strip-reverse anim-duration-20"></div>
+          </div>
+          <div
+            class="absolute top-0 bottom-0 left-0 right-0 flex justify-between items-center px-3"
+          >
+            <p class="p-1 bg-black font-bold text-sm text-glow">PENGATURAN</p>
+            <button
+              class="bg-black px-2 py-1 cursor-pointer"
+              style="color:#e60003"
+              onclick={() => (showSettingsModal = false)}>X</button
+            >
+          </div>
+        </div>
+        <div class="card-content p-4">
+          <!-- Card Toggles -->
+          <p
+            class="text-glow text-xs font-bold mb-3"
+            style="color:var(--orange)"
+          >
+            TAMPILKAN CARD
+          </p>
+          <div class="settings-item">
+            <span class="text-glow text-sm">Event Log</span>
+            <label class="toggle-switch">
+              <input type="checkbox" bind:checked={showEventLog} />
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+          <div class="settings-item">
+            <span class="text-glow text-sm">Gempa Dirasakan Terakhir</span>
+            <label class="toggle-switch">
+              <input type="checkbox" bind:checked={showGempaDirasakan} />
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+          <div class="settings-item">
+            <span class="text-glow text-sm">Gempa Terdeteksi Terakhir</span>
+            <label class="toggle-switch">
+              <input type="checkbox" bind:checked={showGempaTerdeteksi} />
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+          <div class="settings-item">
+            <span class="text-glow text-sm">Detail Event</span>
+            <label class="toggle-switch">
+              <input type="checkbox" bind:checked={showDetailEvent} />
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+          <div class="settings-item">
+            <span class="text-glow text-sm">Shakemap</span>
+            <label class="toggle-switch">
+              <input type="checkbox" bind:checked={showShakeMap} />
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+
+          <!-- Test Buttons -->
+          <div
+            class="mt-4 pt-3"
+            style="border-top: 1px solid rgba(var(--danger-glow-rgb), 0.3)"
+          >
+            <p
+              class="text-glow text-xs font-bold mb-3"
+              style="color:var(--orange)"
+            >
+              SIMULASI
+            </p>
+            <div class="flex gap-2">
+              <button
+                onclick={testDemoGempa}
+                class="cursor-pointer p-0 b-0 overflow-hidden flex items-center justify-center bordered p-1"
+                ><div class="strip-wrapper">
+                  <div
+                    class="strip-bar loop-strip-reverse anim-duration-20"
+                  ></div>
+                  <div
+                    class="strip-bar loop-strip-reverse anim-duration-20"
+                  ></div>
+                </div>
+                <span class="absolute bg-black ews-text-glow px-2 py-1"
+                  >⚠ TEST GEMPA</span
+                ></button
+              >
+
+              <button
+                onclick={testDemoTsunami}
+                class="cursor-pointer p-0 b-0 overflow-hidden flex items-center justify-center bordered p-1"
+                ><div class="strip-wrapper">
+                  <div
+                    class="strip-bar-red loop-strip-reverse anim-duration-20"
+                  ></div>
+                  <div
+                    class="strip-bar-red loop-strip-reverse anim-duration-20"
+                  ></div>
+                </div>
+                <span class="absolute bg-black ews-text-glow px-2 py-1"
+                  >⚠ TEST TSUNAMI</span
+                ></button
+              >
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  {/if}
 
   <!-- GEMPA BUMI ALERT SECTION -->
   <div
     id="gempa-bumi-alert"
     class="fixed top-6 md:top-3 left-6 md:left-3 right-0 flex gap-2 justify-start items-start pointer-events-none"
   >
-    {#if !loadingScreen && alertGempaBumi}
+    {#if !loadingScreen && alertGempaBumi != undefined && alertGempaBumi != null}
       <Card
         className="hidden md:block show-pop-up md:w-1/2 lg:w-2/5 xl:w-1/5 pointer-events-auto"
       >
         {#snippet title()}
           <div class="overflow-hidden">
             <div class="strip-wrapper">
-              <div class="strip-bar loop-strip-reverse anim-duration-20"></div>
-              <div class="strip-bar loop-strip-reverse anim-duration-20"></div>
+              <div
+                class="strip-bar-red loop-strip-reverse anim-duration-20"
+              ></div>
+              <div
+                class="strip-bar-red loop-strip-reverse anim-duration-20"
+              ></div>
             </div>
             <div
               class="absolute top-0 bottom-0 left-0 right-0 flex justify-center items-center"
@@ -1170,14 +1317,14 @@
                 >
                   <div class="flex flex-col items-center p-1">
                     <div class="text -characters">
-                      {alertGempaBumi.readableMag}
+                      {alertGempaBumi?.readableMag}
                     </div>
                     <div class="text">MAG</div>
                   </div>
                   <div class="decal -blink -striped"></div>
                 </div>
                 <p class="text-glow font-bold">
-                  DEPTH : {alertGempaBumi.readableDepth} KM
+                  DEPTH : {alertGempaBumi?.readableDepth} KM
                 </p>
               </div>
               <div class="bordered p-1 w-full">
@@ -1185,27 +1332,27 @@
                   <tbody>
                     <tr
                       ><td class="text-left">TIME</td><td class="text-right"
-                        >{alertGempaBumi.readableTime} WIB</td
+                        >{alertGempaBumi?.readableTime} WIB</td
                       ></tr
                     >
                     <tr
                       ><td class="text-left">MAG</td><td class="text-right"
-                        >{Number(alertGempaBumi.mag).toFixed(1)}</td
+                        >{Number(alertGempaBumi?.mag).toFixed(1)}</td
                       ></tr
                     >
                     <tr
                       ><td class="text-left">DEPTH</td><td class="text-right"
-                        >{alertGempaBumi.depth}</td
+                        >{alertGempaBumi?.depth}</td
                       ></tr
                     >
                     <tr
                       ><td class="text-left">LAT</td><td class="text-right"
-                        >{alertGempaBumi.infoGempa.lat}</td
+                        >{alertGempaBumi?.infoGempa.lat}</td
                       ></tr
                     >
                     <tr
                       ><td class="text-left">LNG</td><td class="text-right"
-                        >{alertGempaBumi.infoGempa.lng}</td
+                        >{alertGempaBumi?.infoGempa.lng}</td
                       ></tr
                     >
                   </tbody>
@@ -1214,18 +1361,18 @@
             </div>
             <div class="mt-2 bordered w-full">
               <p class="text-glow p-2 break-words">
-                {alertGempaBumi.infoGempa.message}
+                {alertGempaBumi?.infoGempa.message}
               </p>
             </div>
           </div>
-          {#if alertGempaBumi.mag >= 5}
+          {#if alertGempaBumi?.mag != undefined && alertGempaBumi?.mag >= 5}
             <div
               class="bordered-red p-2 overflow-y-auto custom-scrollbar mt-2 pointer-events-auto"
               style="max-height:20vh"
             >
               <ul>
-                {#if alertGempaBumi.infoGempa.listKotaTerdampak}
-                  {#each alertGempaBumi.infoGempa.listKotaTerdampak as kota, i}
+                {#if alertGempaBumi?.infoGempa.listKotaTerdampak}
+                  {#each alertGempaBumi?.infoGempa.listKotaTerdampak as kota, i}
                     <li
                       class="flex flex-grow justify-between items-center mb-2 item-daerah {kota.hit
                         ? 'danger'
@@ -1243,7 +1390,7 @@
     {/if}
 
     <!-- INFO TSUNAMI CARD -->
-    {#if !loadingScreen && infoTsunami}
+    {#if !loadingScreen && infoTsunami != undefined && infoTsunami != null}
       <Card
         className="hidden md:block show-pop-up md:w-1/3 lg:w-1/4 xl:w-1/5 2xl:w-1/6 pointer-events-auto"
       >
@@ -1264,7 +1411,7 @@
         {/snippet}
         {#snippet footer()}
           <div class="flex justify-center w-full">
-            <span>{infoTsunami.infoTsunami.level}</span>
+            <span>{infoTsunami?.infoTsunami.level}</span>
           </div>
         {/snippet}
         {#snippet children()}
@@ -1274,18 +1421,18 @@
           >
             <div class="mt-2 bordered w-full">
               <p class="text-glow p-2 break-words">
-                {infoTsunami.infoTsunami.message}
+                {infoTsunami?.infoTsunami.message}
               </p>
             </div>
           </div>
-          {#if infoTsunami.infoTsunami.level?.includes("PD-1") || infoTsunami.infoTsunami.level?.includes("PD-2")}
+          {#if infoTsunami?.infoTsunami.level?.includes("PD-1") || infoTsunami?.infoTsunami.level?.includes("PD-2")}
             <div
               class="bordered-red p-2 overflow-y-auto custom-scrollbar mt-2 pointer-events-auto"
               style="max-height:20vh"
             >
               <ul>
-                {#if infoTsunami.infoTsunami.listKotaTerdampak}
-                  {#each infoTsunami.infoTsunami.listKotaTerdampak as kota, i}
+                {#if infoTsunami?.infoTsunami.listKotaTerdampak}
+                  {#each infoTsunami?.infoTsunami.listKotaTerdampak as kota, i}
                     <li
                       class="flex flex-grow justify-between items-center mb-2 item-daerah slide-in-left"
                     >
@@ -1310,10 +1457,10 @@
             <div class="overflow-hidden">
               <div class="strip-wrapper">
                 <div
-                  class="strip-bar loop-strip-reverse anim-duration-20"
+                  class="strip-bar-red loop-strip-reverse anim-duration-20"
                 ></div>
                 <div
-                  class="strip-bar loop-strip-reverse anim-duration-20"
+                  class="strip-bar-red loop-strip-reverse anim-duration-20"
                 ></div>
               </div>
               <div
@@ -1324,10 +1471,14 @@
                 </p>
               </div>
               <div
-                class="absolute top-1 right-1 flex justify-center items-center"
+                class="absolute top-2 right-1 flex justify-center items-center"
                 style="color:#e60003"
               >
-                <button onclick={() => removeAlertGempaBumi(i)}>X</button>
+                <button
+                  onclick={() => removeAlertGempaBumi(i)}
+                  class="bg-black px-2 py-1 cursor-pointer"
+                  style="color:#e60003">X</button
+                >
               </div>
             </div>
           {/snippet}
@@ -1415,17 +1566,22 @@
   </div>
 
   <!-- EVENT LOG -->
-  {#if !loadingScreen}
+  {#if !loadingScreen && showEventLog}
     <Card
       className="fixed right-0 md:right-3 top-1 md:top-3 card-float md:w-1/3 lg:w-1/5 show-pop-up"
     >
       {#snippet title()}
-        <p
-          class="font-bold text-glow-red text-sm text-center"
-          style="color:red"
-        >
-          EVENT LOG
-        </p>
+        <div class="overflow-hidden">
+          <div class="strip-wrapper">
+            <div class="strip-bar-red loop-strip anim-duration-20"></div>
+            <div class="strip-bar-red loop-strip anim-duration-20"></div>
+          </div>
+          <div
+            class="absolute top-0 bottom-0 left-0 right-0 flex justify-center items-center"
+          >
+            <p class="text-lg bg-black font-bold text-glow p-1">EVENT LOG</p>
+          </div>
+        </div>
       {/snippet}
       {#snippet children()}
         <ul>
@@ -1451,15 +1607,23 @@
     id="gempa-bumi-dirasakan"
     class="fixed bottom-6 left-6 md:right-0 md:left-3 flex flex-col-reverse lg:flex-row gap-2 justify-start lg:items-end items-start pointer-events-none"
   >
-    {#if !loadingScreen && GempaDirasakan}
+    {#if !loadingScreen && GempaDirasakan != undefined && GempaDirasakan != null && showGempaDirasakan}
       <Card
         className="hidden md:block show-pop-up md:w-1/2 lg:w-2/5 xl:w-1/5 pointer-events-auto"
       >
         {#snippet title()}
-          <div class="w-full flex justify-center text-center">
-            <p class="font-bold text-glow-red text-sm">
-              GEMPA DIRASAKAN TERAKHIR
-            </p>
+          <div class="overflow-hidden">
+            <div class="strip-wrapper">
+              <div class="strip-bar loop-strip"></div>
+              <div class="strip-bar loop-strip"></div>
+            </div>
+            <div
+              class="absolute top-0 bottom-0 left-0 right-0 flex justify-center items-center"
+            >
+              <p class="text-lg bg-black font-bold text-glow p-1">
+                GEMPA DIRASAKAN TERAKHIR
+              </p>
+            </div>
           </div>
         {/snippet}
         {#snippet footer()}
@@ -1498,14 +1662,14 @@
                 >
                   <div class="flex flex-col items-center p-1">
                     <div class="text -characters">
-                      {GempaDirasakan.readableMag}
+                      {GempaDirasakan?.readableMag}
                     </div>
                     <div class="text">MAG</div>
                   </div>
                   <div class="decal -blink -striped"></div>
                 </div>
                 <p class="text-glow font-bold">
-                  DEPTH : {GempaDirasakan.readableDepth} KM
+                  DEPTH : {GempaDirasakan?.readableDepth} KM
                 </p>
               </div>
               <div class="bordered p-2 w-full">
@@ -1514,31 +1678,31 @@
                     <tr
                       ><td class="text-left p-0">TIME</td><td
                         class="text-right p-0"
-                        >{GempaDirasakan.infoGempa.time} WIB</td
+                        >{GempaDirasakan?.infoGempa.time} WIB</td
                       ></tr
                     >
                     <tr
                       ><td class="text-left p-0">MAG</td><td
                         class="text-right p-0"
-                        >{Number(GempaDirasakan.infoGempa.mag).toFixed(1)}</td
+                        >{Number(GempaDirasakan?.infoGempa.mag).toFixed(1)}</td
                       ></tr
                     >
                     <tr
                       ><td class="text-left p-0">DEPTH</td><td
                         class="text-right p-0"
-                        >{GempaDirasakan.infoGempa.depth}</td
+                        >{GempaDirasakan?.infoGempa.depth}</td
                       ></tr
                     >
                     <tr
                       ><td class="text-left p-0">LAT</td><td
                         class="text-right p-0"
-                        >{GempaDirasakan.infoGempa.lat}</td
+                        >{GempaDirasakan?.infoGempa.lat}</td
                       ></tr
                     >
                     <tr
                       ><td class="text-left p-0">LNG</td><td
                         class="text-right p-0"
-                        >{GempaDirasakan.infoGempa.lng}</td
+                        >{GempaDirasakan?.infoGempa.lng}</td
                       ></tr
                     >
                   </tbody>
@@ -1547,7 +1711,7 @@
             </div>
             <div class="mt-2 bordered">
               <p class="text-glow p-2 break-words">
-                {GempaDirasakan.infoGempa.message}
+                {GempaDirasakan?.infoGempa.message}
               </p>
             </div>
           </div>
@@ -1556,15 +1720,23 @@
     {/if}
 
     <!-- GEMPA TERDETEKSI TERAKHIR -->
-    {#if !loadingScreen && GempaTerakhir}
+    {#if !loadingScreen && GempaTerakhir != undefined && GempaTerakhir != null && showGempaTerdeteksi}
       <Card
         className="hidden md:block show-pop-up md:w-1/4 lg:w-1/6 pointer-events-auto"
       >
         {#snippet title()}
-          <div class="w-full flex justify-center text-center">
-            <p class="font-bold text-glow-red text-sm">
-              GEMPA TERDETEKSI TERAKHIR
-            </p>
+          <div class="overflow-hidden">
+            <div class="strip-wrapper">
+              <div class="strip-bar loop-strip"></div>
+              <div class="strip-bar loop-strip"></div>
+            </div>
+            <div
+              class="absolute top-0 bottom-0 left-0 right-0 flex justify-center items-center"
+            >
+              <p class="text-lg bg-black font-bold text-glow p-1">
+                GEMPA TERDETEKSI TERAKHIR
+              </p>
+            </div>
           </div>
         {/snippet}
         {#snippet footer()}
@@ -1596,32 +1768,32 @@
               <tbody>
                 <tr
                   ><td class="text-left">PLACE</td><td class="text-right"
-                    >{GempaTerakhir.infoGempa.place}</td
+                    >{GempaTerakhir?.infoGempa.place}</td
                   ></tr
                 >
                 <tr
                   ><td class="text-left">TIME</td><td class="text-right"
-                    >{GempaTerakhir.readableTime} WIB</td
+                    >{GempaTerakhir?.readableTime} WIB</td
                   ></tr
                 >
                 <tr
                   ><td class="text-left">MAG</td><td class="text-right"
-                    >{Number(GempaTerakhir.infoGempa.mag).toFixed(1)}</td
+                    >{Number(GempaTerakhir?.infoGempa.mag).toFixed(1)}</td
                   ></tr
                 >
                 <tr
                   ><td class="text-left">DEPTH</td><td class="text-right"
-                    >{GempaTerakhir.readableDepth} KM</td
+                    >{GempaTerakhir?.readableDepth} KM</td
                   ></tr
                 >
                 <tr
                   ><td class="text-left">LAT</td><td class="text-right"
-                    >{GempaTerakhir.infoGempa.lat}</td
+                    >{GempaTerakhir?.infoGempa.lat}</td
                   ></tr
                 >
                 <tr
                   ><td class="text-left">LNG</td><td class="text-right"
-                    >{GempaTerakhir.infoGempa.lng}</td
+                    >{GempaTerakhir?.infoGempa.lng}</td
                   ></tr
                 >
               </tbody>
@@ -1636,7 +1808,7 @@
     class="right-6 bottom-6 md:bottom-6 md:right-3 fixed pointer-events-none flex gap-2 justify-end items-end"
   >
     <!-- DETAIL INFO GEMPA & SHAKEMAP -->
-    {#if !loadingScreen && detailInfoGempa}
+    {#if !loadingScreen && detailInfoGempa != undefined && detailInfoGempa != null && showDetailEvent}
       <Card className="show-pop-up pointer-events-auto">
         {#snippet title()}
           <div class="flex justify-between">
@@ -1658,40 +1830,40 @@
                     <tr
                       ><td class="text-left flex">PLACE</td><td
                         class="text-right break-words pl-2"
-                        >{detailInfoGempa.place}</td
+                        >{detailInfoGempa?.place}</td
                       ></tr
                     >
                     <tr
                       ><td class="text-left flex">TIME</td><td
                         class="text-right break-words pl-2"
-                        data-time={detailInfoGempa.time}
-                        >{detailInfoGempa.time} WIB</td
+                        data-time={detailInfoGempa?.time}
+                        >{detailInfoGempa?.time} WIB</td
                       ></tr
                     >
                     <tr
                       ><td class="text-left flex">MAG</td><td
                         class="text-right break-words pl-2"
-                        >{Number(detailInfoGempa.mag).toFixed(1)}</td
+                        >{Number(detailInfoGempa?.mag).toFixed(1)}</td
                       ></tr
                     >
                     <tr
                       ><td class="text-left flex">DEPTH</td><td
                         class="text-right break-words pl-2"
                         >{parseFloat(
-                          String(detailInfoGempa.depth).replace("Km", ""),
+                          String(detailInfoGempa?.depth).replace("Km", ""),
                         ).toFixed(2)} KM</td
                       ></tr
                     >
                     <tr
                       ><td class="text-left flex">LAT</td><td
                         class="text-right break-words pl-2"
-                        >{detailInfoGempa.lat}</td
+                        >{detailInfoGempa?.lat}</td
                       ></tr
                     >
                     <tr
                       ><td class="text-left flex">LNG</td><td
                         class="text-right break-words pl-2"
-                        >{detailInfoGempa.lng}</td
+                        >{detailInfoGempa?.lng}</td
                       ></tr
                     >
                   </tbody>
@@ -1725,7 +1897,7 @@
     {/if}
 
     <!-- SHAKEMAP -->
-    {#if shakeMap}
+    {#if shakeMap && showShakeMap}
       <Card className="show-pop-up pointer-events-auto">
         {#snippet title()}
           <div class="flex justify-between">
@@ -1757,7 +1929,7 @@
   </div>
 
   <!-- MOBILE WARNING CARD -->
-  {#if !loadingScreen && alertGempaBumi && GempaDirasakan}
+  {#if !loadingScreen && alertGempaBumi && GempaDirasakan != undefined && GempaDirasakan != null}
     <div
       class="block md:hidden show-pop-up fixed bottom-10 left-0 card-warning right-0"
     >
@@ -1788,14 +1960,14 @@
                 >
                   <div class="flex flex-col items-center p-1">
                     <div class="text -characters">
-                      {GempaDirasakan.readableMag}
+                      {GempaDirasakan?.readableMag}
                     </div>
                     <div class="text">MAG</div>
                   </div>
                   <div class="decal -blink -striped"></div>
                 </div>
                 <p class="text-glow font-bold">
-                  DEPTH : {GempaDirasakan.readableDepth} KM
+                  DEPTH : {GempaDirasakan?.readableDepth} KM
                 </p>
               </div>
               <div class="bordered p-2 w-full">
@@ -1803,27 +1975,27 @@
                   <tbody>
                     <tr
                       ><td class="text-left">TIME</td><td class="text-right"
-                        >{GempaDirasakan.infoGempa.time} WIB</td
+                        >{GempaDirasakan?.infoGempa.time} WIB</td
                       ></tr
                     >
                     <tr
                       ><td class="text-left">MAG</td><td class="text-right"
-                        >{Number(GempaDirasakan.infoGempa.mag).toFixed(1)}</td
+                        >{Number(GempaDirasakan?.infoGempa.mag).toFixed(1)}</td
                       ></tr
                     >
                     <tr
                       ><td class="text-left">DEPTH</td><td class="text-right"
-                        >{GempaDirasakan.infoGempa.depth}</td
+                        >{GempaDirasakan?.infoGempa.depth}</td
                       ></tr
                     >
                     <tr
                       ><td class="text-left">LAT</td><td class="text-right"
-                        >{GempaDirasakan.infoGempa.lat}</td
+                        >{GempaDirasakan?.infoGempa.lat}</td
                       ></tr
                     >
                     <tr
                       ><td class="text-left">LNG</td><td class="text-right"
-                        >{GempaDirasakan.infoGempa.lng}</td
+                        >{GempaDirasakan?.infoGempa.lng}</td
                       ></tr
                     >
                   </tbody>
@@ -1832,7 +2004,7 @@
             </div>
             <div class="mt-2 bordered">
               <p class="text-glow p-2 break-words">
-                {GempaDirasakan.infoGempa.message}
+                {GempaDirasakan?.infoGempa.message}
               </p>
             </div>
           </div>
@@ -1876,7 +2048,7 @@
 
   <!-- LOADING SCREEN -->
   <div
-    class="fixed m-auto top-0 bottom-0 left-0 right-0 flex flex-col justify-center items-center overlay-bg text-center"
+    class="fixed m-auto top-0 bottom-0 left-0 right-0 flex flex-col justify-center items-center overlay-bg text-center z-10"
     id="loading-screen"
   >
     <span class="loader"></span>
