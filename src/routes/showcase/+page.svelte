@@ -86,18 +86,34 @@
         <p>Vertical</p>
         <div class="overflow-hidden h-[200px] flex gap-2">
           <div class="w-[40px] h-full strip-bar-vertical"></div>
-          <div
-            class="w-[40px] h-full strip-bar-vertical loop-strip-vertical anim-duration-20"
-          ></div>
-          <div
-            class="w-[40px] h-full strip-bar-red-vertical loop-strip-vertical-reverse anim-duration-20"
-          ></div>
+          <div class="w-[40px] h-full overflow-hidden">
+            <div
+              class="w-full h-full strip-bar-vertical loop-strip-vertical anim-duration-20"
+            ></div>
+            <div
+              class="w-full h-full strip-bar-vertical loop-strip-vertical anim-duration-20"
+            ></div>
+          </div>
+          <div class="w-[40px] h-full overflow-hidden">
+            <div
+              class="w-full h-full strip-bar-red-vertical loop-strip-vertical-reverse anim-duration-20"
+            ></div>
+            <div
+              class="w-full h-full strip-bar-red-vertical loop-strip-vertical-reverse anim-duration-20"
+            ></div>
+          </div>
           <div class="w-[40px] blink blink-fast h-full">
+            <div
+              class="w-full h-full strip-bar-red-vertical loop-strip-vertical-reverse anim-duration-10"
+            ></div>
             <div
               class="w-full h-full strip-bar-red-vertical loop-strip-vertical-reverse anim-duration-10"
             ></div>
           </div>
           <div class="w-[40px] blink blink-fast h-full">
+            <div
+              class="w-full h-full strip-bar-vertical loop-strip-vertical anim-duration-10"
+            ></div>
             <div
               class="w-full h-full strip-bar-vertical loop-strip-vertical anim-duration-10"
             ></div>

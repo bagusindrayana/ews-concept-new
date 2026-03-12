@@ -6,6 +6,8 @@
 
     import type { PageData } from "./$types";
 
+    import { PUBLIC_WEBSOCKET_URL } from '$env/static/public';
+
     export let data: PageData;
     let canvas: HTMLCanvasElement;
     let ctx: CanvasRenderingContext2D;
@@ -14,6 +16,7 @@
     let seis: any;
 
     let stationData: any;
+    let selectedChannel: string = "";
 
     // Data point structure
     interface DataPoint {
@@ -317,6 +320,8 @@
                 console.log(stationData);
                 const el = document.getElementById("loading-screen");
                 if (el) el.style.display = "none";
+
+                selectedChannel = stationData.Network.Station.Channel[stationData.Network.Station.Channel.length - 1]['@attributes']['code'] || "";
             })
             .catch((error) => {
                 console.error("Terjadi kesalahan:", error);
@@ -346,11 +351,9 @@
 
         loadDataStation(data.networkCode ?? "GE", data.stationCode ?? "GSI");
 
-        return;
-
         seis = await import("seisplotjs");
 
-        const wsUrl = import.meta.env.PUBLIC_WEBSOCKET_URL || "ws://localhost:8080";
+        const wsUrl = PUBLIC_WEBSOCKET_URL || "ws://localhost:8080";
         const ws = new WebSocket(wsUrl);
         ws.binaryType = "arraybuffer";
 
@@ -358,7 +361,7 @@
             const request = {
                 net: data.networkCode ?? "GE",
                 sta: data.stationCode ?? "GSI",
-                cha: "HNN",
+                cha: selectedChannel,
             };
             ws.send(JSON.stringify(request));
         };
@@ -460,67 +463,100 @@
     class="min-h-screen py-8 flex justify-center items-start overflow-hidden font-mono relative gap-2"
 >
     {#if stationData != null}
-        <Card className="w-md mb-4">
-            {#snippet title()}
-                <p class="p-1 text-xl text-glow">STATION INFORMATION</p>
-            {/snippet}
-            {#snippet children()}
-                <div class="w-full flex flex-col md:flex-row gap-2">
-                    <div
-                        class="badge label bordered flex justify-between mb-2 w-full lg:w-32"
-                    >
-                        <div class="flex flex-col items-center p-1">
-                            <div class="text -characters">
-                                {stationData.Network["@attributes"]["code"]}
+        <div class="flex flex-col gap-4 w-auto">
+            <Card className="w-md ">
+                {#snippet title()}
+                    <p class="p-1 text-xl text-glow">STATION INFORMATION</p>
+                {/snippet}
+                {#snippet children()}
+                    <div class="w-full flex flex-col md:flex-row gap-2">
+                        <div
+                            class="badge label bordered flex justify-between mb-2 w-full"
+                        >
+                            <div
+                                class="flex flex-col items-center justify-between p-1"
+                            >
+                                <div class="text -characters">
+                                    {stationData.Network["@attributes"]["code"]}
+                                </div>
+                                <div class="text">
+                                    {stationData.Network.Station["@attributes"][
+                                        "code"
+                                    ]}
+                                </div>
                             </div>
-                            <div class="text">
-                                {stationData.Network.Station["@attributes"][
-                                    "code"
-                                ]}
+                            <div class="decal">
+                                <div
+                                    class="w-full h-full strip-bar-vertical"
+                                ></div>
                             </div>
                         </div>
-                        <div class="decal">
-                            <div class="w-full h-full strip-bar-vertical"></div>
+                        <div class="bordered p-2 w-full">
+                            <table class="w-full">
+                                <tbody>
+                                    <tr>
+                                        <td class="text-left p-0"> Site </td>
+                                        <td class="text-right p-0">
+                                            {stationData.Network.Station.Site
+                                                .Name}
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="text-left p-0">
+                                            Elevation
+                                        </td>
+                                        <td class="text-right p-0">
+                                            {stationData.Network.Station
+                                                .Elevation}
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="text-left p-0">
+                                            Latitude
+                                        </td>
+                                        <td class="text-right p-0">
+                                            {stationData.Network.Station
+                                                .Latitude}
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="text-left p-0">
+                                            Longitude
+                                        </td>
+                                        <td class="text-right p-0">
+                                            {stationData.Network.Station
+                                                .Longitude}
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
                         </div>
                     </div>
-                    <div class="bordered p-2 w-full">
-                        <table class="w-full">
-                            <tbody>
-                                <tr>
-                                    <td class="text-left p-0"> Site </td>
-                                    <td class="text-right p-0">
-                                        {stationData.Network.Station.Site.Name}
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td class="text-left p-0"> Elevation </td>
-                                    <td class="text-right p-0">
-                                        {stationData.Network.Station.Elevation}
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td class="text-left p-0"> Latitude </td>
-                                    <td class="text-right p-0">
-                                        {stationData.Network.Station.Latitude}
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td class="text-left p-0"> Longitude </td>
-                                    <td class="text-right p-0">
-                                        {stationData.Network.Station.Longitude}
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
+                {/snippet}
+                {#snippet footer()}
+                    <div class="flex justify-center w-full">
+                        <span>{stationData.Network["Description"]}</span>
                     </div>
-                </div>
-            {/snippet}
-            {#snippet footer()}
-                <div class="flex justify-center w-full">
-                    <span>{stationData.Network["Description"]}</span>
-                </div>
-            {/snippet}
-        </Card>
+                {/snippet}
+            </Card>
+
+            <Card className="w-md">
+                {#snippet title()}
+                    <p class="p-1 text-xl text-glow">STATION CHANNEL</p>
+                {/snippet}
+                {#snippet children()}
+                    <div class="bordered p-1 w-full flex flex-col gap-1 mt-2">
+                        {#each stationData.Network["Station"].Channel as channel, channelIndex}
+                            <div
+                                class="bg-primary w-full p-1 flex justify-center items-center text-center text-black"
+                            >
+                                {channel["@attributes"]["code"]}
+                            </div>
+                        {/each}
+                    </div>
+                {/snippet}
+            </Card>
+        </div>
     {/if}
 
     <div class="w-full max-w-7xl flex flex-col bordered p-1">
@@ -542,7 +578,7 @@
                 <div
                     class="font-bold mt-1 tracking-widest text-sm md:text-xl drop-shadow-[0_0_5px_rgba(255,102,0,1)]"
                 >
-                    CHANNEL: BHZ
+                    CHANNEL: {selectedChannel}
                 </div>
             </div>
 

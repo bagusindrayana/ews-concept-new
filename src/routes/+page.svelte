@@ -1832,7 +1832,7 @@
   {#if !loadingScreen}
     {#each alertGempaBumis as v, i}
       <div>
-        <GempaBumiAlert magnitudo={v.mag} kedalaman={v.depth} show={true} />
+        <GempaBumiAlert magnitudo={v.mag} kedalaman={v.depth} show={true} closeInSecond={6} />
       </div>
     {/each}
   {/if}
