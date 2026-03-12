@@ -20,9 +20,10 @@
 
   // Function untuk menentukan branch count berdasarkan screen width
   function getBranchCount(width: number): number {
-    if (width < 768) return 1;      // Mobile
-    if (width < 1300) return 4;     // Medium
-    return 5;                        // Large
+    if (width < 768) return 1;
+    if (width < 1024) return 2; // Mobile
+    if (width < 1300) return 4; // Medium
+    return 5; // Large
   }
 
   // Function untuk update branch count saat resize
@@ -50,6 +51,7 @@
     // Inisialisasi branch count berdasarkan screen width saat mount
     handleResize();
 
+    // https://geof.bmkg.go.id/fdsnws/station/1/
     // URL GEOFON (tanpa format=text agar mengembalikan XML)
     const url =
       "https://geofon.gfz-potsdam.de/fdsnws/station/1/query?minlatitude=-11&maxlatitude=6&minlongitude=95&maxlongitude=141&level=station";
@@ -65,17 +67,23 @@
         const networksList = fdsn.Network as JsonNode[];
 
         // Handle both single network and multiple networks
-        const networks = Array.isArray(networksList) ? networksList : [networksList];
+        const networks = Array.isArray(networksList)
+          ? networksList
+          : [networksList];
 
         networks.forEach((networkNode) => {
-          const netCode = (networkNode["@attributes"] as any)?.code || "UNKNOWN";
+          const netCode =
+            (networkNode["@attributes"] as any)?.code || "UNKNOWN";
           const stationsList = networkNode.Station as JsonNode[];
 
           // Handle both single station and multiple stations
-          const stations = Array.isArray(stationsList) ? stationsList : [stationsList];
+          const stations = Array.isArray(stationsList)
+            ? stationsList
+            : [stationsList];
 
           stations.forEach((stationNode) => {
-            const staCode = (stationNode["@attributes"] as any)?.code || "UNKNOWN";
+            const staCode =
+              (stationNode["@attributes"] as any)?.code || "UNKNOWN";
             const startDate = (stationNode["@attributes"] as any)?.startDate;
             const endDate = (stationNode["@attributes"] as any)?.endDate;
 
@@ -181,8 +189,6 @@
                   >
                     <!-- {item.type === "danger" ? item.status : ""} -->
                   </div>
-
-               
                 </div>
                 <!-- Connecting Line to center -->
                 <div class="w-24 flex justify-end relative">
@@ -193,14 +199,14 @@
                       10}ms;"
                   ></div>
 
-                   <span
-                  class="font-bold text-xs text-glow uppercase absolute left-1 z-10 text-left"
-                >
-                  <a
-                    href="/realtime?networkCode={item.networkCode}&stationCode={item.stationCode}"
-                    >{item.title}</a
+                  <span
+                    class="font-bold text-xs text-glow uppercase absolute left-1 z-10 text-left"
                   >
-                </span>
+                    <a
+                      href="/realtime?networkCode={item.networkCode}&stationCode={item.stationCode}"
+                      >{item.title}</a
+                    >
+                  </span>
                 </div>
               </div>
             {:else}
@@ -217,19 +223,20 @@
                       10}ms;"
                   ></div>
 
-                   <span
-                  class="font-bold text-xs text-glow uppercase absolute z-10 right-1 text-right"
-                >
-                  <a
-                    href="/realtime?networkCode={item.networkCode}&stationCode={item.stationCode}"
-                    >{item.title}</a
+                  <span
+                    class="font-bold text-xs text-glow uppercase absolute z-10 right-1 text-right"
                   >
-                </span>
+                    <a
+                      href="/realtime?networkCode={item.networkCode}&stationCode={item.stationCode}"
+                      >{item.title}</a
+                    >
+                  </span>
                 </div>
                 <div class="relative flex">
                   <!-- node -->
                   <div
-                    class="status-node-flip slide-fade-in {item.type === 'danger'
+                    class="status-node-flip slide-fade-in {item.type ===
+                    'danger'
                       ? 'danger'
                       : ''} w-24 h-6 flex flex-col items-center justify-center relative mt-6 -ml-2 z-5 text-black text-xs font-bold"
                     style="animation-delay: {(branchIndex + 1) *
@@ -239,8 +246,6 @@
                     <!-- {item.type === "danger" ? item.status : ""} -->
                   </div>
                 </div>
-
-               
               </div>
             {/if}
           {/each}
