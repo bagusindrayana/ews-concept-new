@@ -6,7 +6,8 @@
 
     import type { PageData } from "./$types";
 
-    import { PUBLIC_WEBSOCKET_URL } from '$env/static/public';
+    import { PUBLIC_WEBSOCKET_URL } from "$env/static/public";
+    import HexGrid from "$lib/components/HexGrid.svelte";
 
     export let data: PageData;
     let canvas: HTMLCanvasElement;
@@ -17,6 +18,9 @@
 
     let stationData: any;
     let selectedChannel: string = "";
+    let listChannel: any[] = [];
+
+    let ws: WebSocket;
 
     // Data point structure
     interface DataPoint {
@@ -308,7 +312,7 @@
     function loadDataStation(network: string, station: string) {
         const url = `https://geofon.gfz-potsdam.de/fdsnws/station/1/query?network=${network}&station=${station}&level=response&format=xml`;
 
-        fetch(url)
+        return fetch(url)
             .then((response) => {
                 if (!response.ok)
                     throw new Error("Gagal mengambil data jaringan");
@@ -321,7 +325,38 @@
                 const el = document.getElementById("loading-screen");
                 if (el) el.style.display = "none";
 
-                selectedChannel = stationData.Network.Station.Channel[stationData.Network.Station.Channel.length - 1]['@attributes']['code'] || "";
+                for (
+                    let index = 0;
+                    index < stationData.Network.Station.Channel.length;
+                    index++
+                ) {
+                    const channel = stationData.Network.Station.Channel[index];
+
+                    //check if channel already in listChannel based on code
+                    var check = listChannel.find(
+                        (item) =>
+                            item["@attributes"].code ==
+                            channel["@attributes"].code,
+                    );
+                    if (check) {
+                        continue;
+                    }
+                    listChannel.push(channel);
+                }
+
+                //find listChannel that dont have ["@attributes"].endDate
+                const activeChannel = listChannel.find(
+                    (item) =>
+                        item["@attributes"].endDate == undefined ||
+                        item["@attributes"].endDate == "",
+                );
+
+                if (activeChannel != undefined) {
+                    selectedChannel = activeChannel["@attributes"].code;
+                } else {
+                    selectedChannel =
+                        listChannel[listChannel.length - 1]["@attributes"].code;
+                }
             })
             .catch((error) => {
                 console.error("Terjadi kesalahan:", error);
@@ -349,12 +384,16 @@
         window.addEventListener("mousemove", handleMouseMove); // Window catches fast drags
         window.addEventListener("mouseup", handleMouseUp);
 
-        loadDataStation(data.networkCode ?? "GE", data.stationCode ?? "GSI");
+        const stationPromise = loadDataStation(
+            data.networkCode ?? "GE",
+            data.stationCode ?? "GSI",
+        );
 
         seis = await import("seisplotjs");
+        await stationPromise;
 
         const wsUrl = PUBLIC_WEBSOCKET_URL || "ws://localhost:8080";
-        const ws = new WebSocket(wsUrl);
+        ws = new WebSocket(wsUrl);
         ws.binaryType = "arraybuffer";
 
         ws.onopen = () => {
@@ -368,6 +407,16 @@
 
         ws.onmessage = (e) => {
             const dataBufferIncoming = e.data;
+            console.log(e);
+            const buffer = dataBufferIncoming; // ArrayBuffer
+
+            const decoder = new TextDecoder("utf-8");
+            const text = decoder.decode(buffer);
+
+            // console.log(text);
+            if (text == "OK") {
+                return;
+            }
 
             try {
                 const mseedData = dataBufferIncoming.slice(8);
@@ -545,7 +594,44 @@
                     <p class="p-1 text-xl text-glow">STATION CHANNEL</p>
                 {/snippet}
                 {#snippet children()}
-                    <div class="bordered p-1 w-full flex flex-col gap-1 mt-2">
+                    <HexGrid variant="flat">
+                        {#each listChannel as channel, channelIndex}
+                            <button
+                                class="{selectedChannel ==
+                                channel['@attributes']['code']
+                                    ? 'blink blink-fast'
+                                    : ''} cursor-pointer hex-hive bg-hex-flat opacity-0 show-pop-up {channel[
+                                    '@attributes'
+                                ].endDate == undefined ||
+                                channel['@attributes'].endDate == ''
+                                    ? 'yellow'
+                                    : ''}"
+                                style="animation-delay: {channelIndex * 50}ms;"
+                                on:click={() => {
+                                    selectedChannel =
+                                        channel["@attributes"]["code"];
+                                    const request = {
+                                        net: data.networkCode ?? "GE",
+                                        sta: data.stationCode ?? "GSI",
+                                        cha: selectedChannel,
+                                    };
+                                    if (
+                                        ws &&
+                                        ws.readyState === WebSocket.OPEN
+                                    ) {
+                                        ws.send(JSON.stringify(request));
+                                    }
+                                }}
+                            >
+                                <div
+                                    class="w-full h-full flex justify-center items-center text-black text-center"
+                                >
+                                    {channel["@attributes"]["code"]}
+                                </div>
+                            </button>
+                        {/each}
+                    </HexGrid>
+                    <!-- <div class="bordered p-1 w-full flex flex-col gap-1 mt-2">
                         {#each stationData.Network["Station"].Channel as channel, channelIndex}
                             <div
                                 class="bg-primary w-full p-1 flex justify-center items-center text-center text-black"
@@ -553,7 +639,7 @@
                                 {channel["@attributes"]["code"]}
                             </div>
                         {/each}
-                    </div>
+                    </div> -->
                 {/snippet}
             </Card>
         </div>
@@ -566,7 +652,7 @@
         >
             <!-- Top Left -->
             <div
-                class="absolute top-4 left-4 md:left-24 pointer-events-none text-glow"
+                class="absolute top-4 left-4 md:left-24 pointer-events-none text-glow z-5"
             >
                 <div class="rounded p-1 inline-block bg-black/60 shadow-lg">
                     <div
@@ -584,7 +670,7 @@
 
             <!-- Top Right -->
             <div
-                class="absolute top-4 right-4 md:right-16 pointer-events-none flex flex-col items-end"
+                class="absolute top-4 right-4 md:right-16 pointer-events-none flex flex-col items-end z-5"
             >
                 <div class="rounded-lg p-1 inline-block bg-black/60 shadow-lg">
                     <div class="bordered px-3 py-1 flex flex-col">
@@ -674,7 +760,7 @@
     </div>
 </div>
 <div
-    class="fixed m-auto top-0 bottom-0 left-0 right-0 flex flex-col justify-center items-center overlay-bg text-center"
+    class="fixed m-auto top-0 bottom-0 left-0 right-0 flex flex-col justify-center items-center overlay-bg text-center z-5"
     id="loading-screen"
 >
     <span class="loader"></span>
