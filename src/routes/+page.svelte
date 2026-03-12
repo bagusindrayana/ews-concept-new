@@ -66,6 +66,37 @@
   mapboxgl.accessToken =
     "pk.eyJ1IjoiYmFndXNpbmRyYXlhbmEiLCJhIjoiY2p0dHMxN2ZhMWV5bjRlbnNwdGY4MHFuNSJ9.0j5UAU7dprNjZrouWnoJyg";
 
+  function createGempaPopupHTML(data: {
+    id: string;
+    mag: number;
+    depth: string;
+    time: string;
+    lat: number;
+    lng: number;
+  }): string {
+    return `
+      <div class="card bordered-red min-h-48 min-w-48 whitespace-pre-wrap" data-id="${data.id}">
+        <div class="card-header bordered-red-bottom overflow-hidden">
+          <div class="strip-wrapper"><div class="strip-bar-red loop-strip-reverse anim-duration-20"></div><div class="strip-bar-red loop-strip-reverse anim-duration-20"></div></div>
+          <div class="absolute top-0 bottom-0 left-0 right-0 flex justify-center items-center">
+            <p class="p-1 bg-black font-bold text-xs text-glow">GEMPA BUMI</p>
+          </div>
+        </div>
+        <div class="card-content p-2 text-glow text-sm w-full" style="font-size:10px">
+          <table class="w-full">
+            <tbody>
+              <tr><td class="flex">Magnitudo</td><td class="text-right break-words pl-2">${Number(data.mag).toFixed(1)}</td></tr>
+              <tr><td class="flex">Kedalaman</td><td class="text-right break-words pl-2">${data.depth}</td></tr>
+              <tr><td class="flex">Waktu</td><td class="text-right break-words pl-2">${data.time}</td></tr>
+              <tr><td class="flex">Lokasi (Lat,Lng)</td><td class="text-right break-words pl-2">${data.lat} , ${data.lng}</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>`
+      .trim()
+      .replace(/>\s+</g, "><");
+  }
+
   function fadeOutAudio(audioElement: HTMLAudioElement, duration: number) {
     let fadeInterval = 50;
     let step = audioElement.volume / (duration / fadeInterval);
@@ -585,27 +616,14 @@
           const coords = e.features[0].geometry.coordinates.slice();
           const d = e.features[0].properties;
           const placeholder = document.createElement("div");
-          placeholder.innerHTML = `
-          <div class="card bordered-red min-h-48 min-w-48 whitespace-pre-wrap" data-id="${d.id}">
-            <div class="card-header bordered-red-bottom overflow-hidden">
-              <div class="strip-wrapper"><div class="strip-bar-red loop-strip-reverse anim-duration-20"></div><div class="strip-bar-red loop-strip-reverse anim-duration-20"></div></div>
-              <div class="absolute top-0 bottom-0 left-0 right-0 flex justify-center items-center">
-                <p class="p-1 bg-black font-bold text-xs text-glow">GEMPA BUMI</p>
-              </div>
-            </div>
-            <div class="card-content p-2 text-glow text-sm w-full" style="font-size:10px">
-              <table class="w-full">
-                <tbody>
-                  <tr><td class="flex">Magnitudo</td><td class="text-right break-words pl-2">${Number(d.mag).toFixed(1)}</td></tr>
-                  <tr><td class="flex">Kedalaman</td><td class="text-right break-words pl-2">${d.depth}</td></tr>
-                  <tr><td class="flex">Waktu</td><td class="text-right break-words pl-2">${new Date(d.time).toLocaleString()}</td></tr>
-                  <tr><td class="flex">Lokasi (Lat,Lng)</td><td class="text-right break-words pl-2">${coords[0]} , ${coords[1]}</td></tr>
-                </tbody>
-              </table>
-            </div>
-          </div>`
-            .trim()
-            .replace(/>\s+</g, "><");
+          placeholder.innerHTML = createGempaPopupHTML({
+            id: d.id,
+            mag: d.mag,
+            depth: d.depth,
+            time: new Date(d.time).toLocaleString(),
+            lat: coords[1],
+            lng: coords[0],
+          });
           new AnimatedPopup({
             openingAnimation: {
               duration: 100,
@@ -994,27 +1012,14 @@
 
     map.flyTo({ center: [d.lng, d.lat], zoom: 6, essential: true });
     const placeholder = document.createElement("div");
-    placeholder.innerHTML = `
-      <div class="card bordered-red min-h-48 min-w-48 whitespace-pre-wrap" data-id="${d.id}">
-        <div class="card-header bordered-red-bottom overflow-hidden">
-          <div class="strip-wrapper"><div class="strip-bar-red loop-strip-reverse anim-duration-20"></div><div class="strip-bar-red loop-strip-reverse anim-duration-20"></div></div>
-          <div class="absolute top-0 bottom-0 left-0 right-0 flex justify-center items-center">
-            <p class="p-1 bg-black font-bold text-xs text-glow">GEMPA BUMI</p>
-          </div>
-        </div>
-        <div class="card-content p-2 text-glow text-sm w-full">
-          <table class="w-full">
-            <tbody>
-              <tr><td class="flex">Magnitudo</td><td class="text-right break-words pl-2">${Number(d.mag).toFixed(1)}</td></tr>
-              <tr><td class="flex">Kedalaman</td><td class="text-right break-words pl-2">${d.depth}</td></tr>
-              <tr><td class="flex">Waktu</td><td class="text-right break-words pl-2">${new Date(d.time!).toLocaleString()}</td></tr>
-              <tr><td class="flex">Lokasi (Lat,Lng)</td><td class="text-right break-words pl-2">${d.lat} , ${d.lng}</td></tr>
-            </tbody>
-          </table>
-        </div>
-      </div>`
-      .trim()
-      .replace(/>\s+</g, "><");
+    placeholder.innerHTML = createGempaPopupHTML({
+      id: d.id!,
+      mag: d.mag!,
+      depth: String(d.depth),
+      time: new Date(d.time!).toLocaleString(),
+      lat: d.lat,
+      lng: d.lng,
+    });
     selectedPopup = new AnimatedPopup({
       closeOnClick: false,
       openingAnimation: {
@@ -1386,6 +1391,29 @@
             </div>
           {/if}
         {/snippet}
+        {#snippet footer()}
+          <div
+            class="flex justify-center w-full cursor-pointer"
+            onclick={() =>
+              alertGempaBumi && selectEvent(alertGempaBumi.infoGempa)}
+          >
+            <span>
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 25 25"
+                stroke="currentColor"
+                fill="currentColor"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M5.03125 10.392C5.03125 6.26528 8.3766 2.91992 12.5033 2.91992C16.63 2.91992 19.9754 6.26528 19.9754 10.392C19.9754 13.194 18.9108 15.7454 17.6454 17.7938C16.3778 19.8458 14.8791 21.441 13.9389 22.3454C13.139 23.1148 11.9045 23.1163 11.1026 22.3493C10.1581 21.4458 8.65084 19.8507 7.37569 17.7982C6.1028 15.7493 5.03125 13.1963 5.03125 10.392ZM9.50391 10.3906C9.50391 12.0475 10.8471 13.3906 12.5039 13.3906C14.1608 13.3906 15.5039 12.0475 15.5039 10.3906C15.5039 8.73377 14.1608 7.39062 12.5039 7.39062C10.8471 7.39062 9.50391 8.73377 9.50391 10.3906Z"
+                  fill="#323544"
+                />
+              </svg>
+            </span>
+          </div>
+        {/snippet}
       </Card>
     {/if}
 
@@ -1409,11 +1437,7 @@
             </div>
           </div>
         {/snippet}
-        {#snippet footer()}
-          <div class="flex justify-center w-full">
-            <span>{infoTsunami?.infoTsunami.level}</span>
-          </div>
-        {/snippet}
+
         {#snippet children()}
           <div
             class="flex flex-col w-full justify-center items-center text-glow text-sm"
@@ -1443,6 +1467,12 @@
               </ul>
             </div>
           {/if}
+        {/snippet}
+
+        {#snippet footer()}
+          <div class="flex justify-center w-full">
+            <span>{infoTsunami?.infoTsunami.level}</span>
+          </div>
         {/snippet}
       </Card>
     {/if}
@@ -1560,6 +1590,29 @@
               </div>
             {/if}
           {/snippet}
+
+          {#snippet footer()}
+            <div
+              class="flex justify-center w-full cursor-pointer"
+              onclick={() => agi && selectEvent(agi.infoGempa)}
+            >
+              <span>
+                <svg
+                  width="18"
+                  height="18"
+                  viewBox="0 0 25 25"
+                  stroke="currentColor"
+                  fill="currentColor"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M5.03125 10.392C5.03125 6.26528 8.3766 2.91992 12.5033 2.91992C16.63 2.91992 19.9754 6.26528 19.9754 10.392C19.9754 13.194 18.9108 15.7454 17.6454 17.7938C16.3778 19.8458 14.8791 21.441 13.9389 22.3454C13.139 23.1148 11.9045 23.1163 11.1026 22.3493C10.1581 21.4458 8.65084 19.8507 7.37569 17.7982C6.1028 15.7493 5.03125 13.1963 5.03125 10.392ZM9.50391 10.3906C9.50391 12.0475 10.8471 13.3906 12.5039 13.3906C14.1608 13.3906 15.5039 12.0475 15.5039 10.3906C15.5039 8.73377 14.1608 7.39062 12.5039 7.39062C10.8471 7.39062 9.50391 8.73377 9.50391 10.3906Z"
+                    fill="#323544"
+                  />
+                </svg>
+              </span>
+            </div>
+          {/snippet}
         </Card>
       {/each}
     {/if}
@@ -1634,8 +1687,8 @@
           >
             <span>
               <svg
-                width="25"
-                height="25"
+                width="18"
+                height="18"
                 viewBox="0 0 25 25"
                 stroke="currentColor"
                 fill="currentColor"
@@ -1747,8 +1800,8 @@
           >
             <span>
               <svg
-                width="25"
-                height="25"
+                width="18"
+                height="18"
                 viewBox="0 0 25 25"
                 stroke="currentColor"
                 fill="currentColor"
@@ -2007,6 +2060,30 @@
                 {GempaDirasakan?.infoGempa.message}
               </p>
             </div>
+          </div>
+        {/snippet}
+
+        {#snippet footer()}
+          <div
+            class="flex justify-center w-full cursor-pointer"
+            onclick={() =>
+              GempaDirasakan && selectEvent(GempaDirasakan.infoGempa)}
+          >
+            <span>
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 25 25"
+                stroke="currentColor"
+                fill="currentColor"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M5.03125 10.392C5.03125 6.26528 8.3766 2.91992 12.5033 2.91992C16.63 2.91992 19.9754 6.26528 19.9754 10.392C19.9754 13.194 18.9108 15.7454 17.6454 17.7938C16.3778 19.8458 14.8791 21.441 13.9389 22.3454C13.139 23.1148 11.9045 23.1163 11.1026 22.3493C10.1581 21.4458 8.65084 19.8507 7.37569 17.7982C6.1028 15.7493 5.03125 13.1963 5.03125 10.392ZM9.50391 10.3906C9.50391 12.0475 10.8471 13.3906 12.5039 13.3906C14.1608 13.3906 15.5039 12.0475 15.5039 10.3906C15.5039 8.73377 14.1608 7.39062 12.5039 7.39062C10.8471 7.39062 9.50391 8.73377 9.50391 10.3906Z"
+                  fill="#323544"
+                />
+              </svg>
+            </span>
           </div>
         {/snippet}
       </Card>
