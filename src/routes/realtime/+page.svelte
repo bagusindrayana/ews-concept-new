@@ -437,7 +437,8 @@
 
         seis = await import("seisplotjs");
 
-        const ws = new WebSocket("ws://localhost:8080");
+        const wsUrl = import.meta.env.PUBLIC_WEBSOCKET_URL || "ws://localhost:8080";
+        const ws = new WebSocket(wsUrl);
         ws.binaryType = "arraybuffer";
 
         ws.onopen = () => {
