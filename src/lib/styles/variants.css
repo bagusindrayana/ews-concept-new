@@ -1,0 +1,482 @@
+/* ========================================
+   TEXT VARIANTS
+   ======================================== */
+
+/* Base EWS text */
+.ews-text {
+    font-family: "Roboto Condensed", Arial, Helvetica, sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text-color);
+}
+
+.ews-text.danger {
+    color: var(--danger-text-color);
+}
+
+/* Glow text variants */
+.ews-text-glow {
+    color: var(--text-color);
+    text-shadow:
+        0 0 5px rgba(var(--glow-rgb), 0.8),
+        0 0 10px rgba(var(--glow-rgb), 0.5),
+        0 0 5px rgba(var(--glow-rgb), 0.3);
+}
+
+.ews-text-glow.danger {
+    color: var(--danger-text-color);
+    text-shadow:
+        0 0 5px rgba(var(--danger-glow-rgb), 0.8),
+        0 0 10px rgba(var(--danger-glow-rgb), 0.5),
+        0 0 5px rgba(var(--danger-glow-rgb), 0.3);
+}
+
+/* Digital / LCD text */
+.ews-text-digital {
+    font-family: "DS-Digital", monospace;
+    font-variant-numeric: tabular-nums;
+    color: var(--text-color);
+    letter-spacing: 2px;
+}
+
+.ews-text-digital.danger {
+    color: var(--danger-text-color);
+}
+
+/* Blinking text */
+.ews-text-blink {
+    animation: blink 1s infinite;
+}
+
+.ews-text-blink.fast {
+    animation: blink 0.3s infinite;
+}
+
+/* Underlined text with glow */
+.ews-text-underline {
+    color: var(--text-color);
+    border-bottom: 1px solid var(--text-color);
+    padding-bottom: 2px;
+    box-shadow: 0 1px 0 0 rgba(var(--glow-rgb), 0.5);
+}
+
+.ews-text-underline.danger {
+    color: var(--danger-text-color);
+    border-bottom-color: var(--danger-text-color);
+    box-shadow: 0 1px 0 0 rgba(var(--danger-glow-rgb), 0.5);
+}
+
+/* ========================================
+   INPUT VARIANTS
+   ======================================== */
+
+/* Base EWS input */
+.ews-input {
+    background-color: rgba(0, 0, 0, 0.8);
+    color: var(--text-color);
+    font-family: "Roboto Condensed", Arial, Helvetica, sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-size: 0.875rem;
+    padding: 8px 12px;
+    border: 1px solid rgba(var(--glow-rgb), 0.9);
+    border-radius: var(--gutter-size);
+    outline: none;
+    transition: all 0.3s ease;
+    box-shadow:
+        inset 0 0 0 1px rgba(var(--glow-rgb), 0.2),
+        0 0 0 1px rgba(var(--glow-rgb), 0.2);
+    width: 100%;
+}
+
+.ews-input::placeholder {
+    color: rgba(var(--glow-rgb), 0.3);
+    text-transform: uppercase;
+}
+
+.ews-input:focus {
+    border-color: var(--text-color);
+    box-shadow:
+        inset 0 0 5px rgba(var(--glow-rgb), 0.3),
+        0 0 10px rgba(var(--glow-rgb), 0.3),
+        0 0 0 1px rgba(var(--glow-rgb), 0.5);
+}
+
+/* Danger input */
+.ews-input.danger {
+    color: var(--danger-text-color);
+    border-color: rgba(var(--danger-glow-rgb), 0.9);
+    box-shadow:
+        inset 0 0 0 1px rgba(var(--danger-glow-rgb), 0.2),
+        0 0 0 1px rgba(var(--danger-glow-rgb), 0.2);
+}
+
+.ews-input.danger::placeholder {
+    color: rgba(var(--danger-glow-rgb), 0.3);
+}
+
+.ews-input.danger:focus {
+    border-color: var(--danger-text-color);
+    box-shadow:
+        inset 0 0 5px rgba(var(--danger-glow-rgb), 0.3),
+        0 0 10px rgba(var(--danger-glow-rgb), 0.3),
+        0 0 0 1px rgba(var(--danger-glow-rgb), 0.5);
+}
+
+/* Digital font input */
+.ews-input.digital {
+    font-family: "DS-Digital", monospace;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 2px;
+    font-size: 1.1rem;
+}
+
+/* Input with bottom-only border */
+.ews-input.underline {
+    border: none;
+    border-radius: 0;
+    border-bottom: 2px solid rgba(var(--glow-rgb), 0.9);
+    box-shadow: none;
+    background: transparent;
+    padding-left: 4px;
+    padding-right: 4px;
+    text-decoration: unset !important;
+}
+
+.ews-input.underline:focus {
+    border-bottom-color: var(--text-color);
+    box-shadow: 0 2px 8px -2px rgba(var(--glow-rgb), 0.5);
+}
+
+.ews-input.underline.danger {
+    border-bottom-color: rgba(var(--danger-glow-rgb), 0.9);
+}
+
+.ews-input.underline.danger:focus {
+    border-bottom-color: var(--danger-text-color);
+    box-shadow: 0 2px 8px -2px rgba(var(--danger-glow-rgb), 0.5);
+}
+
+/* Textarea variant */
+.ews-textarea {
+    background-color: rgba(0, 0, 0, 0.8);
+    color: var(--text-color);
+    font-family: "Roboto Condensed", Arial, Helvetica, sans-serif;
+    font-size: 0.875rem;
+    padding: 8px 12px;
+    border: 1px solid rgba(var(--glow-rgb), 0.9);
+    border-radius: var(--gutter-size);
+    outline: none;
+    transition: all 0.3s ease;
+    box-shadow:
+        inset 0 0 0 1px rgba(var(--glow-rgb), 0.2),
+        0 0 0 1px rgba(var(--glow-rgb), 0.2);
+    width: 100%;
+    resize: vertical;
+    min-height: 60px;
+}
+
+.ews-textarea::placeholder {
+    color: rgba(var(--glow-rgb), 0.3);
+    text-transform: uppercase;
+}
+
+.ews-textarea:focus {
+    border-color: var(--text-color);
+    box-shadow:
+        inset 0 0 5px rgba(var(--glow-rgb), 0.3),
+        0 0 10px rgba(var(--glow-rgb), 0.3),
+        0 0 0 1px rgba(var(--glow-rgb), 0.5);
+}
+
+.ews-textarea.danger {
+    color: var(--danger-text-color);
+    border-color: rgba(var(--danger-glow-rgb), 0.9);
+    box-shadow:
+        inset 0 0 0 1px rgba(var(--danger-glow-rgb), 0.2),
+        0 0 0 1px rgba(var(--danger-glow-rgb), 0.2);
+}
+
+.ews-textarea.danger:focus {
+    border-color: var(--danger-text-color);
+    box-shadow:
+        inset 0 0 5px rgba(var(--danger-glow-rgb), 0.3),
+        0 0 10px rgba(var(--danger-glow-rgb), 0.3),
+        0 0 0 1px rgba(var(--danger-glow-rgb), 0.5);
+}
+
+/* Select variant */
+.ews-select {
+    background-color: rgba(0, 0, 0, 0.8);
+    color: var(--text-color);
+    font-family: "Roboto Condensed", Arial, Helvetica, sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-size: 0.875rem;
+    padding: 8px 12px;
+    border: 1px solid rgba(var(--glow-rgb), 0.9);
+    border-radius: var(--gutter-size);
+    outline: none;
+    transition: all 0.3s ease;
+    box-shadow:
+        inset 0 0 0 1px rgba(var(--glow-rgb), 0.2),
+        0 0 0 1px rgba(var(--glow-rgb), 0.2);
+    width: 100%;
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M6 8L0 0h12z' fill='%23fa0'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    padding-right: 32px;
+}
+
+.ews-select:focus {
+    border-color: var(--text-color);
+    box-shadow:
+        inset 0 0 5px rgba(var(--glow-rgb), 0.3),
+        0 0 10px rgba(var(--glow-rgb), 0.3),
+        0 0 0 1px rgba(var(--glow-rgb), 0.5);
+}
+
+.ews-select.danger {
+    color: var(--danger-text-color);
+    border-color: rgba(var(--danger-glow-rgb), 0.5);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M6 8L0 0h12z' fill='%23f23'/%3E%3C/svg%3E");
+}
+
+.ews-select option {
+    background-color: black;
+    color: var(--text-color);
+}
+
+/* ========================================
+   BUTTON VARIANTS
+   ======================================== */
+
+/* Base EWS button */
+.ews-btn {
+    font-family: "Roboto Condensed", Arial, Helvetica, sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-weight: 700;
+    font-size: 0.75rem;
+    padding: 8px 20px;
+    cursor: pointer;
+    border: none;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+/* Primary (orange/yellow) filled */
+.ews-btn-primary {
+    background-color: var(--orange);
+    color: black;
+    box-shadow:
+        0 0 8px rgba(var(--glow-rgb), 0.5),
+        inset 0 0 8px rgba(0, 0, 0, 0.1);
+}
+
+.ews-btn-primary:hover {
+    box-shadow:
+        0 0 5px rgba(var(--glow-rgb), 0.8),
+        0 0 15px rgba(var(--glow-rgb), 0.4),
+        inset 0 0 8px rgba(0, 0, 0, 0.1);
+    transform: scale(1.02);
+}
+
+.ews-btn-primary:active {
+    transform: scale(0.98);
+    box-shadow:
+        0 0 5px rgba(var(--glow-rgb), 0.5),
+        inset 0 0 5px rgba(0, 0, 0, 0.3);
+}
+
+/* Danger (red) filled */
+.ews-btn-danger {
+    background-color: var(--red);
+    color: white;
+    box-shadow:
+        0 0 8px rgba(var(--danger-glow-rgb), 0.5),
+        inset 0 0 8px rgba(0, 0, 0, 0.1);
+}
+
+.ews-btn-danger:hover {
+    box-shadow:
+        0 0 5px rgba(var(--danger-glow-rgb), 0.8),
+        0 0 15px rgba(var(--danger-glow-rgb), 0.4),
+        inset 0 0 8px rgba(0, 0, 0, 0.1);
+    transform: scale(1.02);
+}
+
+.ews-btn-danger:active {
+    transform: scale(0.98);
+    box-shadow:
+        0 0 5px rgba(var(--danger-glow-rgb), 0.5),
+        inset 0 0 5px rgba(0, 0, 0, 0.3);
+}
+
+/* Outlined orange */
+.ews-btn-outline {
+    background-color: transparent;
+    color: var(--text-color);
+    border: 1px solid var(--text-color);
+    box-shadow:
+        0 0 5px rgba(var(--glow-rgb), 0.3),
+        inset 0 0 5px rgba(var(--glow-rgb), 0.1);
+}
+
+.ews-btn-outline:hover {
+    background-color: rgba(var(--glow-rgb), 0.1);
+    box-shadow:
+        0 0 10px rgba(var(--glow-rgb), 0.5),
+        0 0 5px rgba(var(--glow-rgb), 0.2),
+        inset 0 0 10px rgba(var(--glow-rgb), 0.15);
+    transform: scale(1.02);
+}
+
+.ews-btn-outline:active {
+    transform: scale(0.98);
+}
+
+/* Outlined red */
+.ews-btn-outline-danger {
+    background-color: transparent;
+    color: var(--danger-text-color);
+    border: 1px solid var(--danger-text-color);
+    box-shadow:
+        0 0 5px rgba(var(--danger-glow-rgb), 0.3),
+        inset 0 0 5px rgba(var(--danger-glow-rgb), 0.1);
+}
+
+.ews-btn-outline-danger:hover {
+    background-color: rgba(var(--danger-glow-rgb), 0.1);
+    box-shadow:
+        0 0 10px rgba(var(--danger-glow-rgb), 0.5),
+        0 0 5px rgba(var(--danger-glow-rgb), 0.2),
+        inset 0 0 10px rgba(var(--danger-glow-rgb), 0.15);
+    transform: scale(1.02);
+}
+
+.ews-btn-outline-danger:active {
+    transform: scale(0.98);
+}
+
+/* Ghost button */
+.ews-btn-ghost {
+    background-color: transparent;
+    color: var(--text-color);
+    border: none;
+    text-shadow: 0 0 5px rgba(var(--glow-rgb), 0.5);
+}
+
+.ews-btn-ghost:hover {
+    text-shadow:
+        0 0 5px rgba(var(--glow-rgb), 0.8),
+        0 0 5px rgba(var(--glow-rgb), 0.4);
+    background-color: rgba(var(--glow-rgb), 0.05);
+}
+
+.ews-btn-ghost.danger {
+    color: var(--danger-text-color);
+    text-shadow: 0 0 5px rgba(var(--danger-glow-rgb), 0.5);
+}
+
+.ews-btn-ghost.danger:hover {
+    text-shadow:
+        0 0 5px rgba(var(--danger-glow-rgb), 0.8),
+        0 0 5px rgba(var(--danger-glow-rgb), 0.4);
+    background-color: rgba(var(--danger-glow-rgb), 0.05);
+}
+
+/* Skewed / Jajar Genjang button */
+.ews-btn-skew {
+    transform: skew(-15deg);
+    background-color: var(--orange);
+    color: black;
+    box-shadow: 0 0 8px rgba(var(--glow-rgb), 0.5);
+    padding: 8px 24px;
+}
+
+.ews-btn-skew span {
+    display: inline-block;
+    transform: skew(15deg);
+}
+
+.ews-btn-skew:hover {
+    box-shadow:
+        0 0 5px rgba(var(--glow-rgb), 0.8),
+        0 0 15px rgba(var(--glow-rgb), 0.4);
+}
+
+.ews-btn-skew.danger {
+    background-color: var(--red);
+    color: white;
+    box-shadow: 0 0 8px rgba(var(--danger-glow-rgb), 0.5);
+}
+
+.ews-btn-skew.danger:hover {
+    box-shadow:
+        0 0 5px rgba(var(--danger-glow-rgb), 0.8),
+        0 0 15px rgba(var(--danger-glow-rgb), 0.4);
+}
+
+/* Button with blinking glow */
+.ews-btn-alert {
+    background-color: var(--red);
+    color: white;
+    border: 1px solid var(--red);
+    animation: btnAlertPulse 1.5s infinite;
+}
+
+@keyframes btnAlertPulse {
+
+    0%,
+    100% {
+        box-shadow:
+            0 0 5px rgba(var(--danger-glow-rgb), 0.5),
+            0 0 10px rgba(var(--danger-glow-rgb), 0.3);
+    }
+
+    50% {
+        box-shadow:
+            0 0 5px rgba(var(--danger-glow-rgb), 0.9),
+            0 0 15px rgba(var(--danger-glow-rgb), 0.6),
+            0 0 45px rgba(var(--danger-glow-rgb), 0.3);
+    }
+}
+
+.ews-btn-alert:hover {
+    animation: none;
+    box-shadow:
+        0 0 5px rgba(var(--danger-glow-rgb), 0.9),
+        0 0 10px rgba(var(--danger-glow-rgb), 0.5);
+}
+
+/* Button sizes */
+.ews-btn-sm {
+    font-size: 0.625rem;
+    padding: 4px 12px;
+}
+
+.ews-btn-lg {
+    font-size: 1rem;
+    padding: 12px 32px;
+}
+
+/* Disabled state */
+.ews-btn:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+    transform: none !important;
+    box-shadow: none !important;
+    animation: none !important;
+}
+
+.ews-input:disabled,
+.ews-textarea:disabled,
+.ews-select:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+}

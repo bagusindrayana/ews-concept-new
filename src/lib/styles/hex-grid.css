@@ -1,0 +1,304 @@
+/* =============================================
+   HEXAGONAL GRID STYLES
+   ============================================= */
+
+/* --- Shared hex clip-path (flat-top orientation) --- */
+.hex-clip {
+    clip-path: polygon(24.96% 100%,
+            0% 50%,
+            24.96% 0%,
+            74.87% 0%,
+            99.84% 50%,
+            74.87% 100%);
+}
+
+/* --- Shared hex clip-path (pointy-top / rotated 90°) --- */
+.hex-clip-pointy {
+    clip-path: polygon(0% 25.13%,
+            50% 0%,
+            100% 25.13%,
+            100% 74.87%,
+            50% 100%,
+            0% 74.87%);
+}
+
+/* ---- 1. Basic Flat Hex Grid ---- */
+.hex-grid-flat {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-items: center;
+}
+
+.hex-cell-flat {
+    position: relative;
+    width: 80px;
+    height: 70px;
+    aspect-ratio: 584 / 507;
+    clip-path: polygon(24.96% 100%, 0% 50%, 24.96% 0%, 74.87% 0%, 99.84% 50%, 74.87% 100%);
+    background-color: rgba(255, 170, 0, 0.08);
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.25s ease, transform 0.2s ease;
+    cursor: default;
+}
+
+.hex-cell-flat::before {
+    content: '';
+    position: absolute;
+    inset: 2px;
+    clip-path: polygon(24.96% 100%, 0% 50%, 24.96% 0%, 74.87% 0%, 99.84% 50%, 74.87% 100%);
+    background-color: rgba(255, 170, 0, 0.04);
+    z-index: 0;
+}
+
+.hex-cell-flat:hover {
+    background-color: rgba(255, 170, 0, 0.18);
+    transform: scale(1.06);
+}
+
+.hex-cell-flat.hex-danger {
+    background-color: rgba(255, 34, 51, 0.15);
+    box-shadow: 0 0 12px 2px rgba(255, 34, 51, 0.3);
+}
+
+.hex-cell-flat.hex-danger::before {
+    background-color: rgba(255, 34, 51, 0.06);
+}
+
+.hex-cell-flat.hex-warn {
+    background-color: rgba(255, 170, 0, 0.15);
+    box-shadow: 0 0 10px 2px rgba(255, 170, 0, 0.25);
+}
+
+.hex-cell-flat.hex-safe {
+    background-color: rgba(0, 200, 80, 0.12);
+    box-shadow: 0 0 8px 1px rgba(0, 200, 80, 0.2);
+}
+
+.hex-content {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    color: var(--orange);
+    text-align: center;
+}
+
+/* ---- 2. Honeycomb Offset Grid ---- */
+.hex-honeycomb {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+}
+
+.hex-row {
+    display: flex;
+    flex-direction: row;
+    gap: 4px;
+}
+
+.hex-row-offset {
+    margin-left: calc(72px / 2 + 2px);
+    margin-top: -14px;
+}
+
+.hex-hive {
+    position: relative;
+    width: 72px;
+    height: 83px;
+    clip-path: polygon(0% 25.13%, 50% 0%, 100% 25.13%, 100% 74.87%, 50% 100%, 0% 74.87%);
+    background-color: rgba(255, 170, 0, 0.08);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.2s ease, background-color 0.2s ease;
+    /* cursor: default; */
+}
+
+.hex-hive.bg-hex {
+    clip-path: polygon(0% 25.13%, 50% 0%, 100% 25.13%, 100% 74.87%, 50% 100%, 0% 74.87%);
+    display: unset;
+    transition: unset;
+    background-color: transparent;
+    /* height: unset; */
+
+    background-image: url("/images/hex_shape_rotate.svg");
+    background-size: contain;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+.bg-hex.yellow {
+    background-image: url("/images/hex_shape_orange_rotate.svg");
+}
+
+.hex-hive.bg-hex-flat {
+    clip-path: polygon(24.96% 100%, 0% 50%, 24.96% 0%, 74.87% 0%, 99.84% 50%, 74.87% 100%);
+    display: unset;
+    transition: unset;
+    background-color: transparent;
+
+    background-image: url("/images/hex_shape.svg");
+    background-size: contain;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+.bg-hex-flat.yellow {
+    background-image: url("/images/hex_shape_orange.svg");
+}
+
+/* .hex-hive:hover {
+    background-color: rgba(255, 170, 0, 0.2);
+    transform: scale(1.05);
+} */
+
+.hex-hive.hex-danger {
+    background-color: rgba(255, 34, 51, 0.18);
+    filter: drop-shadow(0 0 8px rgba(255, 34, 51, 0.5));
+}
+
+.hex-hive.hex-warn {
+    background-color: rgba(255, 170, 0, 0.18);
+    filter: drop-shadow(0 0 6px rgba(255, 170, 0, 0.4));
+}
+
+.hex-hive-inner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1px;
+    text-align: center;
+    color: var(--orange);
+}
+
+/* ---- 3. Animated Status Hex Cells ---- */
+.hex-status-cell {
+    position: relative;
+    width: 90px;
+    height: 104px;
+    clip-path: polygon(0% 25.13%, 50% 0%, 100% 25.13%, 100% 74.87%, 50% 100%, 0% 74.87%);
+    background-color: rgba(255, 170, 0, 0.06);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.25s ease;
+}
+
+.hex-status-cell::after {
+    content: '';
+    position: absolute;
+    inset: 3px;
+    clip-path: polygon(0% 25.13%, 50% 0%, 100% 25.13%, 100% 74.87%, 50% 100%, 0% 74.87%);
+    background: transparent;
+    border: none;
+    z-index: 0;
+}
+
+.hex-status-cell:hover {
+    transform: scale(1.08);
+}
+
+.hex-status-cell.hex-danger {
+    background-color: rgba(255, 34, 51, 0.12);
+    filter: drop-shadow(0 0 10px rgba(255, 34, 51, 0.45));
+}
+
+.hex-status-cell.hex-warn {
+    background-color: rgba(255, 170, 0, 0.12);
+    filter: drop-shadow(0 0 8px rgba(255, 170, 0, 0.4));
+}
+
+.hex-status-cell.hex-caution {
+    background-color: rgba(255, 255, 0, 0.08);
+    filter: drop-shadow(0 0 6px rgba(255, 255, 0, 0.25));
+}
+
+.hex-status-cell.hex-safe {
+    background-color: rgba(0, 200, 80, 0.08);
+    filter: drop-shadow(0 0 6px rgba(0, 200, 80, 0.2));
+}
+
+.hex-status-cell.hex-pulse {
+    animation: hexPulse 1.4s ease-in-out infinite;
+}
+
+@keyframes hexPulse {
+
+    0%,
+    100% {
+        filter: drop-shadow(0 0 8px rgba(255, 34, 51, 0.3));
+    }
+
+    50% {
+        filter: drop-shadow(0 0 22px rgba(255, 34, 51, 0.85));
+    }
+}
+
+.hex-status-inner {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    gap: 2px;
+    color: var(--orange);
+}
+
+/* ---- 4. Hex with Strip Decoration ---- */
+.hex-strip-cell {
+    position: relative;
+    width: 110px;
+    height: 127px;
+    clip-path: polygon(0% 25.13%, 50% 0%, 100% 25.13%, 100% 74.87%, 50% 100%, 0% 74.87%);
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(255, 170, 0, 0.05);
+    transition: transform 0.2s ease;
+}
+
+.hex-strip-cell:hover {
+    transform: scale(1.06);
+}
+
+.hex-strip-cell.hex-danger {
+    background-color: rgba(255, 34, 51, 0.08);
+}
+
+.hex-strip-bg {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.hex-strip-content {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    gap: 1px;
+    color: var(--orange);
+    background-color: rgba(0, 0, 0, 0.55);
+    padding: 6px 10px;
+    clip-path: polygon(0% 25.13%, 50% 0%, 100% 25.13%, 100% 74.87%, 50% 100%, 0% 74.87%);
+    width: 88%;
+    height: 88%;
+}

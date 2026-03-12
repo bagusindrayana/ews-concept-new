@@ -1,0 +1,238 @@
+@keyframes slideinBg {
+    from {
+        background-position: top;
+    }
+
+    to {
+        background-position: -100px 0px;
+    }
+}
+
+.loop-strip-vertical {
+    animation: stripAnimationVertical 15s infinite linear;
+}
+
+.loop-strip-vertical-reverse {
+    animation: stripAnimationVertical 15s infinite linear reverse;
+}
+
+.strip-animation {
+    animation: stripAnimation 10s infinite linear;
+}
+
+.strip-animation-reverse {
+    animation: stripAnimation 10s infinite linear reverse;
+}
+
+@keyframes stripAnimationVertical {
+    from {
+        transform: translateY(0);
+    }
+
+    to {
+        transform: translateY(calc(-42.4264px * 47));
+        /* ≈ -2000px, but exact multiple of repeating unit */
+    }
+}
+
+@keyframes stripAnimation {
+    from {
+        transform: translateX(0);
+    }
+
+    to {
+        transform: translateX(calc(-42.4264px * 47));
+    }
+}
+.loop-strip {
+    animation: loopStrip infinite linear;
+    animation-duration: 10s;
+}
+
+.loop-strip-reverse {
+    animation: loopStrip infinite linear reverse;
+    animation-duration: 10s;
+}
+
+.anim-duration-5 {
+    animation-duration: 5s !important;
+}
+
+.anim-duration-10 {
+    animation-duration: 10s !important;
+}
+
+.anim-duration-20 {
+    animation-duration: 20s !important;
+}
+
+@keyframes loopStrip {
+    from {
+        transform: translateX(0);
+    }
+
+    to {
+        transform: translateX(calc(-42.4264px * 47));
+        /* exact loop point */
+    }
+}
+.show-pop-up {
+    animation: showPopUp 0.3s ease-in-out forwards;
+}
+
+@keyframes showPopUp {
+    0% {
+        opacity: 0;
+        transform: scale(0.5);
+    }
+
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.close-pop-up {
+    animation: closePopUp 0.3s ease-in-out forwards !important;
+}
+
+@keyframes closePopUp {
+    0% {
+        opacity: 1;
+        transform: scale(1);
+    }
+
+    100% {
+        opacity: 0;
+        transform: scale(0.5);
+    }
+}
+.vertical-reveal {
+    animation: verticalReveal 0.3s ease-in-out;
+}
+
+@keyframes verticalReveal {
+    0% {
+        transform: scaleY(0);
+    }
+
+    100% {
+        transform: scaleY(1);
+    }
+}
+.glow-effect {
+    animation: glowEffect 1s infinite;
+}
+
+@keyframes glowEffect {
+    0% {
+        box-shadow: 0px 0px 66px 17px rgba(252, 60, 22, 0.59);
+    }
+
+    50% {
+        box-shadow: 0px 0px 66px 44px rgba(252, 60, 22, 0.9);
+    }
+
+    100% {
+        box-shadow: 0px 0px 66px 17px rgba(252, 60, 22, 0.59);
+    }
+}
+.blink {
+    animation: blink 1s infinite;
+}
+
+@keyframes blink {
+    0% {
+        opacity: 0.4;
+    }
+
+    50% {
+        opacity: 1;
+    }
+
+    100% {
+        opacity: 0.4;
+    }
+}
+.animation-delay-1 {
+    animation-delay: 1s;
+}
+
+.animation-delay-2 {
+    animation-delay: 2s;
+}
+
+.animation-delay-3 {
+    animation-delay: 3s;
+}
+
+.animation-delay-4 {
+    animation-delay: 4s;
+}
+
+.warning .info .basic-hex:nth-child(1) {
+    animation-delay: 2s;
+}
+
+.warning .info .basic-hex:nth-child(2) {
+    animation-delay: 2.2s;
+}
+
+.warning .info .basic-hex:nth-child(3) {
+    animation-delay: 2.4s;
+}
+
+.animation-fast {
+    animation-duration: 0.5s;
+}
+
+.blink-fast {
+    animation-duration: 0.1s;
+}
+
+.slide-in-left {
+    animation: slideInLeft 0.5s forwards;
+}
+
+@keyframes slideInLeft {
+    0% {
+        transform: translateX(-100%);
+    }
+
+    100% {
+        transform: translateX(0);
+    }
+}
+@keyframes show {
+    10% {
+        opacity: 1;
+        transform: scale(1);
+    }
+
+    90% {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+@keyframes pulse {
+
+    0%,
+    100% {
+        opacity: 0.8;
+    }
+
+    50% {
+        opacity: 1;
+    }
+}
+
+@keyframes scanline {
+    0% {
+        transform: translateY(-100%);
+    }
+
+    100% {
+        transform: translateY(100%);
+    }
+}
