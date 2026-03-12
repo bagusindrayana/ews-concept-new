@@ -694,7 +694,7 @@
                     class="strip-bar loop-strip-reverse anim-duration-20"
                   ></div>
                 </div>
-                <span class="absolute bg-black ews-text-glow"
+                <span class="absolute bg-black ews-text-glow px-2 py-1"
                   >⚠ EMERGENCY BUTTON</span
                 >
               </button>
@@ -708,7 +708,7 @@
                   <div class="strip-bar-red loop-strip anim-duration-20"></div>
                   <div class="strip-bar-red loop-strip anim-duration-20"></div>
                 </div>
-                <span class="absolute bg-black ews-text-glow danger"
+                <span class="absolute bg-black ews-text-glow danger px-2 py-1"
                   >⚠ EMERGENCY BUTTON</span
                 >
               </button>
