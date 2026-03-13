@@ -37,10 +37,12 @@
                 for (let i = 0; i < samplesToGenerate; i++) {
                     demoPhase += 0.1;
                     const noise = (Math.random() - 0.5) * 500;
-                    const primaryWave = Math.sin(demoPhase) * 2000;
+                    const primaryWave = Math.sin(demoPhase) * 3000;
                     const secondaryWave = Math.cos(demoPhase * 0.5) * 1000;
                     const spike =
-                        Math.random() > 0.98 ? (Math.random() - 0.5) * 8000 : 0;
+                        Math.random() > 0.98
+                            ? (Math.random() - 0.5) * 10000
+                            : 0;
 
                     dataBuffer.push({
                         t: now - (samplesToGenerate - i - 1) * msPerSample,
