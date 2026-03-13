@@ -1052,6 +1052,7 @@
       alert("Wait loading geojson");
       return;
     }
+    showSettingsModal = false;
     const bbox = turf.bbox(geoJsonData);
     const randomPosition = turf.randomPosition(bbox);
     const mag = (Math.random() * (10 - 5) + 5).toFixed(1);
@@ -1085,6 +1086,7 @@
     )
       .then((r) => r.text())
       .then((data) => {
+        showSettingsModal = false;
         const parser = new XMLParser();
         let jObj = parser.parse(data);
         var infos = jObj.alert.info.filter((v: any) => v.wzarea != undefined);
@@ -1186,7 +1188,7 @@
           <div
             class="absolute top-0 bottom-0 left-0 right-0 flex justify-between items-center px-3"
           >
-            <p class="p-1 bg-black font-bold text-sm text-glow">PENGATURAN</p>
+            <p class="p-1 bg-black font-bold text-sm label-small">PENGATURAN</p>
             <button
               class="bg-black px-2 py-1 cursor-pointer"
               style="color:#e60003"
@@ -1321,10 +1323,7 @@
           >
             <div class="w-full flex gap-2">
               <div>
-                <div
-                  id="internal"
-                  class="label bordered flex mb-2 w-full lg:w-32"
-                >
+                <div class="label internal bordered flex mb-2 w-full lg:w-32">
                   <div class="flex flex-col items-center p-1">
                     <div class="text -characters">
                       {alertGempaBumi?.readableMag}
@@ -1524,10 +1523,7 @@
             >
               <div class="w-full flex gap-2">
                 <div>
-                  <div
-                    id="internal"
-                    class="label bordered flex mb-2 w-full lg:w-32"
-                  >
+                  <div class="label internal bordered flex mb-2 w-full lg:w-32">
                     <div class="flex flex-col items-center p-1">
                       <div class="text -characters">{agi.readableMag}</div>
                       <div class="text">MAG</div>
@@ -1637,7 +1633,7 @@
           <div
             class="absolute top-0 bottom-0 left-0 right-0 flex justify-center items-center"
           >
-            <p class="text-lg bg-black font-bold text-glow p-1">EVENT LOG</p>
+            <p class="text-lg bg-black font-bold label-small p-1">EVENT LOG</p>
           </div>
         </div>
       {/snippet}
@@ -1678,7 +1674,7 @@
             <div
               class="absolute top-0 bottom-0 left-0 right-0 flex justify-center items-center"
             >
-              <p class="text-lg bg-black font-bold text-glow p-1">
+              <p class="text-lg bg-black font-bold p-1 label-small">
                 GEMPA DIRASAKAN TERAKHIR
               </p>
             </div>
@@ -1715,8 +1711,7 @@
             <div class="w-full flex flex-col md:flex-row gap-2">
               <div>
                 <div
-                  id="internal"
-                  class="label bordered flex justify-between mb-2 w-full lg:w-32"
+                  class="label internal bordered flex justify-between mb-2 w-full lg:w-32"
                 >
                   <div class="flex flex-col items-center p-1">
                     <div class="text -characters">
@@ -1791,7 +1786,7 @@
             <div
               class="absolute top-0 bottom-0 left-0 right-0 flex justify-center items-center"
             >
-              <p class="text-lg bg-black font-bold text-glow p-1">
+              <p class="text-lg bg-black font-bold p-1 label-small">
                 GEMPA TERDETEKSI TERAKHIR
               </p>
             </div>
@@ -2012,10 +2007,7 @@
           >
             <div class="w-full flex gap-2">
               <div>
-                <div
-                  id="internal"
-                  class="label bordered flex mb-2 w-full lg:w-32"
-                >
+                <div class="label internal bordered flex mb-2 w-full lg:w-32">
                   <div class="flex flex-col items-center p-1">
                     <div class="text -characters">
                       {GempaDirasakan?.readableMag}

@@ -654,7 +654,7 @@
     font-size: 2rem;
     letter-spacing: -1px;
     line-height: 1;
-    padding-right: 0px;
+    /* padding-right: 0px; */
     text-transform: uppercase;
     user-select: none;
     white-space: nowrap;
@@ -665,6 +665,7 @@
         1px -1px 0 var(--text-glow-color),
         -1px -1px 0 var(--text-glow-color),
         1px 1px 0 var(--text-glow-color);
+    text-box: trim-both cap alphabetic;
 }
 
 .label-small {
@@ -673,20 +674,21 @@
     font-size: 1rem;
     letter-spacing: -1px;
     line-height: 1;
-    padding-right: 0px;
+    /* padding-right: 0px; */
     text-transform: uppercase;
     user-select: none;
     white-space: nowrap;
     --text-glow-color: rgba(var(--glow-rgb), 0.5);
     color: var(--text-color);
     text-shadow:
-        -1px 1px 0 var(--text-glow-color),
-        1px -1px 0 var(--text-glow-color),
-        -1px -1px 0 var(--text-glow-color),
-        1px 1px 0 var(--text-glow-color);
+        -0.5px 0.5px 0 var(--text-glow-color),
+        0.5px -0.5px 0 var(--text-glow-color),
+        -0.5px -0.5px 0 var(--text-glow-color),
+        0.5px 0.5px 0 var(--text-glow-color);
+    text-box: trim-both cap alphabetic;
 }
 
-.label#internal .decal {
+.label.internal .decal {
     border-radius: calc(var(--label-corner-size) - 1px);
     display: block;
     height: 100px;
@@ -722,7 +724,7 @@
     animation-timing-function: steps(1);
 }
 
-.label#internal .text.-characters {
+.label.internal .text.-characters {
     font-size: 3.5rem;
     padding-top: var(--label-gutter-size);
 }
