@@ -33,25 +33,29 @@
                 const now = Date.now();
                 const samplesToGenerate = 4;
                 const msPerSample = 10;
-                
-                for(let i = 0; i < samplesToGenerate; i++) {
+
+                for (let i = 0; i < samplesToGenerate; i++) {
                     demoPhase += 0.1;
                     const noise = (Math.random() - 0.5) * 500;
                     const primaryWave = Math.sin(demoPhase) * 2000;
                     const secondaryWave = Math.cos(demoPhase * 0.5) * 1000;
-                    const spike = Math.random() > 0.98 ? (Math.random() - 0.5) * 8000 : 0;
-                    
+                    const spike =
+                        Math.random() > 0.98 ? (Math.random() - 0.5) * 8000 : 0;
+
                     dataBuffer.push({
                         t: now - (samplesToGenerate - i - 1) * msPerSample,
-                        v: primaryWave + secondaryWave + noise + spike
+                        v: primaryWave + secondaryWave + noise + spike,
                     });
                 }
-                
+
                 dataBuffer.sort((a, b) => a.t - b.t);
-                
+
                 const cutoffTime = now - MAX_BUFFER_MS;
                 let trimIndex = 0;
-                while (trimIndex < dataBuffer.length && dataBuffer[trimIndex].t < cutoffTime) {
+                while (
+                    trimIndex < dataBuffer.length &&
+                    dataBuffer[trimIndex].t < cutoffTime
+                ) {
                     trimIndex++;
                 }
                 if (trimIndex > 0) {
@@ -559,10 +563,12 @@
 <div
     class="min-h-screen py-8 flex flex-col justify-center overflow-hidden font-mono relative gap-2"
 >
-    <div class="w-full flex gap-2 justify-center">
+    <div
+        class="w-full flex flex-col-reverse md:flex-row gap-2 justify-center px-4 md:px-0"
+    >
         {#if stationData != null}
             <div class="flex flex-col gap-4 w-auto h-full items-stretch">
-                <Card className="w-md ">
+                <Card className="w-full md:w-md ">
                     {#snippet title()}
                         <p class="p-1 text-xl text-glow label">
                             STATION INFORMATION
@@ -644,7 +650,7 @@
                     {/snippet}
                 </Card>
 
-                <Card className="w-md h-full grow ">
+                <Card className="w-full md:w-md h-full grow ">
                     {#snippet title()}
                         <p class="p-1 text-xl text-glow label">
                             STATION CHANNEL
@@ -715,10 +721,14 @@
                                 on:click={toggleDemoData}
                                 ><div class="strip-wrapper">
                                     <div
-                                        class="strip-bar anim-duration-20 {isDemoMode ? 'loop-strip-reverse' : ''}"
+                                        class="strip-bar anim-duration-20 {isDemoMode
+                                            ? 'loop-strip-reverse'
+                                            : ''}"
                                     ></div>
                                     <div
-                                        class="strip-bar anim-duration-20 {isDemoMode ? 'loop-strip-reverse' : ''}"
+                                        class="strip-bar anim-duration-20 {isDemoMode
+                                            ? 'loop-strip-reverse'
+                                            : ''}"
                                     ></div>
                                 </div>
                                 <span
@@ -739,11 +749,10 @@
             >
                 <!-- Top Left -->
                 <div
-                    class="absolute top-12 left-4 md:left-24 pointer-events-none text-glow z-5"
+                    class="absolute top-4 md:top-12 left-4 md:left-24 pointer-events-none text-glow z-5"
                 >
                     <div
-                        class="rounded-sm mix-blend-screen bordered label inline-block bg-black/60 shadow-lg h-10 text-center flex justify-center items-center"
-                        style="padding-inline: 10px;"
+                        class="rounded-sm bordered label bg-black/60 shadow-lg h-10 text-center flex justify-center items-center w-64"
                     >
                         <div class="font-bold md:text-3xl uppercase">
                             SEISMIC WAVEFORM
@@ -758,7 +767,7 @@
 
                 <!-- Top Right -->
                 <div
-                    class="absolute top-4 right-4 md:right-16 pointer-events-none flex flex-col items-end z-5"
+                    class="absolute top-18 md:top-4 right-4 md:right-16 pointer-events-none flex flex-col items-end z-5"
                 >
                     <div
                         class="rounded-lg p-1 inline-block bg-black/60 shadow-lg"
