@@ -520,7 +520,9 @@
             <div class="flex flex-col gap-4 w-auto h-full items-stretch">
                 <Card className="w-md ">
                     {#snippet title()}
-                        <p class="p-1 text-xl text-glow">STATION INFORMATION</p>
+                        <p class="p-1 text-xl text-glow label">
+                            STATION INFORMATION
+                        </p>
                     {/snippet}
                     {#snippet children()}
                         <div class="w-full flex flex-col md:flex-row gap-2">
@@ -592,7 +594,7 @@
                         </div>
                     {/snippet}
                     {#snippet footer()}
-                        <div class="flex justify-center w-full">
+                        <div class="flex justify-center w-full label-small">
                             <span>{stationData.Network["Description"]}</span>
                         </div>
                     {/snippet}
@@ -600,7 +602,9 @@
 
                 <Card className="w-md h-full grow ">
                     {#snippet title()}
-                        <p class="p-1 text-xl text-glow">STATION CHANNEL</p>
+                        <p class="p-1 text-xl text-glow label">
+                            STATION CHANNEL
+                        </p>
                     {/snippet}
                     {#snippet children()}
                         <HexGrid variant="flat">
@@ -670,12 +674,13 @@
             >
                 <!-- Top Left -->
                 <div
-                    class="absolute top-4 left-4 md:left-24 pointer-events-none text-glow z-5"
+                    class="absolute top-12 left-4 md:left-24 pointer-events-none text-glow z-5"
                 >
-                    <div class="rounded p-1 inline-block bg-black/60 shadow-lg">
-                        <div
-                            class="font-bold text-xl md:text-3xl uppercase tracking-tighter px-2 py-0 rounded-sm mix-blend-screen bordered"
-                        >
+                    <div
+                        class="rounded-sm mix-blend-screen bordered label inline-block bg-black/60 shadow-lg h-10 text-center flex justify-center items-center"
+                        style="padding-inline: 10px;"
+                    >
+                        <div class="font-bold md:text-3xl uppercase">
                             SEISMIC WAVEFORM
                         </div>
                     </div>
@@ -693,7 +698,7 @@
                     <div
                         class="rounded-lg p-1 inline-block bg-black/60 shadow-lg"
                     >
-                        <div class="bordered px-3 py-1 flex flex-col">
+                        <div class="bordered px-3 py-1 flex flex-col label">
                             <div
                                 class="font-bold text-[10px] md:text-sm tracking-widest leading-none mb-1"
                             >
