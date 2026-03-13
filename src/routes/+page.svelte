@@ -15,6 +15,7 @@
   import Jam from "$lib/components/Jam.svelte";
   import ItemKotaTerdampak from "$lib/components/ItemKotaTerdampak.svelte";
   import Card from "$lib/components/Card.svelte";
+  import { PUBLIC_SOCKET_DATA_URL } from "$env/static/public";
 
   let mapContainer: HTMLDivElement;
   let map: mapboxgl.Map;
@@ -345,7 +346,8 @@
 
   function socketInitializer() {
     if (socket != null) return;
-    socket = io("https://early-warning.potadev.com");
+    const socketUrl = PUBLIC_SOCKET_DATA_URL ?? "http://localhost:8081";
+    socket = io(socketUrl);
     socket.on("connect", () => console.log("connected"));
     socket.on("warning", (v: any) => warningHandler(v));
     socket.on("message", (v: any) => console.log(v));
