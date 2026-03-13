@@ -46,3 +46,15 @@ body {
 .glow-orange {
     filter: drop-shadow(0 0 5px #fa0);
 }
+
+.glow-green-small {
+    filter: drop-shadow(0 0 2px #00FF80);
+}
+
+.glow-red-small {
+    filter: drop-shadow(0 0 2px #FF0000);
+}
+
+.glow-orange-small {
+    filter: drop-shadow(0 0 2px #fa0);
+}

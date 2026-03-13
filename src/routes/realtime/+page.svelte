@@ -60,6 +60,8 @@
     // Usually SeedLink gives 100Hz or 50Hz. Let's assume 100Hz (10ms per sample)
     const nominalSampleRateMs = 10;
 
+    let logMessages = "";
+
     function resizeCanvas() {
         if (!container || !canvas) return;
 
@@ -415,6 +417,7 @@
 
             // console.log(text);
             if (text == "OK") {
+                logMessages += `Server OK\n`;
                 return;
             }
 
@@ -471,6 +474,7 @@
                 }
             } catch (err) {
                 console.error("Error parsing miniSEED data:", err);
+                logMessages += `Error parsing miniSEED data: ${err}\n`;
             }
         };
 
@@ -509,129 +513,143 @@
 </svelte:head>
 
 <div
-    class="min-h-screen py-8 flex justify-center items-start overflow-hidden font-mono relative gap-2"
+    class="min-h-screen py-8 flex flex-col justify-center overflow-hidden font-mono relative gap-2"
 >
-    {#if stationData != null}
-        <div class="flex flex-col gap-4 w-auto">
-            <Card className="w-md ">
-                {#snippet title()}
-                    <p class="p-1 text-xl text-glow">STATION INFORMATION</p>
-                {/snippet}
-                {#snippet children()}
-                    <div class="w-full flex flex-col md:flex-row gap-2">
-                        <div
-                            class="badge label bordered flex justify-between mb-2 w-full"
-                        >
+    <div class="w-full flex gap-2 justify-center">
+        {#if stationData != null}
+            <div class="flex flex-col gap-4 w-auto h-full items-stretch">
+                <Card className="w-md ">
+                    {#snippet title()}
+                        <p class="p-1 text-xl text-glow">STATION INFORMATION</p>
+                    {/snippet}
+                    {#snippet children()}
+                        <div class="w-full flex flex-col md:flex-row gap-2">
                             <div
-                                class="flex flex-col items-center justify-between p-1"
-                            >
-                                <div class="text -characters">
-                                    {stationData.Network["@attributes"]["code"]}
-                                </div>
-                                <div class="text">
-                                    {stationData.Network.Station["@attributes"][
-                                        "code"
-                                    ]}
-                                </div>
-                            </div>
-                            <div class="decal">
-                                <div
-                                    class="w-full h-full strip-bar-vertical"
-                                ></div>
-                            </div>
-                        </div>
-                        <div class="bordered p-2 w-full">
-                            <table class="w-full">
-                                <tbody>
-                                    <tr>
-                                        <td class="text-left p-0"> Site </td>
-                                        <td class="text-right p-0">
-                                            {stationData.Network.Station.Site
-                                                .Name}
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td class="text-left p-0">
-                                            Elevation
-                                        </td>
-                                        <td class="text-right p-0">
-                                            {stationData.Network.Station
-                                                .Elevation}
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td class="text-left p-0">
-                                            Latitude
-                                        </td>
-                                        <td class="text-right p-0">
-                                            {stationData.Network.Station
-                                                .Latitude}
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td class="text-left p-0">
-                                            Longitude
-                                        </td>
-                                        <td class="text-right p-0">
-                                            {stationData.Network.Station
-                                                .Longitude}
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                {/snippet}
-                {#snippet footer()}
-                    <div class="flex justify-center w-full">
-                        <span>{stationData.Network["Description"]}</span>
-                    </div>
-                {/snippet}
-            </Card>
-
-            <Card className="w-md">
-                {#snippet title()}
-                    <p class="p-1 text-xl text-glow">STATION CHANNEL</p>
-                {/snippet}
-                {#snippet children()}
-                    <HexGrid variant="flat">
-                        {#each listChannel as channel, channelIndex}
-                            <button
-                                class="{selectedChannel ==
-                                channel['@attributes']['code']
-                                    ? 'blink blink-fast'
-                                    : ''} cursor-pointer hex-hive bg-hex-flat opacity-0 show-pop-up {channel[
-                                    '@attributes'
-                                ].endDate == undefined ||
-                                channel['@attributes'].endDate == ''
-                                    ? 'yellow'
-                                    : ''}"
-                                style="animation-delay: {channelIndex * 50}ms;"
-                                on:click={() => {
-                                    selectedChannel =
-                                        channel["@attributes"]["code"];
-                                    const request = {
-                                        net: data.networkCode ?? "GE",
-                                        sta: data.stationCode ?? "GSI",
-                                        cha: selectedChannel,
-                                    };
-                                    if (
-                                        ws &&
-                                        ws.readyState === WebSocket.OPEN
-                                    ) {
-                                        ws.send(JSON.stringify(request));
-                                    }
-                                }}
+                                class="badge label bordered flex justify-between mb-2 w-full"
                             >
                                 <div
-                                    class="w-full h-full flex justify-center items-center text-black text-center"
+                                    class="flex flex-col items-center justify-between p-1"
                                 >
-                                    {channel["@attributes"]["code"]}
+                                    <div class="text -characters">
+                                        {stationData.Network["@attributes"][
+                                            "code"
+                                        ]}
+                                    </div>
+                                    <div class="text">
+                                        {stationData.Network.Station[
+                                            "@attributes"
+                                        ]["code"]}
+                                    </div>
                                 </div>
-                            </button>
-                        {/each}
-                    </HexGrid>
-                    <!-- <div class="bordered p-1 w-full flex flex-col gap-1 mt-2">
+                                <div class="decal">
+                                    <div
+                                        class="w-full h-full strip-bar-vertical"
+                                    ></div>
+                                </div>
+                            </div>
+                            <div class="bordered p-2 w-full">
+                                <table class="w-full">
+                                    <tbody>
+                                        <tr>
+                                            <td class="text-left p-0">
+                                                Site
+                                            </td>
+                                            <td class="text-right p-0">
+                                                {stationData.Network.Station
+                                                    .Site.Name}
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td class="text-left p-0">
+                                                Elevation
+                                            </td>
+                                            <td class="text-right p-0">
+                                                {stationData.Network.Station
+                                                    .Elevation}
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td class="text-left p-0">
+                                                Latitude
+                                            </td>
+                                            <td class="text-right p-0">
+                                                {stationData.Network.Station
+                                                    .Latitude}
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td class="text-left p-0">
+                                                Longitude
+                                            </td>
+                                            <td class="text-right p-0">
+                                                {stationData.Network.Station
+                                                    .Longitude}
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    {/snippet}
+                    {#snippet footer()}
+                        <div class="flex justify-center w-full">
+                            <span>{stationData.Network["Description"]}</span>
+                        </div>
+                    {/snippet}
+                </Card>
+
+                <Card className="w-md h-full grow ">
+                    {#snippet title()}
+                        <p class="p-1 text-xl text-glow">STATION CHANNEL</p>
+                    {/snippet}
+                    {#snippet children()}
+                        <HexGrid variant="flat">
+                            {#each listChannel as channel, channelIndex}
+                                <div
+                                    class="w-full h-full {channel['@attributes']
+                                        .endDate == ''
+                                        ? 'yellow glow-orange-small '
+                                        : 'glow-red-small '}"
+                                >
+                                    <button
+                                        class="w-full h-full cursor-pointer hex-hive bg-hex-flat opacity-0 show-pop-up {selectedChannel ==
+                                        channel['@attributes']['code']
+                                            ? 'blink blink-fast'
+                                            : ''} {channel['@attributes']
+                                            .endDate == undefined ||
+                                        channel['@attributes'].endDate == ''
+                                            ? 'yellow '
+                                            : ' '}"
+                                        style="animation-delay: {channelIndex *
+                                            50}ms; width: 83px; height: 72px;"
+                                        on:click={() => {
+                                            selectedChannel =
+                                                channel["@attributes"]["code"];
+                                            const request = {
+                                                net: data.networkCode ?? "GE",
+                                                sta: data.stationCode ?? "GSI",
+                                                cha: selectedChannel,
+                                            };
+                                            if (
+                                                ws &&
+                                                ws.readyState === WebSocket.OPEN
+                                            ) {
+                                                ws.send(
+                                                    JSON.stringify(request),
+                                                );
+                                            }
+                                        }}
+                                    >
+                                        <div
+                                            class="w-full h-full flex justify-center items-center text-black text-center"
+                                        >
+                                            {channel["@attributes"]["code"]}
+                                        </div>
+                                    </button>
+                                </div>
+                            {/each}
+                        </HexGrid>
+                        <!-- <div class="bordered p-1 w-full flex flex-col gap-1 mt-2">
                         {#each stationData.Network["Station"].Channel as channel, channelIndex}
                             <div
                                 class="bg-primary w-full p-1 flex justify-center items-center text-center text-black"
@@ -640,121 +658,128 @@
                             </div>
                         {/each}
                     </div> -->
-                {/snippet}
-            </Card>
-        </div>
-    {/if}
+                    {/snippet}
+                </Card>
+            </div>
+        {/if}
 
-    <div class="w-full max-w-7xl flex flex-col bordered p-1">
-        <div
-            class="relative w-full h-[75vh] border-b-4 border-l-4 bg-black overflow-hidden flex flex-col items-center"
-            style="border-bottom-color: #fa0; border-left-color: #fa0;"
-        >
-            <!-- Top Left -->
+        <div class="w-full max-w-7xl flex flex-col bordered p-1 grow gap-3">
             <div
-                class="absolute top-4 left-4 md:left-24 pointer-events-none text-glow z-5"
+                class="relative w-full h-[75vh] border-b-4 border-l-4 bg-black overflow-hidden flex flex-col items-center"
+                style="border-bottom-color: #fa0; border-left-color: #fa0;"
             >
-                <div class="rounded p-1 inline-block bg-black/60 shadow-lg">
+                <!-- Top Left -->
+                <div
+                    class="absolute top-4 left-4 md:left-24 pointer-events-none text-glow z-5"
+                >
+                    <div class="rounded p-1 inline-block bg-black/60 shadow-lg">
+                        <div
+                            class="font-bold text-xl md:text-3xl uppercase tracking-tighter px-2 py-0 rounded-sm mix-blend-screen bordered"
+                        >
+                            SEISMIC WAVEFORM
+                        </div>
+                    </div>
                     <div
-                        class="font-bold text-xl md:text-3xl uppercase tracking-tighter px-2 py-0 rounded-sm mix-blend-screen bordered"
+                        class="font-bold mt-1 tracking-widest text-sm md:text-xl drop-shadow-[0_0_5px_rgba(255,102,0,1)]"
                     >
-                        SEISMIC WAVEFORM
+                        CHANNEL: {selectedChannel}
                     </div>
                 </div>
-                <div
-                    class="font-bold mt-1 tracking-widest text-sm md:text-xl drop-shadow-[0_0_5px_rgba(255,102,0,1)]"
-                >
-                    CHANNEL: {selectedChannel}
-                </div>
-            </div>
 
-            <!-- Top Right -->
-            <div
-                class="absolute top-4 right-4 md:right-16 pointer-events-none flex flex-col items-end z-5"
-            >
-                <div class="rounded-lg p-1 inline-block bg-black/60 shadow-lg">
-                    <div class="bordered px-3 py-1 flex flex-col">
-                        <div
-                            class="font-bold text-[10px] md:text-sm tracking-widest leading-none mb-1"
-                        >
-                            STATION:
-                        </div>
-                        <div
-                            class="font-bold text-2xl md:text-4xl tracking-widest leading-none text-right"
-                            style="color: #ff9900; text-shadow: 0 0 10px #fa0;"
-                        >
-                            {stationData != null
-                                ? `${stationData.Network["@attributes"]["code"]} ${stationData.Network.Station["@attributes"]["code"]}`
-                                : "LOADING..."}
+                <!-- Top Right -->
+                <div
+                    class="absolute top-4 right-4 md:right-16 pointer-events-none flex flex-col items-end z-5"
+                >
+                    <div
+                        class="rounded-lg p-1 inline-block bg-black/60 shadow-lg"
+                    >
+                        <div class="bordered px-3 py-1 flex flex-col">
+                            <div
+                                class="font-bold text-[10px] md:text-sm tracking-widest leading-none mb-1"
+                            >
+                                STATION:
+                            </div>
+                            <div
+                                class="font-bold text-2xl md:text-4xl tracking-widest leading-none text-right"
+                                style="color: #ff9900; text-shadow: 0 0 10px #fa0;"
+                            >
+                                {stationData != null
+                                    ? `${stationData.Network["@attributes"]["code"]} ${stationData.Network.Station["@attributes"]["code"]}`
+                                    : "LOADING..."}
+                            </div>
                         </div>
                     </div>
+                    <div
+                        class="font-bold text-[8px] md:text-xs tracking-widest text-right mt-1 bg-black/60 px-1 drop-shadow-[0_0_5px_rgba(255,102,0,1)]"
+                        style="color: #fa0;"
+                    >
+                        Y: AMPLITUDE (COUNTS) | X: TIME (UTC)
+                    </div>
                 </div>
+
                 <div
-                    class="font-bold text-[8px] md:text-xs tracking-widest text-right mt-1 bg-black/60 px-1 drop-shadow-[0_0_5px_rgba(255,102,0,1)]"
-                    style="color: #fa0;"
+                    bind:this={container}
+                    class="w-full h-full relative cursor-crosshair"
                 >
-                    Y: AMPLITUDE (COUNTS) | X: TIME (UTC)
+                    <canvas
+                        bind:this={canvas}
+                        class="absolute inset-0 block w-full h-full touch-none"
+                    ></canvas>
                 </div>
             </div>
 
+            <!-- Controls below -->
             <div
-                bind:this={container}
-                class="w-full h-full relative cursor-crosshair"
+                class="flex justify-between items-center text-xs uppercase tracking-widest px-2"
+                style="color: #fa0;"
             >
-                <canvas
-                    bind:this={canvas}
-                    class="absolute inset-0 block w-full h-full touch-none"
-                ></canvas>
-            </div>
-        </div>
-
-        <!-- Controls below -->
-        <div
-            class="flex justify-between items-center mt-2 text-xs uppercase tracking-widest px-2"
-            style="color: #fa0;"
-        >
-            <div class="flex items-center gap-4 flex-wrap">
-                <span>Pan: Click & Drag</span>
-                <span class="hidden md:inline">|</span>
-                <span>Zoom Y: Wheel</span>
-                <span class="hidden md:inline">|</span>
-                <span>Nav: Shift+Wheel</span>
-                <span class="hidden md:inline">|</span>
-                <span>Zoom: {zoomLevel.toFixed(4)}x</span>
-            </div>
-            <div class="flex items-center gap-4 h-4">
-                {#if timeOffsetMs > 0}
-                    <button
-                        class="bg-orange-950 border hover:bg-orange-800 text-white px-3 py-1 rounded cursor-pointer transition-colors"
-                        style="border-color: #fa0;"
-                        on:click={() => (timeOffsetMs = 0)}
-                    >
-                        &rarr; Resume Live
-                    </button>
-                {/if}
-                <div class="flex items-center gap-2">
-                    <span class="relative flex h-3 w-3">
-                        <span
-                            class="animate-ping absolute inline-flex h-full w-full rounded-full {timeOffsetMs ===
-                            0
-                                ? 'bg-orange-500'
-                                : 'bg-yellow-500'} opacity-75"
-                        ></span>
-                        <span
-                            class="relative inline-flex rounded-full h-3 w-3 {timeOffsetMs ===
-                            0
-                                ? 'bg-orange-600'
-                                : 'bg-yellow-600'}"
-                        ></span>
-                    </span>
-                    <span
-                        class="font-bold {timeOffsetMs === 0
-                            ? 'text-orange-500'
-                            : 'text-yellow-500'}"
-                    >
-                        {timeOffsetMs === 0 ? "LIVE" : "HISTORY"}
-                    </span>
+                <div class="flex items-center gap-4 flex-wrap">
+                    <span>Pan: Click & Drag</span>
+                    <span class="hidden md:inline">|</span>
+                    <span>Zoom Y: Wheel</span>
+                    <span class="hidden md:inline">|</span>
+                    <span>Nav: Shift+Wheel</span>
+                    <span class="hidden md:inline">|</span>
+                    <span>Zoom: {zoomLevel.toFixed(4)}x</span>
                 </div>
+                <div class="flex items-center gap-4 h-4">
+                    {#if timeOffsetMs > 0}
+                        <button
+                            class="bg-orange-950 border hover:bg-orange-800 text-white px-3 py-1 rounded cursor-pointer transition-colors"
+                            style="border-color: #fa0;"
+                            on:click={() => (timeOffsetMs = 0)}
+                        >
+                            &rarr; Resume Live
+                        </button>
+                    {/if}
+                    <div class="flex items-center gap-2">
+                        <span class="relative flex h-3 w-3">
+                            <span
+                                class="animate-ping absolute inline-flex h-full w-full rounded-full {timeOffsetMs ===
+                                0
+                                    ? 'bg-orange-500'
+                                    : 'bg-yellow-500'} opacity-75"
+                            ></span>
+                            <span
+                                class="relative inline-flex rounded-full h-3 w-3 {timeOffsetMs ===
+                                0
+                                    ? 'bg-orange-600'
+                                    : 'bg-yellow-600'}"
+                            ></span>
+                        </span>
+                        <span
+                            class="font-bold {timeOffsetMs === 0
+                                ? 'text-orange-500'
+                                : 'text-yellow-500'}"
+                        >
+                            {timeOffsetMs === 0 ? "LIVE" : "HISTORY"}
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bordered-red p-2 overflow-y-auto h-24 text-primary">
+                <pre>{logMessages}</pre>
             </div>
         </div>
     </div>
