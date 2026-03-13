@@ -454,7 +454,7 @@
 
         ws.onmessage = (e) => {
             const dataBufferIncoming = e.data;
-            console.log(e);
+
             const buffer = dataBufferIncoming; // ArrayBuffer
 
             const decoder = new TextDecoder("utf-8");
@@ -473,10 +473,15 @@
                 records.forEach((r: any) => {
                     const samples = r.decompress();
 
+                    const mean =
+                        samples.reduce((sum: number, v: number) => sum + v, 0) /
+                        samples.length;
+                    const demeaned = samples.map((v: number) => v - mean);
+
                     let startTimeMs = Date.now();
                     if (r.header && r.header.start) {
                         try {
-                            startTimeMs = r.header.start.valueOf(); // Gets milliseconds
+                            startTimeMs = r.header.start.valueOf();
                         } catch (e) {
                             console.warn("Could not parse record start time");
                         }
@@ -487,10 +492,17 @@
                         msPerSample = 1000 / r.header.sampleRate;
                     }
 
-                    for (let i = 0; i < samples.length; i++) {
+                    // for (let i = 0; i < samples.length; i++) {
+                    //     dataBuffer.push({
+                    //         t: startTimeMs + i * msPerSample,
+                    //         v: samples[i],
+                    //     });
+                    // }
+
+                    for (let i = 0; i < demeaned.length; i++) {
                         dataBuffer.push({
                             t: startTimeMs + i * msPerSample,
-                            v: samples[i],
+                            v: demeaned[i],
                         });
                     }
                 });
@@ -518,6 +530,7 @@
                     draw();
                 }
             } catch (err) {
+                console.log(e);
                 console.error("Error parsing miniSEED data:", err);
                 logMessages += `Error parsing miniSEED data: ${err}\n`;
             }
