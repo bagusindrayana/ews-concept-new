@@ -62,6 +62,8 @@
         return response.text();
       })
       .then((xmlString) => {
+        const el = document.getElementById("loading-screen");
+        if (el) el.style.display = "none";
         const data = xmlToJson(xmlString);
         const fdsn = data.FDSNStationXML as JsonNode;
         const networksList = fdsn.Network as JsonNode[];
@@ -71,37 +73,34 @@
           ? networksList
           : [networksList];
 
-        networks.forEach((networkNode) => {
-          const netCode =
-            (networkNode["@attributes"] as any)?.code || "UNKNOWN";
-          const stationsList = networkNode.Station as JsonNode[];
-
-          // Handle both single station and multiple stations
-          const stations = Array.isArray(stationsList)
-            ? stationsList
-            : [stationsList];
-
-          stations.forEach((stationNode) => {
-            const staCode =
-              (stationNode["@attributes"] as any)?.code || "UNKNOWN";
-            const startDate = (stationNode["@attributes"] as any)?.startDate;
-            const endDate = (stationNode["@attributes"] as any)?.endDate;
-
-            statuses.push({
-              id: `${netCode}-${staCode}`,
-              title: `${netCode}-${staCode}`,
-              status: endDate ? "OFFLINE" : "ACTIVE",
-              type: endDate ? "danger" : "normal",
-              stationCode: `${staCode}`,
-              networkCode: `${netCode}`,
-            });
-          });
-        });
-
         console.log("Ada hasil " + networks.length);
         setTimeout(() => {
-          const el = document.getElementById("loading-screen");
-          if (el) el.style.display = "none";
+          networks.forEach((networkNode) => {
+            const netCode =
+              (networkNode["@attributes"] as any)?.code || "UNKNOWN";
+            const stationsList = networkNode.Station as JsonNode[];
+
+            // Handle both single station and multiple stations
+            const stations = Array.isArray(stationsList)
+              ? stationsList
+              : [stationsList];
+
+            stations.forEach((stationNode) => {
+              const staCode =
+                (stationNode["@attributes"] as any)?.code || "UNKNOWN";
+              const startDate = (stationNode["@attributes"] as any)?.startDate;
+              const endDate = (stationNode["@attributes"] as any)?.endDate;
+
+              statuses.push({
+                id: `${netCode}-${staCode}`,
+                title: `${netCode}-${staCode}`,
+                status: endDate ? "OFFLINE" : "ACTIVE",
+                type: endDate ? "danger" : "normal",
+                stationCode: `${staCode}`,
+                networkCode: `${netCode}`,
+              });
+            });
+          });
         }, 1000);
       })
       .catch((error) => {
@@ -133,7 +132,7 @@
   class="min-h-screen py-8 flex flex-col items-center overflow-x-hidden overflow-y-auto font-mono"
 >
   <div
-    class="mb-2 text-center p-2 z-10 w-full bordered flex justify-center items-center relative"
+    class="mb-2 text-center p-2 z-10 w-full bordered flex justify-center items-center relative glow-red"
   >
     <div class="overflow-hidden">
       <div class="strip-wrapper h-12">
@@ -157,7 +156,7 @@
       </div>
     </div>
   </div>
-  <div class="mb-2 w-full bordered text-center p-1">
+  <div class="mb-2 w-full bordered text-center p-1 glow-orange">
     <p class="text-black font-bold text-sm bg-primary p-4">
       GEOFON STATION - FDSN (International Federation of Digital Seismograph
       Networks)
@@ -182,15 +181,16 @@
           {#each branchStatuses as item, index}
             {#if index % 2 === 0}
               <!-- Left Item (Even index) -->
-              <div
-                class="flex flex-grow justify-end items-center relative pr-0 col-start-1"
+              <a
+                href="/realtime?networkCode={item.networkCode}&stationCode={item.stationCode}"
+                class="flex flex-grow justify-end items-center relative pr-0 col-start-1 node"
               >
-                <div class="relative flex">
+                <div class="relative flex parent-node">
                   <!-- node -->
                   <div
                     class="status-node slide-fade-in {item.type === 'danger'
-                      ? 'danger'
-                      : ''} w-24 h-6 flex flex-grow flex-col items-center justify-center relative mt-6 -mr-2 z-5 text-black text-xs font-bold"
+                      ? 'danger glow-red'
+                      : 'glow-green'} w-24 h-6 flex flex-grow flex-col items-center justify-center relative mt-6 -mr-2 z-5 text-black text-xs font-bold"
                     style="animation-delay: {(branchIndex + 1) *
                       (index + 1) *
                       10}ms;"
@@ -199,7 +199,7 @@
                   </div>
                 </div>
                 <!-- Connecting Line to center -->
-                <div class="w-24 flex justify-end relative">
+                <div class="w-24 flex justify-end relative line">
                   <div
                     class="h-[2px] w-24 bg-primary shadow-[0_0_10px_rgba(255,0,0,0.8)] z-0 line-node"
                     style="animation-delay: {(branchIndex + 1) *
@@ -210,17 +210,15 @@
                   <span
                     class="font-bold text-xs text-glow uppercase absolute left-1 z-10 text-left top-1"
                   >
-                    <a
-                      href="/realtime?networkCode={item.networkCode}&stationCode={item.stationCode}"
-                      >{item.title}</a
-                    >
+                    {item.title}
                   </span>
                 </div>
-              </div>
+              </a>
             {:else}
               <!-- Right Item (Odd index) -->
-              <div
-                class="flex justify-start items-center relative pl-0 col-start-2 w-auto"
+              <a
+                href="/realtime?networkCode={item.networkCode}&stationCode={item.stationCode}"
+                class="flex justify-start items-center relative pl-0 col-start-2 w-auto node-flip"
               >
                 <!-- Connecting Line from center -->
                 <div class="w-24 flex justify-start relative">
@@ -234,19 +232,16 @@
                   <span
                     class="font-bold text-xs text-glow uppercase absolute z-10 right-1 text-right top-1"
                   >
-                    <a
-                      href="/realtime?networkCode={item.networkCode}&stationCode={item.stationCode}"
-                      >{item.title}</a
-                    >
+                    {item.title}
                   </span>
                 </div>
-                <div class="relative flex">
+                <div class="relative flex parent-node">
                   <!-- node -->
                   <div
                     class="status-node-flip slide-fade-in {item.type ===
                     'danger'
-                      ? 'danger'
-                      : ''} w-24 h-6 flex flex-col items-center justify-center relative mt-6 -ml-2 z-5 text-black text-xs font-bold"
+                      ? 'danger glow-red'
+                      : 'glow-green'} w-24 h-6 flex flex-col items-center justify-center relative mt-6 -ml-2 z-5 text-black text-xs font-bold"
                     style="animation-delay: {(branchIndex + 1) *
                       (index + 1) *
                       10}ms;"
@@ -254,7 +249,7 @@
                     <!-- {item.type === "danger" ? item.status : ""} -->
                   </div>
                 </div>
-              </div>
+              </a>
             {/if}
           {/each}
         </div>

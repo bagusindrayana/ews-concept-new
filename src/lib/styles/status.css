@@ -3,8 +3,28 @@
     background-size: contain;
     background-position: center;
     background-repeat: no-repeat;
-    rotate: -21deg;
+    /* rotate: -21deg; */
 }
+
+
+.parent-node {
+    transform: translateX(0px);
+    rotate: -21deg;
+    transition: all 0.2s ease-in-out;
+    margin-left: 0px;
+    z-index: 1;
+}
+
+.node-flip .parent-node {
+    rotate: 21deg !important;
+}
+
+.node:hover .parent-node {
+    cursor: pointer;
+    transform: translateX(-20px);
+}
+
+
 
 .status-node.danger {
     background-image: url("/images/SkewRectangle_Red.svg");
@@ -16,7 +36,12 @@
     background-size: contain;
     background-position: center;
     background-repeat: no-repeat;
-    rotate: 21deg;
+    /* rotate: 21deg; */
+}
+
+.node-flip:hover .parent-node {
+    cursor: pointer;
+    transform: translateX(20px);
 }
 
 .status-node-flip.danger {
@@ -49,6 +74,11 @@
         transform: translateX(-20px);
     }
 
+    50% {
+        opacity: 1;
+        transform: translateX(-15px);
+    }
+
     100% {
         opacity: 1;
         transform: translateX(0);
@@ -63,6 +93,11 @@
     0% {
         opacity: 0;
         transform: translateX(20px);
+    }
+
+    50% {
+        opacity: 1;
+        transform: translateX(15px);
     }
 
     100% {

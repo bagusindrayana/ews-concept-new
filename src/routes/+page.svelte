@@ -1137,10 +1137,15 @@
 
   <!-- SETTINGS BUTTON -->
   <div
-    class="fixed top-2 left-0 right-0 m-auto flex justify-center items-center z-5"
+    class="fixed top-2 left-0 right-0 m-auto flex justify-center items-center z-5 flex gap-2"
     style="width:fit-content"
   >
     <button
+      class="ews-btn ews-btn-primary"
+      onclick={() => (showSettingsModal = true)}>SETTING</button
+    >
+    <a class="ews-btn ews-btn-primary" href="/status-ui">STATION</a>
+    <!-- <button
       class="settings-btn bordered bg-black cursor-pointer flex items-center gap-1 px-3 py-1"
       onclick={() => (showSettingsModal = true)}
     >
@@ -1160,7 +1165,7 @@
         ></path>
       </svg>
       <span class="text-sm">PENGATURAN</span>
-    </button>
+    </button> -->
   </div>
 
   <!-- SETTINGS MODAL -->

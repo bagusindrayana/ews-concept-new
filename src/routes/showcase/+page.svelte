@@ -221,12 +221,12 @@
       </h2>
       <div class="flex flex-col gap-2 w-full justify-center items-center">
         <div class="flex gap-2 w-full justify-center items-center">
-          <div class="h-[100px]">
+          <div class="h-[100px] glow-red">
             <div class="basic-hex flex flex-col justify-center items-center">
               <p>LOREM</p>
             </div>
           </div>
-          <div class="h-[100px]">
+          <div class="h-[100px] glow-red">
             <div class="basic-hex flex flex-col justify-center items-center">
               <div
                 class="clip-hex-inner flex flex-col justify-center items-center text-center"

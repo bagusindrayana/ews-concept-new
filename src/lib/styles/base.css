@@ -34,3 +34,15 @@ body {
     -webkit-box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.3);
     background-color: var(--red);
 }
+
+.glow-green {
+    filter: drop-shadow(0 0 5px #00FF80);
+}
+
+.glow-red {
+    filter: drop-shadow(0 0 5px #FF0000);
+}
+
+.glow-orange {
+    filter: drop-shadow(0 0 5px #fa0);
+}
