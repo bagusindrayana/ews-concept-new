@@ -148,16 +148,14 @@
       <div
         class="absolute top-0 bottom-0 left-0 right-0 flex justify-center items-center"
       >
-        <h1
-          class="text-xl p-1 font-bold ews-text-glow danger uppercase bg-black"
-        >
+        <h1 class="text-xl p-1 font-bold label danger uppercase bg-black">
           Station Status
         </h1>
       </div>
     </div>
   </div>
   <div class="mb-2 w-full bordered text-center p-1 glow-orange">
-    <p class="text-black font-bold text-sm bg-primary p-4">
+    <p class="text-black font-bold text-sm bg-primary p-4 uppercase">
       GEOFON STATION - FDSN (International Federation of Digital Seismograph
       Networks)
     </p>
@@ -208,7 +206,7 @@
                   ></div>
 
                   <span
-                    class="font-bold text-xs text-glow uppercase absolute left-1 md:left-2 z-10 text-left top-1"
+                    class="font-bold text-xs text-glow uppercase absolute left-1 md:left-2 z-10 text-left top-1 fade-in animation-delay-5"
                   >
                     {item.title}
                   </span>
@@ -230,7 +228,7 @@
                   ></div>
 
                   <span
-                    class="font-bold text-xs text-glow uppercase absolute z-10 right-1 md:right-2 text-right top-1"
+                    class="font-bold text-xs text-glow uppercase absolute z-10 right-1 md:right-2 text-right top-1 fade-in animation-delay-5"
                   >
                     {item.title}
                   </span>

@@ -44,6 +44,7 @@
         transform: translateX(calc(-42.4264px * 47));
     }
 }
+
 .loop-strip {
     animation: loopStrip infinite linear;
     animation-duration: 10s;
@@ -76,6 +77,7 @@
         /* exact loop point */
     }
 }
+
 .show-pop-up {
     animation: showPopUp 0.3s ease-in-out forwards;
 }
@@ -107,6 +109,7 @@
         transform: scale(0.5);
     }
 }
+
 .vertical-reveal {
     animation: verticalReveal 0.3s ease-in-out;
 }
@@ -120,6 +123,7 @@
         transform: scaleY(1);
     }
 }
+
 .glow-effect {
     animation: glowEffect 1s infinite;
 }
@@ -137,6 +141,7 @@
         box-shadow: 0px 0px 66px 17px rgba(252, 60, 22, 0.59);
     }
 }
+
 .blink {
     animation: blink 1s infinite;
 }
@@ -154,6 +159,7 @@
         opacity: 0.4;
     }
 }
+
 .animation-delay-1 {
     animation-delay: 1s;
 }
@@ -194,6 +200,10 @@
     animation: slideInLeft 0.5s forwards;
 }
 
+.fade-in {
+    animation: fadeIn 0.5s forwards;
+}
+
 @keyframes slideInLeft {
     0% {
         transform: translateX(-100%);
@@ -203,6 +213,7 @@
         transform: translateX(0);
     }
 }
+
 @keyframes show {
     10% {
         opacity: 1;
@@ -234,5 +245,16 @@
 
     100% {
         transform: translateY(100%);
+    }
+}
+
+
+@keyframes fadeIn {
+    0% {
+        opacity: 0;
+    }
+
+    100% {
+        opacity: 1;
     }
 }
