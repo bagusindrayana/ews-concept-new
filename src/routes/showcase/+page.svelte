@@ -329,7 +329,7 @@
       <div class="flex flex-col gap-2 w-full">
         <div class="flex gap-2">
           <div
-            class="badge label bordered flex justify-between mb-2 w-full lg:w-32"
+            class="badge label text-3xl bordered flex justify-between mb-2 w-full lg:w-32"
           >
             <div class="flex flex-col items-center p-1">
               <div class="text -characters">7</div>
@@ -341,7 +341,7 @@
           </div>
 
           <div
-            class="badge label bordered flex justify-between mb-2 w-full lg:w-32"
+            class="badge label text-3xl bordered flex justify-between mb-2 w-full lg:w-32"
           >
             <div class="flex flex-col items-center p-1">
               <div class="text -characters">7</div>
@@ -354,7 +354,7 @@
         </div>
         <div class="flex gap-2">
           <div
-            class="badge label bordered flex justify-between mb-2 w-full lg:w-32"
+            class="badge label text-3xl bordered flex justify-between mb-2 w-full lg:w-32"
           >
             <div class="flex flex-col items-center p-1">
               <div class="text -characters">7</div>
@@ -368,7 +368,7 @@
           </div>
 
           <div
-            class="badge label bordered flex justify-between mb-2 w-full lg:w-32"
+            class="badge label text-3xl bordered flex justify-between mb-2 w-full lg:w-32"
           >
             <div class="flex flex-col items-center p-1">
               <div class="text -characters">7</div>

@@ -80,7 +80,7 @@
         <div class="card-header bordered-red-bottom overflow-hidden">
           <div class="strip-wrapper"><div class="strip-bar-red loop-strip-reverse anim-duration-20"></div><div class="strip-bar-red loop-strip-reverse anim-duration-20"></div></div>
           <div class="absolute top-0 bottom-0 left-0 right-0 flex justify-center items-center">
-            <p class="p-1 bg-black font-bold text-xs text-glow">GEMPA BUMI</p>
+            <p class="p-1 bg-black font-bold text-xs label">GEMPA BUMI</p>
           </div>
         </div>
         <div class="card-content p-2 text-glow text-sm w-full" style="font-size:10px">
@@ -1141,7 +1141,7 @@
 
   <!-- SETTINGS BUTTON -->
   <div
-    class="fixed top-2 left-0 right-0 m-auto flex justify-center items-center z-5 flex gap-2"
+    class="fixed top-12 md:top-2 left-0 right-0 m-auto flex justify-center items-center z-5 flex gap-2"
     style="width:fit-content"
   >
     <button
@@ -1190,7 +1190,9 @@
           <div
             class="absolute top-0 bottom-0 left-0 right-0 flex justify-between items-center px-3"
           >
-            <p class="p-1 bg-black font-bold text-sm label-small">PENGATURAN</p>
+            <p class="p-1 bg-black font-bold text-sm label text-3xl">
+              PENGATURAN
+            </p>
             <button
               class="bg-black px-2 py-1 cursor-pointer"
               style="color:#e60003"
@@ -1325,7 +1327,9 @@
           >
             <div class="w-full flex gap-2">
               <div>
-                <div class="label internal bordered flex mb-2 w-full lg:w-32">
+                <div
+                  class="label text-3xl internal bordered flex mb-2 w-full lg:w-32"
+                >
                   <div class="flex flex-col items-center p-1">
                     <div class="text -characters">
                       {alertGempaBumi?.readableMag}
@@ -1525,7 +1529,9 @@
             >
               <div class="w-full flex gap-2">
                 <div>
-                  <div class="label internal bordered flex mb-2 w-full lg:w-32">
+                  <div
+                    class="label text-3xl internal bordered flex mb-2 w-full lg:w-32"
+                  >
                     <div class="flex flex-col items-center p-1">
                       <div class="text -characters">{agi.readableMag}</div>
                       <div class="text">MAG</div>
@@ -1635,7 +1641,9 @@
           <div
             class="absolute top-0 bottom-0 left-0 right-0 flex justify-center items-center"
           >
-            <p class="text-lg bg-black font-bold label-small p-1">EVENT LOG</p>
+            <p class="text-lg bg-black font-bold label text-3xl p-1">
+              EVENT LOG
+            </p>
           </div>
         </div>
       {/snippet}
@@ -1676,7 +1684,7 @@
             <div
               class="absolute top-0 bottom-0 left-0 right-0 flex justify-center items-center"
             >
-              <p class="text-lg bg-black font-bold p-1 label-small">
+              <p class="text-lg bg-black font-bold p-1 label text-3xl">
                 GEMPA DIRASAKAN TERAKHIR
               </p>
             </div>
@@ -1713,7 +1721,7 @@
             <div class="w-full flex flex-col md:flex-row gap-2">
               <div>
                 <div
-                  class="label internal bordered flex justify-between mb-2 w-full lg:w-32"
+                  class="label text-3xl internal bordered flex justify-between mb-2 w-full lg:w-32"
                 >
                   <div class="flex flex-col items-center p-1">
                     <div class="text -characters">
@@ -1788,7 +1796,7 @@
             <div
               class="absolute top-0 bottom-0 left-0 right-0 flex justify-center items-center"
             >
-              <p class="text-lg bg-black font-bold p-1 label-small">
+              <p class="bg-black font-bold p-1 label">
                 GEMPA TERDETEKSI TERAKHIR
               </p>
             </div>
@@ -2009,7 +2017,9 @@
           >
             <div class="w-full flex gap-2">
               <div>
-                <div class="label internal bordered flex mb-2 w-full lg:w-32">
+                <div
+                  class="label text-3xl internal bordered flex mb-2 w-full lg:w-32"
+                >
                   <div class="flex flex-col items-center p-1">
                     <div class="text -characters">
                       {GempaDirasakan?.readableMag}

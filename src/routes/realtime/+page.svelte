@@ -40,6 +40,9 @@
     function toggleDemoData() {
         isDemoMode = !isDemoMode;
         if (isDemoMode) {
+            // Bersihkan data lama dari buffer setiap kali beralih ke mode demo
+            dataBuffer.length = 0;
+
             demoInterval = setInterval(() => {
                 const now = Date.now();
                 const samplesToGenerate = 4;
@@ -146,9 +149,13 @@
     // 0 means looking at the latest data. > 0 means looking back in time.
     let timeOffsetMs = 0;
 
+    // To freeze the timeline when panning
+    let frozenLatestTime = 0;
+
     // For panning logic
     let isDragging = false;
     let lastMouseX = 0;
+    let initialPinchDistance = 0;
 
     // Buffer limit: only keep the last 5 minutes of data (300,000 ms)
     // to prevent memory issues.
@@ -189,13 +196,20 @@
         // Horizontal Scroll with Shift key or Trackpad horizontal scroll (Pan Time)
         // Also allow horizontal wheel events (deltaX)
         if (e.deltaX !== 0 || (e.deltaY !== 0 && e.shiftKey)) {
+            if (timeOffsetMs === 0) {
+                frozenLatestTime = Date.now();
+            }
+
             const delta = Math.abs(e.deltaX) > 0 ? e.deltaX : e.deltaY;
             // Map pixels to milliseconds
             const msPerPixel = timeWindowMs / width;
             timeOffsetMs += delta * msPerPixel * 2;
 
             // Prevent panning into the future
-            if (timeOffsetMs < 0) timeOffsetMs = 0;
+            if (timeOffsetMs <= 0) {
+                timeOffsetMs = 0;
+                frozenLatestTime = 0;
+            }
         }
 
         draw();
@@ -216,15 +230,92 @@
         // Map pixel drag to time change
         const msPerPixel = timeWindowMs / width;
         // Moving right (dx > 0) means going back in time (increasing timeOffset)
+
+        if (timeOffsetMs === 0 && dx > 0) {
+            frozenLatestTime = Date.now();
+        }
+
         timeOffsetMs += dx * msPerPixel;
 
-        if (timeOffsetMs < 0) timeOffsetMs = 0;
+        if (timeOffsetMs <= 0) {
+            timeOffsetMs = 0;
+            frozenLatestTime = 0;
+        }
 
         draw();
     }
 
     function handleMouseUp() {
         isDragging = false;
+    }
+
+    function handleTouchStart(e: TouchEvent) {
+        if (e.touches.length === 1) {
+            isDragging = true;
+            lastMouseX = e.touches[0].clientX;
+        } else if (e.touches.length === 2) {
+            isDragging = false;
+            const dx = e.touches[0].clientX - e.touches[1].clientX;
+            const dy = e.touches[0].clientY - e.touches[1].clientY;
+            initialPinchDistance = Math.hypot(dx, dy);
+        }
+    }
+
+    function handleTouchMove(e: TouchEvent) {
+        if (e.cancelable) {
+            e.preventDefault(); // Prevent page scrolling
+        }
+
+        if (isDragging && e.touches.length === 1) {
+            const dx = e.touches[0].clientX - lastMouseX;
+            lastMouseX = e.touches[0].clientX;
+
+            const msPerPixel = timeWindowMs / width;
+            // Negative dx means swiping left, so we move into the future.
+            // Wait, moving right (dx > 0) means going back in time (increasing timeOffset)
+
+            if (timeOffsetMs === 0 && dx > 0) {
+                frozenLatestTime = Date.now();
+            }
+
+            timeOffsetMs += dx * msPerPixel;
+
+            if (timeOffsetMs <= 0) {
+                timeOffsetMs = 0;
+                frozenLatestTime = 0;
+            }
+
+            draw();
+        } else if (e.touches.length === 2) {
+            const dx = e.touches[0].clientX - e.touches[1].clientX;
+            const dy = e.touches[0].clientY - e.touches[1].clientY;
+            const currentDistance = Math.hypot(dx, dy);
+
+            const diff = currentDistance - initialPinchDistance;
+
+            if (Math.abs(diff) > 2) {
+                const zoomStep = zoomLevel * 0.05 * (Math.abs(diff) / 5);
+                if (diff > 0) {
+                    zoomLevel = Math.min(MAX_ZOOM, zoomLevel + zoomStep);
+                } else {
+                    zoomLevel = Math.max(MIN_ZOOM, zoomLevel - zoomStep);
+                }
+                initialPinchDistance = currentDistance;
+                draw();
+            }
+        }
+    }
+
+    function handleTouchEnd(e: TouchEvent) {
+        if (e.touches.length < 2) {
+            initialPinchDistance = 0;
+        }
+        if (e.touches.length === 0) {
+            isDragging = false;
+        } else if (e.touches.length === 1) {
+            isDragging = true;
+            lastMouseX = e.touches[0].clientX;
+        }
     }
 
     function formatTimeStr(ms: number) {
@@ -247,16 +338,19 @@
             return;
         }
 
+        // Use real-time clock for smooth sliding instead of snapping to data points
         const latestTime =
-            dataBuffer.length > 0
-                ? dataBuffer[dataBuffer.length - 1].t
+            timeOffsetMs > 0 && frozenLatestTime > 0
+                ? frozenLatestTime
                 : Date.now();
+
         // The right edge of the screen represents (latestTime - timeOffsetMs)
         const rightEdgeTime = latestTime - timeOffsetMs;
         const leftEdgeTime = rightEdgeTime - timeWindowMs;
 
-        const leftPadding = 70;
-        const bottomPadding = 40;
+        const isMobile = width < 768;
+        const leftPadding = isMobile ? 40 : 70;
+        const bottomPadding = isMobile ? 30 : 40;
         const drawWidth = width - leftPadding;
         const drawHeight = height - bottomPadding;
 
@@ -305,20 +399,22 @@
         ctx.lineTo(leftPadding, drawHeight);
 
         ctx.fillStyle = "#fa0";
-        ctx.font = 'bold 14px "Inter", sans-serif';
+        ctx.font = isMobile
+            ? 'bold 10px "Inter", sans-serif'
+            : 'bold 14px "Inter", sans-serif';
         ctx.textAlign = "right";
         ctx.textBaseline = "middle";
 
         for (let y = 0; y <= drawHeight; y += yGridStep) {
             // Ticks
-            ctx.moveTo(leftPadding - 8, y);
+            ctx.moveTo(leftPadding - (isMobile ? 4 : 8), y);
             ctx.lineTo(leftPadding, y);
 
             const actualValue = (drawHeight / 2 - y) / zoomLevel;
             // Format to integer since amplitude counts are generally large or zero
             ctx.fillText(
                 Math.round(actualValue).toString(),
-                leftPadding - 10,
+                leftPadding - (isMobile ? 6 : 10),
                 y,
             );
         }
@@ -333,7 +429,9 @@
         ctx.stroke();
 
         ctx.fillStyle = "#fa0";
-        ctx.font = 'bold 12px "Inter", sans-serif';
+        ctx.font = isMobile
+            ? 'bold 10px "Inter", sans-serif'
+            : 'bold 12px "Inter", sans-serif';
         ctx.textAlign = "center";
         ctx.textBaseline = "top";
 
@@ -605,6 +703,16 @@
         window.addEventListener("mousemove", handleMouseMove); // Window catches fast drags
         window.addEventListener("mouseup", handleMouseUp);
 
+        // Add touch events
+        canvas.addEventListener("touchstart", handleTouchStart, {
+            passive: false,
+        });
+        window.addEventListener("touchmove", handleTouchMove, {
+            passive: false,
+        });
+        window.addEventListener("touchend", handleTouchEnd);
+        window.addEventListener("touchcancel", handleTouchEnd);
+
         const stationPromise = loadDataStation(
             data.networkCode ?? "GE",
             data.stationCode ?? "GSI",
@@ -628,6 +736,9 @@
 
         ws.onmessage = (e) => {
             const dataBufferIncoming = e.data;
+            if (isDemoMode || isDemoPsychoMode) {
+                return;
+            }
 
             const buffer = dataBufferIncoming; // ArrayBuffer
 
@@ -703,10 +814,13 @@
                 } else if (!isDragging && timeOffsetMs > 0) {
                     draw();
                 }
+
+                logMessages += `New Data\n`;
             } catch (err) {
                 console.log(e);
                 console.error("Error parsing miniSEED data:", err);
                 logMessages += `Error parsing miniSEED data: ${err}\n`;
+                logMessages += `${text}\n`;
             }
         };
 
@@ -727,9 +841,13 @@
         if (canvas) {
             canvas.removeEventListener("wheel", handleWheel);
             canvas.removeEventListener("mousedown", handleMouseDown);
+            canvas.removeEventListener("touchstart", handleTouchStart);
         }
         window.removeEventListener("mousemove", handleMouseMove);
         window.removeEventListener("mouseup", handleMouseUp);
+        window.removeEventListener("touchmove", handleTouchMove);
+        window.removeEventListener("touchend", handleTouchEnd);
+        window.removeEventListener("touchcancel", handleTouchEnd);
 
         if ((window as any)._mseedWs) {
             (window as any)._mseedWs.close();
@@ -751,23 +869,21 @@
 </svelte:head>
 
 <div
-    class="min-h-screen py-1 lg:py-8 flex flex-col justify-center overflow-hidden font-mono relative gap-2"
+    class="min-h-screen px-1 lg:px-0 py-1 lg:py-8 flex flex-col justify-center overflow-hidden font-mono relative gap-2"
 >
-    <div
-        class="w-full flex flex-col-reverse lg:flex-row gap-2 justify-center px-4 lg:px-0"
-    >
+    <div class="w-full flex flex-col-reverse lg:flex-row gap-2 justify-center">
         {#if stationData != null}
             <div class="flex flex-col gap-4 w-auto h-full items-stretch">
                 <Card className="w-full lg:w-md ">
                     {#snippet title()}
-                        <p class="p-1 text-xl text-glow label">
+                        <p class="p-1 text-xl text-glow label text-3xl">
                             STATION INFORMATION
                         </p>
                     {/snippet}
                     {#snippet children()}
                         <div class="w-full flex flex-col lg:flex-row gap-2">
                             <div
-                                class="badge label bordered flex justify-between mb-2 w-full"
+                                class="badge label text-3xl bordered flex justify-between mb-2 w-full"
                             >
                                 <div
                                     class="flex flex-col items-center justify-between p-1"
@@ -834,7 +950,7 @@
                         </div>
                     {/snippet}
                     {#snippet footer()}
-                        <div class="flex justify-center w-full label-small">
+                        <div class="flex justify-center w-full label">
                             <span>{stationData.Network["Description"]}</span>
                         </div>
                     {/snippet}
@@ -842,13 +958,13 @@
 
                 <Card className="w-full lg:w-md h-full grow ">
                     {#snippet title()}
-                        <p class="p-1 text-xl text-glow label">
+                        <p class="p-1 text-xl text-glow label text-3xl">
                             STATION CHANNEL
                         </p>
                     {/snippet}
                     {#snippet children()}
                         <HexGrid variant="flat">
-                            {#each listChannel as channel, channelIndex (channel['@attributes']['code'])}
+                            {#each listChannel as channel, channelIndex (channel["@attributes"]["code"])}
                                 <div
                                     class="w-full h-full {channel['@attributes']
                                         .endDate == ''
@@ -867,7 +983,10 @@
                                         channel['@attributes'].endDate == ''
                                             ? 'yellow '
                                             : ' '}"
-                                        style="animation-delay: {Math.min(channelIndex * 50, 1000)}ms; width: 83px; height: 72px;"
+                                        style="animation-delay: {Math.min(
+                                            channelIndex * 50,
+                                            1000,
+                                        )}ms; width: 83px; height: 72px;"
                                         on:click={() => {
                                             selectedChannel = channel;
                                             const request = {
@@ -966,7 +1085,7 @@
                     class="absolute right-2 lg:right-0 lg:top-6 left-4 lg:left-24 pointer-events-none text-glow z-5 max-w-100 flex flex-col justify-center items-end lg:items-start"
                 >
                     <div
-                        class="rounded-sm bordered label bg-black/60 shadow-lg h-10 text-center flex justify-center items-center px-1"
+                        class="rounded-sm bordered label text-3xl bg-black/60 shadow-lg h-10 text-center flex justify-center items-center px-1"
                     >
                         <div class="font-bold md:text-3xl uppercase">
                             {isDemoPsychoMode
@@ -1001,7 +1120,9 @@
                     <div
                         class="rounded-lg p-1 inline-block bg-black/60 shadow-lg"
                     >
-                        <div class="bordered px-3 py-1 flex flex-col label">
+                        <div
+                            class="bordered px-3 py-1 flex flex-col label text-3xl"
+                        >
                             <div
                                 class="font-bold text-[10px] md:text-sm tracking-widest leading-none mb-1"
                             >
@@ -1041,7 +1162,7 @@
                 class="flex justify-between items-center text-xs uppercase tracking-widest px-2"
                 style="color: #fa0;"
             >
-                <div class="flex items-center gap-4 flex-wrap">
+                <div class="flex items-center gap-1 lg:gap-4 flex-wrap">
                     <span>Pan: Click & Drag</span>
                     <span class="hidden md:inline">|</span>
                     <span>Zoom Y: Wheel</span>
@@ -1050,43 +1171,27 @@
                     <span class="hidden md:inline">|</span>
                     <span>Zoom: {zoomLevel.toFixed(4)}x</span>
                 </div>
-                <div class="flex items-center gap-4 h-4">
+                <div
+                    class="flex flex-col lg:flex-row items-center gap-0 lg:gap-4 h-4"
+                >
                     {#if timeOffsetMs > 0}
                         <button
-                            class="bg-orange-950 border hover:bg-orange-800 text-white px-3 py-1 rounded cursor-pointer transition-colors"
+                            class="bg-orange-950 border hover:bg-orange-800 text-white text-xs lg:text-md px-1 lg:px-3 py-0 lg:py-1 rounded cursor-pointer transition-colors"
                             style="border-color: #fa0;"
-                            on:click={() => (timeOffsetMs = 0)}
+                            on:click={() => {
+                                timeOffsetMs = 0;
+                                frozenLatestTime = 0;
+                            }}
                         >
-                            &rarr; Resume Live
+                            Resume Live
                         </button>
                     {/if}
-                    <div class="flex items-center gap-2">
-                        <span class="relative flex h-3 w-3">
-                            <span
-                                class="animate-ping absolute inline-flex h-full w-full rounded-full {timeOffsetMs ===
-                                0
-                                    ? 'bg-orange-500'
-                                    : 'bg-yellow-500'} opacity-75"
-                            ></span>
-                            <span
-                                class="relative inline-flex rounded-full h-3 w-3 {timeOffsetMs ===
-                                0
-                                    ? 'bg-orange-600'
-                                    : 'bg-yellow-600'}"
-                            ></span>
-                        </span>
-                        <span
-                            class="font-bold {timeOffsetMs === 0
-                                ? 'text-orange-500'
-                                : 'text-yellow-500'}"
-                        >
-                            {timeOffsetMs === 0 ? "LIVE" : "HISTORY"}
-                        </span>
-                    </div>
                 </div>
             </div>
 
-            <div class="bordered-red p-2 overflow-y-auto h-24 text-primary">
+            <div
+                class="bordered-red p-2 overflow-y-auto h-24 text-primary text-xs"
+            >
                 <pre>{logMessages}</pre>
             </div>
         </div>

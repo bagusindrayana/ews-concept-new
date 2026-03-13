@@ -148,7 +148,9 @@
       <div
         class="absolute top-0 bottom-0 left-0 right-0 flex justify-center items-center"
       >
-        <h1 class="text-xl p-1 font-bold label danger uppercase bg-black">
+        <h1
+          class="text-xl p-1 font-bold label text-3xl danger uppercase bg-black"
+        >
           Station Status
         </h1>
       </div>

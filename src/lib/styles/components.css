@@ -651,7 +651,6 @@
 .label {
     overflow: hidden;
     font: 400 "Roboto Condensed";
-    font-size: 2rem;
     letter-spacing: -1px;
     line-height: 1;
     /* padding-right: 0px; */
@@ -668,25 +667,6 @@
     text-box: trim-both cap alphabetic;
 }
 
-.label-small {
-    overflow: hidden;
-    font: 400 "Roboto Condensed";
-    font-size: 1rem;
-    letter-spacing: -1px;
-    line-height: 1;
-    /* padding-right: 0px; */
-    text-transform: uppercase;
-    user-select: none;
-    white-space: nowrap;
-    --text-glow-color: rgba(var(--glow-rgb), 0.5);
-    color: var(--text-color);
-    text-shadow:
-        -0.5px 0.5px 0 var(--text-glow-color),
-        0.5px -0.5px 0 var(--text-glow-color),
-        -0.5px -0.5px 0 var(--text-glow-color),
-        0.5px 0.5px 0 var(--text-glow-color);
-    text-box: trim-both cap alphabetic;
-}
 
 .label.internal .decal {
     border-radius: calc(var(--label-corner-size) - 1px);
