@@ -751,21 +751,21 @@
 </svelte:head>
 
 <div
-    class="min-h-screen py-8 flex flex-col justify-center overflow-hidden font-mono relative gap-2"
+    class="min-h-screen py-1 lg:py-8 flex flex-col justify-center overflow-hidden font-mono relative gap-2"
 >
     <div
-        class="w-full flex flex-col-reverse md:flex-row gap-2 justify-center px-4 md:px-0"
+        class="w-full flex flex-col-reverse lg:flex-row gap-2 justify-center px-4 lg:px-0"
     >
         {#if stationData != null}
             <div class="flex flex-col gap-4 w-auto h-full items-stretch">
-                <Card className="w-full md:w-md ">
+                <Card className="w-full lg:w-md ">
                     {#snippet title()}
                         <p class="p-1 text-xl text-glow label">
                             STATION INFORMATION
                         </p>
                     {/snippet}
                     {#snippet children()}
-                        <div class="w-full flex flex-col md:flex-row gap-2">
+                        <div class="w-full flex flex-col lg:flex-row gap-2">
                             <div
                                 class="badge label bordered flex justify-between mb-2 w-full"
                             >
@@ -840,7 +840,7 @@
                     {/snippet}
                 </Card>
 
-                <Card className="w-full md:w-md h-full grow ">
+                <Card className="w-full lg:w-md h-full grow ">
                     {#snippet title()}
                         <p class="p-1 text-xl text-glow label">
                             STATION CHANNEL
@@ -964,7 +964,7 @@
             >
                 <!-- Top Left -->
                 <div
-                    class="absolute top-2 md:top-6 left-4 md:left-24 pointer-events-none text-glow z-5 max-w-100"
+                    class="absolute right-2 lg:right-0 lg:top-6 left-4 lg:left-24 pointer-events-none text-glow z-5 max-w-100 flex flex-col justify-center items-end lg:items-start"
                 >
                     <div
                         class="rounded-sm bordered label bg-black/60 shadow-lg h-10 text-center flex justify-center items-center px-1"
@@ -997,7 +997,7 @@
 
                 <!-- Top Right -->
                 <div
-                    class="absolute top-18 md:top-4 right-4 md:right-16 pointer-events-none flex flex-col items-end z-5"
+                    class="absolute bottom-16 lg:bottom-auto top-auto lg:top-18 md:top-4 right-2 lg:right-16 pointer-events-none flex flex-col items-end z-5"
                 >
                     <div
                         class="rounded-lg p-1 inline-block bg-black/60 shadow-lg"

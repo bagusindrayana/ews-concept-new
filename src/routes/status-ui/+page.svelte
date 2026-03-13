@@ -129,7 +129,7 @@
 </svelte:head>
 
 <div
-  class="min-h-screen py-8 flex flex-col items-center overflow-x-hidden overflow-y-auto font-mono"
+  class="min-h-screen py-1 md:py-8 flex flex-col items-center overflow-x-hidden overflow-y-auto font-mono"
 >
   <div
     class="mb-2 text-center p-2 z-10 w-full bordered flex justify-center items-center relative glow-red"
@@ -154,7 +154,7 @@
       </div>
     </div>
   </div>
-  <div class="mb-2 w-full bordered text-center p-1 glow-orange">
+  <div class="mb-2 w-full bordered text-center p-1 glow-orange hidden md:block">
     <p class="text-black font-bold text-sm bg-primary p-4 uppercase">
       GEOFON STATION - FDSN (International Federation of Digital Seismograph
       Networks)
@@ -233,7 +233,7 @@
                     {item.title}
                   </span>
                 </div>
-                <div class="relative flex parent-node">
+                <div class="relative flex parent-node flip">
                   <!-- node -->
                   <div
                     class="status-node-flip slide-fade-in {item.type ===

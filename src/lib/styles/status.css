@@ -3,19 +3,18 @@
     background-size: contain;
     background-position: center;
     background-repeat: no-repeat;
-    /* rotate: -21deg; */
 }
 
 
 .parent-node {
     transform: translateX(0px);
-    rotate: -21deg;
+    rotate: -21deg !important;
     transition: all 0.2s ease-in-out;
     margin-left: 0px;
     z-index: 1;
 }
 
-.node-flip .parent-node {
+.parent-node.flip {
     rotate: 21deg !important;
 }
 
