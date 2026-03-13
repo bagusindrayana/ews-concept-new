@@ -167,6 +167,10 @@
 
     let logMessages = "";
 
+    // Settings Modal State
+    let isSettingsOpen = false;
+    let selectedTimezone = 0; // 0: UTC, 7: WIB, 8: WITA, 9: WIT
+
     function resizeCanvas() {
         if (!container || !canvas) return;
 
@@ -319,7 +323,9 @@
     }
 
     function formatTimeStr(ms: number) {
-        const d = new Date(ms);
+        // Apply timezone offset (selectedTimezone is in hours)
+        const tzOffsetMs = selectedTimezone * 60 * 60 * 1000;
+        const d = new Date(ms + tzOffsetMs);
         return d.toISOString().substring(11, 19); // HH:MM:SS
     }
 
@@ -1030,45 +1036,22 @@
                         <div class="flex flex-col gap-2 w-full">
                             <button
                                 class="cursor-pointer p-0 b-0 overflow-hidden flex items-center justify-center bordered p-1"
-                                on:click={toggleDemoData}
-                                ><div class="strip-wrapper">
+                                on:click={() => (isSettingsOpen = true)}
+                            >
+                                <div class="strip-wrapper">
                                     <div
-                                        class="strip-bar anim-duration-20 {isDemoMode
-                                            ? 'loop-strip-reverse'
-                                            : ''}"
+                                        class="strip-bar anim-duration-20"
                                     ></div>
                                     <div
-                                        class="strip-bar anim-duration-20 {isDemoMode
-                                            ? 'loop-strip-reverse'
-                                            : ''}"
+                                        class="strip-bar anim-duration-20"
                                     ></div>
                                 </div>
                                 <span
                                     class="absolute bg-black ews-text-glow px-2 py-1"
-                                    >⚠ DEMO DATA</span
-                                ></button
-                            >
-
-                            <button
-                                class="cursor-pointer p-0 b-0 overflow-hidden flex items-center justify-center bordered p-1"
-                                on:click={toggleDemoPsycho}
-                                ><div class="strip-wrapper">
-                                    <div
-                                        class="strip-bar-red anim-duration-20 {isDemoPsychoMode
-                                            ? 'loop-strip-reverse'
-                                            : ''}"
-                                    ></div>
-                                    <div
-                                        class="strip-bar-red anim-duration-20 {isDemoPsychoMode
-                                            ? 'loop-strip-reverse'
-                                            : ''}"
-                                    ></div>
-                                </div>
-                                <span
-                                    class="absolute bg-black ews-text-glow px-2 py-1"
-                                    >⚠ DEMO PSYCHOGRAPHIC DATA</span
-                                ></button
-                            >
+                                >
+                                    SETTING
+                                </span>
+                            </button>
                         </div>
                     {/snippet}
                 </Card>
@@ -1142,7 +1125,13 @@
                         class="font-bold text-[8px] md:text-xs tracking-widest text-right mt-1 bg-black/60 px-1 drop-shadow-[0_0_5px_rgba(255,102,0,1)]"
                         style="color: #fa0;"
                     >
-                        Y: AMPLITUDE (COUNTS) | X: TIME (UTC)
+                        Y: AMPLITUDE (COUNTS) | X: TIME ({selectedTimezone === 0
+                            ? "UTC"
+                            : selectedTimezone === 7
+                              ? "WIB"
+                              : selectedTimezone === 8
+                                ? "WITA"
+                                : "WIT"})
                     </div>
                 </div>
 
@@ -1197,6 +1186,109 @@
         </div>
     </div>
 </div>
+
+{#if isSettingsOpen}
+    <div
+        class="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4"
+    >
+        <Card className="w-full max-w-lg shadow-2xl">
+            {#snippet title()}
+                <div class="flex justify-between items-center w-full">
+                    <p class="p-1 text-xl text-glow label text-3xl">
+                        PENGATURAN CHART
+                    </p>
+                    <button
+                        class="text-orange-500 hover:text-orange-300 font-bold text-2xl px-2"
+                        on:click={() => (isSettingsOpen = false)}
+                        >&times;</button
+                    >
+                </div>
+            {/snippet}
+
+            {#snippet children()}
+                <div class="flex flex-col gap-6 w-full p-2">
+                    <!-- Timezone Settings -->
+                    <div class="flex flex-col gap-2">
+                        <p
+                            class="text-orange-500 font-bold uppercase tracking-widest text-sm mb-1"
+                        >
+                            Pilih Zona Waktu (X-Axis):
+                        </p>
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-2">
+                            {#each [{ label: "UTC", value: 0 }, { label: "WIB", value: 7 }, { label: "WITA", value: 8 }, { label: "WIT", value: 9 }] as tz}
+                                <button
+                                    class="border uppercase font-bold p-2 text-center transition-colors {selectedTimezone ===
+                                    tz.value
+                                        ? 'bg-orange-500 text-black border-orange-500'
+                                        : 'bg-transparent text-orange-500 border-orange-500 hover:bg-orange-950'}"
+                                    on:click={() =>
+                                        (selectedTimezone = tz.value)}
+                                >
+                                    {tz.label}
+                                </button>
+                            {/each}
+                        </div>
+                    </div>
+
+                    <hr class="border-orange-900 my-2" />
+
+                    <!-- Demo Modes -->
+                    <div class="flex flex-col gap-2">
+                        <p
+                            class="text-orange-500 font-bold uppercase tracking-widest text-sm mb-1"
+                        >
+                            Pengujian Tampilan (Demo):
+                        </p>
+                        <button
+                            class="cursor-pointer p-0 b-0 overflow-hidden flex items-center justify-center bordered p-1"
+                            on:click={toggleDemoData}
+                        >
+                            <div class="strip-wrapper">
+                                <div
+                                    class="strip-bar anim-duration-20 {isDemoMode
+                                        ? 'loop-strip-reverse'
+                                        : ''}"
+                                ></div>
+                                <div
+                                    class="strip-bar anim-duration-20 {isDemoMode
+                                        ? 'loop-strip-reverse'
+                                        : ''}"
+                                ></div>
+                            </div>
+                            <span
+                                class="absolute bg-black ews-text-glow px-2 py-1"
+                                >⚠ DEMO DATA</span
+                            >
+                        </button>
+
+                        <button
+                            class="cursor-pointer p-0 b-0 overflow-hidden flex items-center justify-center bordered p-1 mt-2"
+                            on:click={toggleDemoPsycho}
+                        >
+                            <div class="strip-wrapper">
+                                <div
+                                    class="strip-bar-red anim-duration-20 {isDemoPsychoMode
+                                        ? 'loop-strip-reverse'
+                                        : ''}"
+                                ></div>
+                                <div
+                                    class="strip-bar-red anim-duration-20 {isDemoPsychoMode
+                                        ? 'loop-strip-reverse'
+                                        : ''}"
+                                ></div>
+                            </div>
+                            <span
+                                class="absolute bg-black ews-text-glow px-2 py-1"
+                                >⚠ DEMO PSYCHOGRAPHIC DATA</span
+                            >
+                        </button>
+                    </div>
+                </div>
+            {/snippet}
+        </Card>
+    </div>
+{/if}
+
 <div
     class="fixed m-auto top-0 bottom-0 left-0 right-0 flex flex-col justify-center items-center overlay-bg text-center z-5"
     id="loading-screen"
