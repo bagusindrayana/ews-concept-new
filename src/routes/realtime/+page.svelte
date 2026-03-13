@@ -72,7 +72,7 @@
                     trimIndex++;
                 }
                 if (trimIndex > 0) {
-                    dataBuffer = dataBuffer.slice(trimIndex);
+                    dataBuffer.splice(0, trimIndex);
                 }
             }, 40);
         } else {
@@ -127,7 +127,7 @@
     }
 
     // Buffer to hold our waveform data points
-    let dataBuffer: DataPoint[] = [];
+    const dataBuffer: DataPoint[] = [];
 
     // Zoom/Scale factor for Y-axis (Amplitude)
     let zoomLevel = 0.05;
@@ -695,7 +695,7 @@
                 }
 
                 if (trimIndex > 0) {
-                    dataBuffer = dataBuffer.slice(trimIndex);
+                    dataBuffer.splice(0, trimIndex);
                 }
 
                 if (!isDragging && timeOffsetMs === 0) {
@@ -848,7 +848,7 @@
                     {/snippet}
                     {#snippet children()}
                         <HexGrid variant="flat">
-                            {#each listChannel as channel, channelIndex}
+                            {#each listChannel as channel, channelIndex (channel['@attributes']['code'])}
                                 <div
                                     class="w-full h-full {channel['@attributes']
                                         .endDate == ''
@@ -867,8 +867,7 @@
                                         channel['@attributes'].endDate == ''
                                             ? 'yellow '
                                             : ' '}"
-                                        style="animation-delay: {channelIndex *
-                                            50}ms; width: 83px; height: 72px;"
+                                        style="animation-delay: {Math.min(channelIndex * 50, 1000)}ms; width: 83px; height: 72px;"
                                         on:click={() => {
                                             selectedChannel = channel;
                                             const request = {
