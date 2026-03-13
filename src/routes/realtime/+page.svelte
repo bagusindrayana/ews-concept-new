@@ -17,7 +17,7 @@
     let seis: any;
 
     let stationData: any;
-    let selectedChannel: string = "";
+    let selectedChannel: any;
     let listChannel: any[] = [];
 
     let ws: WebSocket;
@@ -247,7 +247,10 @@
             return;
         }
 
-        const latestTime = dataBuffer.length > 0 ? dataBuffer[dataBuffer.length - 1].t : Date.now();
+        const latestTime =
+            dataBuffer.length > 0
+                ? dataBuffer[dataBuffer.length - 1].t
+                : Date.now();
         // The right edge of the screen represents (latestTime - timeOffsetMs)
         const rightEdgeTime = latestTime - timeOffsetMs;
         const leftEdgeTime = rightEdgeTime - timeWindowMs;
@@ -551,17 +554,29 @@
                 }
 
                 //find listChannel that dont have ["@attributes"].endDate
-                const activeChannel = listChannel.find(
+                const activeChannels = listChannel.filter(
                     (item) =>
                         item["@attributes"].endDate == undefined ||
                         item["@attributes"].endDate == "",
                 );
 
+                let activeChannel = undefined;
+                const priorityCodes = ["BHZ", "SHZ", "HHZ"];
+                for (const code of priorityCodes) {
+                    activeChannel = activeChannels.find(
+                        (item) => item["@attributes"].code === code,
+                    );
+                    if (activeChannel) break;
+                }
+
+                if (!activeChannel && activeChannels.length > 0) {
+                    activeChannel = activeChannels[0];
+                }
+
                 if (activeChannel != undefined) {
-                    selectedChannel = activeChannel["@attributes"].code;
+                    selectedChannel = activeChannel;
                 } else {
-                    selectedChannel =
-                        listChannel[listChannel.length - 1]["@attributes"].code;
+                    selectedChannel = listChannel[listChannel.length - 1];
                 }
             })
             .catch((error) => {
@@ -606,7 +621,7 @@
             const request = {
                 net: data.networkCode ?? "GE",
                 sta: data.stationCode ?? "GSI",
-                cha: selectedChannel,
+                cha: selectedChannel["@attributes"].code,
             };
             ws.send(JSON.stringify(request));
         };
@@ -841,8 +856,11 @@
                                         : 'glow-red-small '}"
                                 >
                                     <button
-                                        class="w-full h-full cursor-pointer hex-hive bg-hex-flat opacity-0 show-pop-up {selectedChannel ==
-                                        channel['@attributes']['code']
+                                        class="w-full h-full cursor-pointer hex-hive bg-hex-flat opacity-0 show-pop-up {selectedChannel !=
+                                            undefined &&
+                                        selectedChannel != null &&
+                                        selectedChannel['@attributes'].code ==
+                                            channel['@attributes']['code']
                                             ? 'blink blink-fast'
                                             : ''} {channel['@attributes']
                                             .endDate == undefined ||
@@ -852,12 +870,13 @@
                                         style="animation-delay: {channelIndex *
                                             50}ms; width: 83px; height: 72px;"
                                         on:click={() => {
-                                            selectedChannel =
-                                                channel["@attributes"]["code"];
+                                            selectedChannel = channel;
                                             const request = {
                                                 net: data.networkCode ?? "GE",
                                                 sta: data.stationCode ?? "GSI",
-                                                cha: selectedChannel,
+                                                cha: selectedChannel[
+                                                    "@attributes"
+                                                ].code,
                                             };
                                             if (
                                                 ws &&
@@ -945,10 +964,10 @@
             >
                 <!-- Top Left -->
                 <div
-                    class="absolute top-4 md:top-12 left-4 md:left-24 pointer-events-none text-glow z-5 max-w-100"
+                    class="absolute top-2 md:top-6 left-4 md:left-24 pointer-events-none text-glow z-5 max-w-100"
                 >
                     <div
-                        class="rounded-sm bordered label bg-black/60 shadow-lg h-10 text-center flex justify-center items-center"
+                        class="rounded-sm bordered label bg-black/60 shadow-lg h-10 text-center flex justify-center items-center px-1"
                     >
                         <div class="font-bold md:text-3xl uppercase">
                             {isDemoPsychoMode
@@ -956,13 +975,24 @@
                                 : "SEISMIC WAVEFORM"}
                         </div>
                     </div>
-                    <div
-                        class="font-bold mt-1 tracking-widest text-sm md:text-xl drop-shadow-[0_0_5px_rgba(255,102,0,1)]"
-                    >
-                        {isDemoPsychoMode
-                            ? "Phase 4 Link"
-                            : "CHANNEL : " + selectedChannel}
-                    </div>
+                    {#if selectedChannel != null && selectedChannel != undefined}
+                        <div
+                            class="font-bold mt-1 tracking-widest text-sm md:text-xl drop-shadow-[0_0_5px_rgba(255,102,0,1)]"
+                        >
+                            {isDemoPsychoMode
+                                ? "Phase 4 Link"
+                                : "CHANNEL : " +
+                                  selectedChannel["@attributes"].code}
+                        </div>
+
+                        {#if !isDemoPsychoMode}
+                            <div
+                                class="font-bold tracking-widest text-sm md:text-xl drop-shadow-[0_0_5px_rgba(255,102,0,1)]"
+                            >
+                                SENSOR : {selectedChannel["Sensor"]["Model"]}
+                            </div>
+                        {/if}
+                    {/if}
                 </div>
 
                 <!-- Top Right -->
