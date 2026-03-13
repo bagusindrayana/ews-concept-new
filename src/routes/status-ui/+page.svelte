@@ -208,7 +208,7 @@
                   ></div>
 
                   <span
-                    class="font-bold text-xs text-glow uppercase absolute left-1 z-10 text-left top-1"
+                    class="font-bold text-xs text-glow uppercase absolute left-1 md:left-2 z-10 text-left top-1"
                   >
                     {item.title}
                   </span>
@@ -230,7 +230,7 @@
                   ></div>
 
                   <span
-                    class="font-bold text-xs text-glow uppercase absolute z-10 right-1 text-right top-1"
+                    class="font-bold text-xs text-glow uppercase absolute z-10 right-1 md:right-2 text-right top-1"
                   >
                     {item.title}
                   </span>
