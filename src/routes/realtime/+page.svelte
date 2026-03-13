@@ -26,6 +26,17 @@
     let demoInterval: ReturnType<typeof setInterval>;
     let demoPhase = 0;
 
+    let isDemoPsychoMode = false;
+    let psychoInterval: ReturnType<typeof setInterval>;
+    let psychoPoints: { nx: number; ny: number }[] = [];
+
+    // --- PENGATURAN KEKUSUTAN (TANGLE SETTINGS) ---
+    // Ubah angka-angka di bawah ini untuk mengatur tingkat kekusutan
+    const PSYCHO_JUMP_SIZE = 0.3; // Semakin besar, semakin lebar zigzag/lompatannya (misal: 0.2 halus, 0.8 kasar)
+    const PSYCHO_MAX_POINTS = 300; // Semakin besar, semakin tebal dan padat benang kusut di dalam kotak (misal: 300 sepi, 1000 penuh)
+    const PSYCHO_POINTS_PER_TICK = 10; // Kecepatan gerak/animasi garis baru
+    // ----------------------------------------------
+
     function toggleDemoData() {
         isDemoMode = !isDemoMode;
         if (isDemoMode) {
@@ -66,6 +77,46 @@
             }, 40);
         } else {
             if (demoInterval) clearInterval(demoInterval);
+        }
+    }
+
+    function toggleDemoPsycho() {
+        isDemoPsychoMode = !isDemoPsychoMode;
+        if (isDemoPsychoMode) {
+            psychoPoints = [];
+            let curX = 0;
+            let curY = 0;
+            for (let i = 0; i < PSYCHO_MAX_POINTS; i++) {
+                curX += (Math.random() - 0.5) * PSYCHO_JUMP_SIZE;
+                curY += (Math.random() - 0.5) * PSYCHO_JUMP_SIZE;
+                if (curX > 1) curX = 1;
+                else if (curX < -1) curX = -1;
+                if (curY > 1) curY = 1;
+                else if (curY < -1) curY = -1;
+                psychoPoints.push({ nx: curX, ny: curY });
+            }
+
+            psychoInterval = setInterval(() => {
+                for (let i = 0; i < PSYCHO_POINTS_PER_TICK; i++) {
+                    curX += (Math.random() - 0.5) * PSYCHO_JUMP_SIZE;
+                    curY += (Math.random() - 0.5) * PSYCHO_JUMP_SIZE;
+                    if (curX > 1) curX = 1;
+                    else if (curX < -1) curX = -1;
+                    if (curY > 1) curY = 1;
+                    else if (curY < -1) curY = -1;
+                    // Introduce some sharp jumps occasionally to make it even more chaotic
+                    if (Math.random() > 0.95) {
+                        curX = (Math.random() - 0.5) * 2;
+                        curY = (Math.random() - 0.5) * 2;
+                    }
+                    psychoPoints.push({ nx: curX, ny: curY });
+                }
+                if (psychoPoints.length > PSYCHO_MAX_POINTS) {
+                    psychoPoints.splice(0, PSYCHO_POINTS_PER_TICK);
+                }
+            }, 30);
+        } else {
+            if (psychoInterval) clearInterval(psychoInterval);
         }
     }
 
@@ -187,7 +238,7 @@
         ctx.fillStyle = "#000000";
         ctx.fillRect(0, 0, width, height);
 
-        if (dataBuffer.length === 0) {
+        if (dataBuffer.length === 0 && !isDemoPsychoMode) {
             // Draw empty state
             ctx.fillStyle = "#fa0";
             ctx.font = 'bold 16px "Inter", sans-serif';
@@ -196,7 +247,7 @@
             return;
         }
 
-        const latestTime = dataBuffer[dataBuffer.length - 1].t;
+        const latestTime = dataBuffer.length > 0 ? dataBuffer[dataBuffer.length - 1].t : Date.now();
         // The right edge of the screen represents (latestTime - timeOffsetMs)
         const rightEdgeTime = latestTime - timeOffsetMs;
         const leftEdgeTime = rightEdgeTime - timeWindowMs;
@@ -326,11 +377,7 @@
         ctx.stroke();
 
         // Draw the waveform line
-        const visiblePoints = dataBuffer.filter(
-            (p) => p.t >= leftEdgeTime - 1000 && p.t <= rightEdgeTime + 1000,
-        );
-
-        if (visiblePoints.length > 0) {
+        if (isDemoPsychoMode) {
             ctx.save();
             ctx.beginPath();
             ctx.rect(leftPadding, 0, drawWidth, drawHeight);
@@ -341,20 +388,130 @@
             ctx.shadowColor = "#ff3300";
             ctx.lineWidth = 2.5;
             ctx.lineJoin = "round";
+
             ctx.beginPath();
 
-            visiblePoints.forEach((p, i) => {
-                const timeRatio = (p.t - leftEdgeTime) / timeWindowMs;
-                const x = leftPadding + timeRatio * drawWidth;
+            const startX = leftPadding;
+            const boundingBoxLeft = leftPadding + drawWidth * 0.3;
+            const boundingBoxRight = leftPadding + drawWidth * 0.55;
+            const boundingBoxTop = drawHeight * 0.1;
+            const boundingBoxBottom = drawHeight * 0.9;
+            const boxWidth = boundingBoxRight - boundingBoxLeft;
+            const boxHeight = boundingBoxBottom - boundingBoxTop;
 
-                const y = drawHeight / 2 - p.v * zoomLevel;
+            ctx.moveTo(startX, drawHeight - 2);
+            ctx.bezierCurveTo(
+                leftPadding + drawWidth * 0.15,
+                drawHeight,
+                leftPadding + drawWidth * 0.25,
+                drawHeight * 0.1,
+                boundingBoxLeft,
+                boundingBoxTop,
+            );
 
-                if (i === 0) ctx.moveTo(x, y);
-                else ctx.lineTo(x, y);
-            });
+            if (psychoPoints.length > 0) {
+                // Menggunakan quadraticCurveTo agar garis terlihat lebih melengkung/mulus (seperti benang)
+                const firstPx =
+                    boundingBoxLeft +
+                    boxWidth / 2 +
+                    (psychoPoints[0].nx * boxWidth) / 2;
+                const firstPy =
+                    boundingBoxTop +
+                    boxHeight / 2 +
+                    (psychoPoints[0].ny * boxHeight) / 2;
+                ctx.lineTo(firstPx, firstPy);
+
+                for (let i = 1; i < psychoPoints.length - 1; i++) {
+                    const px =
+                        boundingBoxLeft +
+                        boxWidth / 2 +
+                        (psychoPoints[i].nx * boxWidth) / 2;
+                    const py =
+                        boundingBoxTop +
+                        boxHeight / 2 +
+                        (psychoPoints[i].ny * boxHeight) / 2;
+                    const nextPx =
+                        boundingBoxLeft +
+                        boxWidth / 2 +
+                        (psychoPoints[i + 1].nx * boxWidth) / 2;
+                    const nextPy =
+                        boundingBoxTop +
+                        boxHeight / 2 +
+                        (psychoPoints[i + 1].ny * boxHeight) / 2;
+
+                    const midX = (px + nextPx) / 2;
+                    const midY = (py + nextPy) / 2;
+
+                    ctx.quadraticCurveTo(px, py, midX, midY);
+                }
+
+                const lastPx =
+                    boundingBoxLeft +
+                    boxWidth / 2 +
+                    (psychoPoints[psychoPoints.length - 1].nx * boxWidth) / 2;
+                const lastPy =
+                    boundingBoxTop +
+                    boxHeight / 2 +
+                    (psychoPoints[psychoPoints.length - 1].ny * boxHeight) / 2;
+                ctx.lineTo(lastPx, lastPy);
+
+                ctx.lineTo(boundingBoxRight, drawHeight * 0.4);
+
+                let stairX = boundingBoxRight;
+                let stairY = drawHeight * 0.4;
+
+                stairX += drawWidth * 0.05;
+                ctx.lineTo(stairX, stairY);
+                stairY += drawHeight * 0.2;
+                ctx.lineTo(stairX, stairY);
+
+                stairX += drawWidth * 0.05;
+                ctx.lineTo(stairX, stairY);
+                stairY += drawHeight * 0.2;
+                ctx.lineTo(stairX, stairY);
+
+                stairX += drawWidth * 0.05;
+                ctx.lineTo(stairX, stairY);
+                stairY = drawHeight - 2;
+                ctx.lineTo(stairX, stairY);
+
+                ctx.lineTo(width, stairY);
+            }
 
             ctx.stroke();
             ctx.restore();
+        } else {
+            const visiblePoints = dataBuffer.filter(
+                (p) =>
+                    p.t >= leftEdgeTime - 1000 && p.t <= rightEdgeTime + 1000,
+            );
+
+            if (visiblePoints.length > 0) {
+                ctx.save();
+                ctx.beginPath();
+                ctx.rect(leftPadding, 0, drawWidth, drawHeight);
+                ctx.clip();
+
+                ctx.strokeStyle = "#ff9900"; // Bright orange
+                ctx.shadowBlur = 12;
+                ctx.shadowColor = "#ff3300";
+                ctx.lineWidth = 2.5;
+                ctx.lineJoin = "round";
+                ctx.beginPath();
+
+                visiblePoints.forEach((p, i) => {
+                    const timeRatio = (p.t - leftEdgeTime) / timeWindowMs;
+                    const x = leftPadding + timeRatio * drawWidth;
+
+                    const y = drawHeight / 2 - p.v * zoomLevel;
+
+                    if (i === 0) ctx.moveTo(x, y);
+                    else ctx.lineTo(x, y);
+                });
+
+                ctx.stroke();
+                ctx.restore();
+            }
         }
     }
 
@@ -568,6 +725,9 @@
         if (demoInterval) {
             clearInterval(demoInterval);
         }
+        if (psychoInterval) {
+            clearInterval(psychoInterval);
+        }
     });
 </script>
 
@@ -730,7 +890,7 @@
                     {/snippet}
 
                     {#snippet footer()}
-                        <div class="flex w-full">
+                        <div class="flex flex-col gap-2 w-full">
                             <button
                                 class="cursor-pointer p-0 b-0 overflow-hidden flex items-center justify-center bordered p-1"
                                 on:click={toggleDemoData}
@@ -751,6 +911,27 @@
                                     >⚠ DEMO DATA</span
                                 ></button
                             >
+
+                            <button
+                                class="cursor-pointer p-0 b-0 overflow-hidden flex items-center justify-center bordered p-1"
+                                on:click={toggleDemoPsycho}
+                                ><div class="strip-wrapper">
+                                    <div
+                                        class="strip-bar-red anim-duration-20 {isDemoPsychoMode
+                                            ? 'loop-strip-reverse'
+                                            : ''}"
+                                    ></div>
+                                    <div
+                                        class="strip-bar-red anim-duration-20 {isDemoPsychoMode
+                                            ? 'loop-strip-reverse'
+                                            : ''}"
+                                    ></div>
+                                </div>
+                                <span
+                                    class="absolute bg-black ews-text-glow px-2 py-1"
+                                    >⚠ DEMO PSYCHOGRAPHIC DATA</span
+                                ></button
+                            >
                         </div>
                     {/snippet}
                 </Card>
@@ -764,19 +945,23 @@
             >
                 <!-- Top Left -->
                 <div
-                    class="absolute top-4 md:top-12 left-4 md:left-24 pointer-events-none text-glow z-5"
+                    class="absolute top-4 md:top-12 left-4 md:left-24 pointer-events-none text-glow z-5 max-w-100"
                 >
                     <div
-                        class="rounded-sm bordered label bg-black/60 shadow-lg h-10 text-center flex justify-center items-center w-64"
+                        class="rounded-sm bordered label bg-black/60 shadow-lg h-10 text-center flex justify-center items-center"
                     >
                         <div class="font-bold md:text-3xl uppercase">
-                            SEISMIC WAVEFORM
+                            {isDemoPsychoMode
+                                ? "PSYCHOGRAPHIC DISPLAY"
+                                : "SEISMIC WAVEFORM"}
                         </div>
                     </div>
                     <div
                         class="font-bold mt-1 tracking-widest text-sm md:text-xl drop-shadow-[0_0_5px_rgba(255,102,0,1)]"
                     >
-                        CHANNEL: {selectedChannel}
+                        {isDemoPsychoMode
+                            ? "Phase 4 Link"
+                            : "CHANNEL : " + selectedChannel}
                     </div>
                 </div>
 
