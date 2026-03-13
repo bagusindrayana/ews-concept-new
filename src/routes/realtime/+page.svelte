@@ -22,6 +22,47 @@
 
     let ws: WebSocket;
 
+    let isDemoMode = false;
+    let demoInterval: ReturnType<typeof setInterval>;
+    let demoPhase = 0;
+
+    function toggleDemoData() {
+        isDemoMode = !isDemoMode;
+        if (isDemoMode) {
+            demoInterval = setInterval(() => {
+                const now = Date.now();
+                const samplesToGenerate = 4;
+                const msPerSample = 10;
+                
+                for(let i = 0; i < samplesToGenerate; i++) {
+                    demoPhase += 0.1;
+                    const noise = (Math.random() - 0.5) * 500;
+                    const primaryWave = Math.sin(demoPhase) * 2000;
+                    const secondaryWave = Math.cos(demoPhase * 0.5) * 1000;
+                    const spike = Math.random() > 0.98 ? (Math.random() - 0.5) * 8000 : 0;
+                    
+                    dataBuffer.push({
+                        t: now - (samplesToGenerate - i - 1) * msPerSample,
+                        v: primaryWave + secondaryWave + noise + spike
+                    });
+                }
+                
+                dataBuffer.sort((a, b) => a.t - b.t);
+                
+                const cutoffTime = now - MAX_BUFFER_MS;
+                let trimIndex = 0;
+                while (trimIndex < dataBuffer.length && dataBuffer[trimIndex].t < cutoffTime) {
+                    trimIndex++;
+                }
+                if (trimIndex > 0) {
+                    dataBuffer = dataBuffer.slice(trimIndex);
+                }
+            }, 40);
+        } else {
+            if (demoInterval) clearInterval(demoInterval);
+        }
+    }
+
     // Data point structure
     interface DataPoint {
         t: number; // timestamp in MS
@@ -505,6 +546,9 @@
         if ((window as any)._mseedAnimId) {
             cancelAnimationFrame((window as any)._mseedAnimId);
         }
+        if (demoInterval) {
+            clearInterval(demoInterval);
+        }
     });
 </script>
 
@@ -662,6 +706,27 @@
                             </div>
                         {/each}
                     </div> -->
+                    {/snippet}
+
+                    {#snippet footer()}
+                        <div class="flex w-full">
+                            <button
+                                class="cursor-pointer p-0 b-0 overflow-hidden flex items-center justify-center bordered p-1"
+                                on:click={toggleDemoData}
+                                ><div class="strip-wrapper">
+                                    <div
+                                        class="strip-bar anim-duration-20 {isDemoMode ? 'loop-strip-reverse' : ''}"
+                                    ></div>
+                                    <div
+                                        class="strip-bar anim-duration-20 {isDemoMode ? 'loop-strip-reverse' : ''}"
+                                    ></div>
+                                </div>
+                                <span
+                                    class="absolute bg-black ews-text-glow px-2 py-1"
+                                    >⚠ DEMO DATA</span
+                                ></button
+                            >
+                        </div>
                     {/snippet}
                 </Card>
             </div>
