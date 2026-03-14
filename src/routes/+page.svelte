@@ -2148,12 +2148,12 @@
       ><div class="bmkg-icon"></div>
       <span>BMKG</span></a
     >
-    <a
+    <!-- <a
       href="https://github.com/bagusindrayana/ews-concept"
       class="flex gap-1 pointer-events-auto"
       ><div class="github-icon"></div>
       <span>Github</span></a
-    >
+    > -->
   </div>
 
   <!-- TSUNAMI ALERT -->
