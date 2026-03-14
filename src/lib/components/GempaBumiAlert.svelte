@@ -68,9 +68,7 @@
           class="h-[80px] -mt-10 -mr-2 opacity-0 show-pop-up"
           style="animation-delay: 2s;"
         >
-          <div
-            class="basic-hex flex flex-col justify-center items-center text-glow"
-          >
+          <div class="basic-hex flex flex-col justify-center items-center">
             <p class="text-xl">{magnitudo}</p>
             <p style="font-size: 10px;">MAGNITUDO</p>
           </div>
@@ -85,9 +83,7 @@
           class="h-[80px] -mt-10 -ml-2 opacity-0 show-pop-up"
           style="animation-delay: 2.4s;"
         >
-          <div
-            class="basic-hex flex flex-col justify-center items-center text-glow"
-          >
+          <div class="basic-hex flex flex-col justify-center items-center">
             <p class="text-xl">{kedalaman}</p>
             <p style="font-size: 10px;">KEDALAMAN</p>
           </div>

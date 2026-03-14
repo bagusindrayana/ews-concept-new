@@ -47,7 +47,7 @@
   <title>Showcase UI Components</title>
 </svelte:head>
 
-<div class="p-8 min-h-screen w-4xl mx-auto text-xs glow-all">
+<div class="p-8 min-h-screen w-4xl mx-auto text-xs">
   <div class="mb-8">
     <h1 class="text-3xl font-bold mb-2">Showcase UI Components</h1>
     <p class="text-gray-400">
@@ -141,7 +141,7 @@
       </h2>
       <Card className="w-full mb-4">
         {#snippet title()}
-          <p class="p-1 text-xs text-glow">CARD TITLE</p>
+          <p class="p-1 text-xs">CARD TITLE</p>
         {/snippet}
         {#snippet children()}
           <p class="text-sm">CARD CONTENT</p>
@@ -185,7 +185,7 @@
             <div
               class="absolute top-0 bottom-0 left-0 right-0 flex justify-center items-center"
             >
-              <p class="p-1 bg-black font-bold text-xs text-glow">CARD TITLE</p>
+              <p class="p-1 bg-black font-bold text-xs">CARD TITLE</p>
             </div>
           </div>
         {/snippet}
@@ -205,9 +205,7 @@
             <div
               class="absolute top-0 bottom-0 left-0 right-0 flex justify-center items-center"
             >
-              <p class="p-1 bg-black font-bold text-xs text-glow">
-                CARD FOOTER
-              </p>
+              <p class="p-1 bg-black font-bold text-xs">CARD FOOTER</p>
             </div>
           </div>
         {/snippet}
@@ -406,7 +404,7 @@
         <ItemKotaTerdampak kota={dummyKota} />
 
         <button
-          class="text-glow pointer"
+          class=" pointer"
           onclick={() => {
             dummyKota.timeArrival = new Date(new Date().getTime() + 10000); // Reset to 10s
           }}
@@ -446,12 +444,12 @@
           <p class="ews-text danger text-lg">PERINGATAN DINI</p>
         </div>
         <div>
-          <p class="text-gray-500 text-xs mb-1">ews-text-glow</p>
-          <p class="ews-text-glow text-lg">GLOW TEXT ORANGE</p>
+          <p class="text-gray-500 text-xs mb-1">ews-</p>
+          <p class="ews- text-lg">GLOW TEXT ORANGE</p>
         </div>
         <div>
-          <p class="text-gray-500 text-xs mb-1">ews-text-glow danger</p>
-          <p class="ews-text-glow danger text-lg">GLOW TEXT RED</p>
+          <p class="text-gray-500 text-xs mb-1">ews- danger</p>
+          <p class="ews- danger text-lg">GLOW TEXT RED</p>
         </div>
         <div>
           <p class="text-gray-500 text-xs mb-1">ews-text-digital</p>
@@ -463,13 +461,11 @@
         </div>
         <div>
           <p class="text-gray-500 text-xs mb-1">ews-text-blink</p>
-          <p class="ews-text-glow danger text-lg ews-text-blink">
-            ⚠ AWAS TSUNAMI ⚠
-          </p>
+          <p class="ews- danger text-lg ews-text-blink">⚠ AWAS TSUNAMI ⚠</p>
         </div>
         <div>
           <p class="text-gray-500 text-xs mb-1">ews-text-blink fast</p>
-          <p class="ews-text-glow danger text-lg ews-text-blink fast">
+          <p class="ews- danger text-lg ews-text-blink fast">
             ⚠ EVAKUASI SEGERA ⚠
           </p>
         </div>
@@ -482,12 +478,12 @@
           <span class="ews-text-underline danger">Status: Critical</span>
         </div>
         <div>
-          <p class="text-gray-500 text-xs mb-1">text-glow (existing)</p>
-          <p class="text-glow">EXISTING GLOW</p>
+          <p class="text-gray-500 text-xs mb-1">(existing)</p>
+          <p class="">EXISTING GLOW</p>
         </div>
         <div>
-          <p class="text-gray-500 text-xs mb-1">text-glow-red (existing)</p>
-          <p class="text-glow-red">EXISTING RED GLOW</p>
+          <p class="text-gray-500 text-xs mb-1">-red (existing)</p>
+          <p class="-red">EXISTING RED GLOW</p>
         </div>
         <div>
           <p class="text-gray-500 text-xs mb-1">neon-glow (existing)</p>
@@ -694,7 +690,7 @@
                     class="strip-bar loop-strip-reverse anim-duration-20"
                   ></div>
                 </div>
-                <span class="absolute bg-black ews-text-glow px-2 py-1"
+                <span class="absolute bg-black ews- px-2 py-1"
                   >⚠ EMERGENCY BUTTON</span
                 >
               </button>
@@ -708,7 +704,7 @@
                   <div class="strip-bar-red loop-strip anim-duration-20"></div>
                   <div class="strip-bar-red loop-strip anim-duration-20"></div>
                 </div>
-                <span class="absolute bg-black ews-text-glow danger px-2 py-1"
+                <span class="absolute bg-black ews- danger px-2 py-1"
                   >⚠ EMERGENCY BUTTON</span
                 >
               </button>

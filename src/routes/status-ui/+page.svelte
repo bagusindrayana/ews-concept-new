@@ -156,13 +156,13 @@
       </div>
     </div>
   </div>
-  <div class="mb-2 w-full bordered text-center p-1 hidden md:block glow-all">
+  <div class="mb-2 w-full bordered text-center p-1 hidden md:block">
     <p class="text-black font-bold text-sm bg-primary p-4 uppercase">
       GEOFON STATION - FDSN (International Federation of Digital Seismograph
       Networks)
     </p>
   </div>
-  <div class="w-full h-1 bg-primary glow-all"></div>
+  <div class="w-full h-1 bg-primary"></div>
   <div
     class="inline-flex h-auto justify-center gap-4 w-full px-4 overflow-none relative"
   >
@@ -170,7 +170,7 @@
       <div class="relative py-4 lg:py-10 flex flex-col gap-4">
         <!-- Central Spine -->
         <div
-          class="absolute h-auto left-1/2 top-0 bottom-0 w-1 bg-primary transform -translate-x-1/2 z-0 line-central glow-all"
+          class="absolute h-auto left-1/2 top-0 bottom-0 w-1 bg-primary transform -translate-x-1/2 z-0 line-central"
           style="animation-delay: {branchIndex * 200}ms;"
         ></div>
 
@@ -187,8 +187,8 @@
                   <!-- node -->
                   <div
                     class="status-node slide-fade-in {item.type === 'danger'
-                      ? 'danger glow-red-small'
-                      : 'glow-green-small'} w-24 h-6 flex flex-grow flex-col items-center justify-center relative mt-6 -mr-2 z-5 text-black text-xs font-bold"
+                      ? 'danger '
+                      : ''} w-24 h-6 flex flex-grow flex-col items-center justify-center relative mt-6 -mr-2 z-5 text-black text-xs font-bold"
                     style="animation-delay: {(branchIndex + 1) *
                       (index + 1) *
                       10}ms;"
@@ -197,7 +197,7 @@
                   </div>
                 </div>
                 <!-- Connecting Line to center -->
-                <div class="w-24 flex justify-end relative line glow-all">
+                <div class="w-24 flex justify-end relative line">
                   <div
                     class="h-[2px] w-24 bg-primary z-0 line-node"
                     style="animation-delay: {(branchIndex + 1) *
@@ -219,7 +219,7 @@
                 class="flex justify-start items-center relative pl-0 col-start-2 w-auto node-flip"
               >
                 <!-- Connecting Line from center -->
-                <div class="w-24 flex justify-start relative glow-all">
+                <div class="w-24 flex justify-start relative">
                   <div
                     class="h-[2px] w-24 bg-primary z-0 line-node"
                     style="animation-delay: {(branchIndex + 1) *
@@ -238,8 +238,8 @@
                   <div
                     class="status-node-flip slide-fade-in {item.type ===
                     'danger'
-                      ? 'danger glow-red-small'
-                      : 'glow-green-small'} w-24 h-6 flex flex-col items-center justify-center relative mt-6 -ml-2 z-5 text-black text-xs font-bold"
+                      ? 'danger '
+                      : ''} w-24 h-6 flex flex-col items-center justify-center relative mt-6 -ml-2 z-5 text-black text-xs font-bold"
                     style="animation-delay: {(branchIndex + 1) *
                       (index + 1) *
                       10}ms;"
@@ -258,7 +258,7 @@
 
 <!-- LOADING SCREEN -->
 <div
-  class="fixed m-auto top-0 bottom-0 left-0 right-0 flex flex-col justify-center items-center overlay-bg text-center z-10 text-glow-red"
+  class="fixed m-auto top-0 bottom-0 left-0 right-0 flex flex-col justify-center items-center overlay-bg text-center z-10 -red"
   id="loading-screen"
 >
   <span class="loader"></span>

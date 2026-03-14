@@ -1,8 +1,11 @@
 <script lang="ts">
 	import favicon from "$lib/assets/favicon.svg";
+	import { onMount } from "svelte";
 	import "../app.css";
 
 	let { children } = $props();
+
+	onMount(() => {});
 </script>
 
 <svelte:head>

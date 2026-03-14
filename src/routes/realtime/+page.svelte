@@ -499,7 +499,7 @@
 
             ctx.strokeStyle = "#ff9900"; // Bright orange
             ctx.shadowBlur = 12;
-            ctx.shadowColor = "#ff3300";
+            // ctx.shadowColor = "#ff3300";
             ctx.lineWidth = 2.5;
             ctx.lineJoin = "round";
 
@@ -608,7 +608,7 @@
 
                 ctx.strokeStyle = "#ff9900"; // Bright orange
                 ctx.shadowBlur = 12;
-                ctx.shadowColor = "#ff3300";
+                // ctx.shadowColor = "#ff3300";
                 ctx.lineWidth = 2.5;
                 ctx.lineJoin = "round";
                 ctx.beginPath();
@@ -887,9 +887,9 @@
     <div class="w-full flex flex-col-reverse lg:flex-row gap-2 justify-center">
         {#if stationData != null}
             <div class="flex flex-col gap-4 w-auto h-full items-stretch">
-                <Card className="glow-all w-full lg:w-md ">
+                <Card className=" w-full lg:w-md ">
                     {#snippet title()}
-                        <p class="p-1 text-xl text-glow ews-title text-3xl">
+                        <p class="p-1 text-xl ews-title text-3xl">
                             STATION INFORMATION
                         </p>
                     {/snippet}
@@ -921,7 +921,7 @@
                                     ></div>
                                 </div>
                             </div>
-                            <div class="bordered p-2 w-full glow-all">
+                            <div class="bordered p-2 w-full">
                                 <table class="w-full">
                                     <tbody>
                                         <tr>
@@ -972,9 +972,9 @@
                     {/snippet}
                 </Card>
 
-                <Card className="glow-all w-full lg:w-md h-full grow ">
+                <Card className=" w-full lg:w-md h-full grow ">
                     {#snippet title()}
-                        <p class="p-1 text-xl text-glow ews-title text-3xl">
+                        <p class="p-1 text-xl ews-title text-3xl">
                             STATION CHANNEL
                         </p>
                     {/snippet}
@@ -1057,7 +1057,7 @@
                                     ></div>
                                 </div>
                                 <span
-                                    class="absolute bg-black ews-text-glow px-2 py-1"
+                                    class="absolute bg-black ews- px-2 py-1"
                                 >
                                     SETTING
                                 </span>
@@ -1073,9 +1073,7 @@
             </div>
         {/if}
 
-        <div
-            class="w-full max-w-7xl flex flex-col bordered p-1 grow gap-3 glow-all"
-        >
+        <div class="w-full max-w-7xl flex flex-col bordered p-1 grow gap-3">
             <div
                 class="relative w-full h-[75vh] border-b-4 border-l-4 bg-black overflow-hidden flex flex-col items-center"
                 style="border-bottom-color: #fa0; border-left-color: #fa0;"
@@ -1205,10 +1203,10 @@
     <div
         class="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4"
     >
-        <Card className="glow-all w-full max-w-lg shadow-2xl">
+        <Card className=" w-full max-w-lg shadow-2xl">
             {#snippet title()}
                 <div class="flex justify-between items-center w-full">
-                    <p class="p-1 text-xl text-glow ews-title text-3xl">
+                    <p class="p-1 text-xl ews-title text-3xl">
                         PENGATURAN CHART
                     </p>
                     <button
@@ -1269,8 +1267,7 @@
                                         : ''}"
                                 ></div>
                             </div>
-                            <span
-                                class="absolute bg-black ews-text-glow px-2 py-1"
+                            <span class="absolute bg-black ews- px-2 py-1"
                                 >⚠ DEMO DATA</span
                             >
                         </button>
@@ -1291,8 +1288,7 @@
                                         : ''}"
                                 ></div>
                             </div>
-                            <span
-                                class="absolute bg-black ews-text-glow px-2 py-1"
+                            <span class="absolute bg-black ews- px-2 py-1"
                                 >⚠ DEMO PSYCHOGRAPHIC DATA</span
                             >
                         </button>
@@ -1304,7 +1300,7 @@
 {/if}
 
 <div
-    class="fixed m-auto top-0 bottom-0 left-0 right-0 flex flex-col justify-center items-center overlay-bg text-center z-5 text-glow-red"
+    class="fixed m-auto top-0 bottom-0 left-0 right-0 flex flex-col justify-center items-center overlay-bg text-center z-5 -red"
     id="loading-screen"
 >
     <span class="loader"></span>

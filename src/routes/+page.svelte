@@ -83,7 +83,7 @@
             <p class="p-1 bg-black font-bold text-xs ews-title">GEMPA BUMI</p>
           </div>
         </div>
-        <div class="ews-card-content p-1 lg:p-2  text-glow text-sm w-full" style="font-size:10px">
+        <div class="ews-card-content p-1 lg:p-2   text-sm w-full" style="font-size:10px">
           <table class="w-full">
             <tbody>
               <tr><td class="flex">Magnitudo</td><td class="text-right break-words pl-2">${Number(data.mag).toFixed(1)}</td></tr>
@@ -695,7 +695,7 @@
     markerData.forEach((m) => {
       const wrapper = document.createElement("div");
       const el = document.createElement("div");
-      el.className = "bordered p-1 text-time show-pop-up text-center  glow-all";
+      el.className = "bordered p-1 text-time show-pop-up text-center  ";
       const zoneClass = m.zone.replace(/\//g, "-");
       el.innerHTML = `<p class="uppercase text-xl" style="line-height:1rem"><span class="jam-${zoneClass}"></span></p><p>${m.label}</p>`;
       wrapper.appendChild(el);
@@ -1133,7 +1133,7 @@
   });
 </script>
 
-<div class="min-h-screen bg-black font-mono relative overflow-hidden glow-all">
+<div class="min-h-screen bg-black font-mono relative overflow-hidden">
   <audio id="danger" class="hidden"
     ><source src={dangerSound} type="audio/mp3" /></audio
   >
@@ -1141,7 +1141,7 @@
 
   <!-- SETTINGS BUTTON -->
   <div
-    class="fixed top-12 md:top-2 left-0 right-0 m-auto flex justify-center items-center z-5 flex gap-2 glow-all"
+    class="fixed top-12 md:top-2 left-0 right-0 m-auto flex justify-center items-center z-5 flex gap-2"
     style="width:fit-content"
   >
     <button
@@ -1202,42 +1202,39 @@
         </div>
         <div class="ews-card-content p-1 lg:p-2 p-4">
           <!-- Card Toggles -->
-          <p
-            class="text-glow text-xs font-bold mb-3"
-            style="color:var(--orange)"
-          >
+          <p class=" text-xs font-bold mb-3" style="color:var(--orange)">
             TAMPILKAN CARD
           </p>
           <div class="settings-item">
-            <span class="text-glow text-sm">Event Log</span>
+            <span class=" text-sm">Event Log</span>
             <label class="toggle-switch">
               <input type="checkbox" bind:checked={showEventLog} />
               <span class="toggle-slider"></span>
             </label>
           </div>
           <div class="settings-item">
-            <span class="text-glow text-sm">Gempa Dirasakan Terakhir</span>
+            <span class=" text-sm">Gempa Dirasakan Terakhir</span>
             <label class="toggle-switch">
               <input type="checkbox" bind:checked={showGempaDirasakan} />
               <span class="toggle-slider"></span>
             </label>
           </div>
           <div class="settings-item">
-            <span class="text-glow text-sm">Gempa Terdeteksi Terakhir</span>
+            <span class=" text-sm">Gempa Terdeteksi Terakhir</span>
             <label class="toggle-switch">
               <input type="checkbox" bind:checked={showGempaTerdeteksi} />
               <span class="toggle-slider"></span>
             </label>
           </div>
           <div class="settings-item">
-            <span class="text-glow text-sm">Detail Event</span>
+            <span class=" text-sm">Detail Event</span>
             <label class="toggle-switch">
               <input type="checkbox" bind:checked={showDetailEvent} />
               <span class="toggle-slider"></span>
             </label>
           </div>
           <div class="settings-item">
-            <span class="text-glow text-sm">Shakemap</span>
+            <span class=" text-sm">Shakemap</span>
             <label class="toggle-switch">
               <input type="checkbox" bind:checked={showShakeMap} />
               <span class="toggle-slider"></span>
@@ -1249,10 +1246,7 @@
             class="mt-4 pt-3"
             style="border-top: 1px solid rgba(var(--danger-glow-rgb), 0.3)"
           >
-            <p
-              class="text-glow text-xs font-bold mb-3"
-              style="color:var(--orange)"
-            >
+            <p class=" text-xs font-bold mb-3" style="color:var(--orange)">
               SIMULASI
             </p>
             <div class="flex gap-2">
@@ -1267,7 +1261,7 @@
                     class="strip-bar loop-strip-reverse anim-duration-20"
                   ></div>
                 </div>
-                <span class="absolute bg-black ews-text-glow px-2 py-1"
+                <span class="absolute bg-black ews- px-2 py-1"
                   >⚠ TEST GEMPA</span
                 ></button
               >
@@ -1283,7 +1277,7 @@
                     class="strip-bar-red loop-strip-reverse anim-duration-20"
                   ></div>
                 </div>
-                <span class="absolute bg-black ews-text-glow px-2 py-1"
+                <span class="absolute bg-black ews- px-2 py-1"
                   >⚠ TEST TSUNAMI</span
                 ></button
               >
@@ -1316,13 +1310,13 @@
             <div
               class="absolute top-0 bottom-0 left-0 right-0 flex justify-center items-center"
             >
-              <p class="p-1 bg-black font-bold text-xs text-glow">GEMPA BUMI</p>
+              <p class="p-1 bg-black font-bold text-xs">GEMPA BUMI</p>
             </div>
           </div>
         {/snippet}
         {#snippet children()}
           <div
-            class="flex flex-col w-full justify-center items-center text-glow text-sm"
+            class="flex flex-col w-full justify-center items-center text-sm"
             style="font-size:10px"
           >
             <div class="w-full flex gap-2">
@@ -1338,7 +1332,7 @@
                   </div>
                   <div class="decal -blink -striped"></div>
                 </div>
-                <p class="text-glow font-bold">
+                <p class=" font-bold">
                   DEPTH : {alertGempaBumi?.readableDepth} KM
                 </p>
               </div>
@@ -1375,7 +1369,7 @@
               </div>
             </div>
             <div class="mt-2 bordered w-full">
-              <p class="text-glow p-2 break-words">
+              <p class=" p-2 break-words">
                 {alertGempaBumi?.infoGempa.message}
               </p>
             </div>
@@ -1441,20 +1435,18 @@
             <div
               class="absolute top-0 bottom-0 left-0 right-0 flex justify-center items-center"
             >
-              <p class="p-1 bg-black font-bold text-xs text-glow">
-                PERINGATAN TSUNAMI
-              </p>
+              <p class="p-1 bg-black font-bold text-xs">PERINGATAN TSUNAMI</p>
             </div>
           </div>
         {/snippet}
 
         {#snippet children()}
           <div
-            class="flex flex-col w-full justify-center items-center text-glow text-sm"
+            class="flex flex-col w-full justify-center items-center text-sm"
             style="font-size:10px"
           >
             <div class="mt-2 bordered w-full">
-              <p class="text-glow p-2 break-words">
+              <p class=" p-2 break-words">
                 {infoTsunami?.infoTsunami.message}
               </p>
             </div>
@@ -1506,9 +1498,7 @@
               <div
                 class="absolute top-0 bottom-0 left-0 right-0 flex justify-center items-center"
               >
-                <p class="p-1 bg-black font-bold text-xs text-glow">
-                  GEMPA BUMI
-                </p>
+                <p class="p-1 bg-black font-bold text-xs">GEMPA BUMI</p>
               </div>
               <div
                 class="absolute top-2 right-1 flex justify-center items-center"
@@ -1524,7 +1514,7 @@
           {/snippet}
           {#snippet children()}
             <div
-              class="flex flex-col w-full justify-center items-center text-glow text-sm"
+              class="flex flex-col w-full justify-center items-center text-sm"
               style="font-size:10px"
             >
               <div class="w-full flex gap-2">
@@ -1538,7 +1528,7 @@
                     </div>
                     <div class="decal -blink -striped"></div>
                   </div>
-                  <p class="text-glow font-bold">
+                  <p class=" font-bold">
                     DEPTH : {agi.readableDepth} KM
                   </p>
                 </div>
@@ -1575,7 +1565,7 @@
                 </div>
               </div>
               <div class="mt-2 bordered w-full">
-                <p class="text-glow p-2 break-words">{agi.infoGempa.message}</p>
+                <p class=" p-2 break-words">{agi.infoGempa.message}</p>
               </div>
             </div>
             {#if agi.mag >= 5}
@@ -1630,7 +1620,7 @@
   <!-- EVENT LOG -->
   {#if !loadingScreen && showEventLog}
     <Card
-      className="fixed right-0 md:right-3 top-1 md:top-3 ews-card-float md:w-1/3 lg:w-1/5 show-pop-up  glow-all"
+      className="fixed right-0 md:right-3 top-1 md:top-3 ews-card-float md:w-1/3 lg:w-1/5 show-pop-up  "
     >
       {#snippet title()}
         <div class="overflow-hidden">
@@ -1652,7 +1642,7 @@
           {#each events as v, i}
             <li
               onclick={() => selectEvent(v.infoGempa)}
-              class="flex flex-col mb-2 list-event cursor-pointer slide-in-left glow-all"
+              class="flex flex-col mb-2 list-event cursor-pointer slide-in-left"
               style="animation-delay:{i * 0.01}s"
             >
               <span style="font-size:11px">{v.infoGempa.time} WIB</span>
@@ -1715,7 +1705,7 @@
         {/snippet}
         {#snippet children()}
           <div
-            class="flex flex-col w-full justify-center items-center text-glow text-sm"
+            class="flex flex-col w-full justify-center items-center text-sm"
             style="font-size:10px"
           >
             <div class="w-full flex flex-col md:flex-row gap-2">
@@ -1731,7 +1721,7 @@
                   </div>
                   <div class="decal -blink -striped"></div>
                 </div>
-                <p class="text-glow font-bold">
+                <p class=" font-bold">
                   DEPTH : {GempaDirasakan?.readableDepth} KM
                 </p>
               </div>
@@ -1773,7 +1763,7 @@
               </div>
             </div>
             <div class="mt-2 bordered">
-              <p class="text-glow p-2 break-words">
+              <p class=" p-2 break-words">
                 {GempaDirasakan?.infoGempa.message}
               </p>
             </div>
@@ -1826,7 +1816,7 @@
           </div>
         {/snippet}
         {#snippet children()}
-          <div class="text-glow text-sm w-full" style="font-size:10px">
+          <div class=" text-sm w-full" style="font-size:10px">
             <table class="w-full">
               <tbody>
                 <tr
@@ -1877,7 +1867,7 @@
       >
         {#snippet title()}
           <div class="flex justify-between">
-            <p class="font-bold text-glow-red text-sm">DETAIL EVENT</p>
+            <p class="font-bold -red text-sm">DETAIL EVENT</p>
             <button
               onclick={() => {
                 if (selectedPopup) selectedPopup.remove();
@@ -1888,7 +1878,7 @@
         {/snippet}
         {#snippet children()}
           <div
-            class="flex flex-col w-full gap-2 text-glow text-sm w-full"
+            class="flex flex-col w-full gap-2 text-sm w-full"
             style="font-size:10px"
           >
             <div class="bordered p-2">
@@ -1966,7 +1956,7 @@
       <Card className="show-pop-up pointer-events-auto">
         {#snippet title()}
           <div class="flex justify-between">
-            <p class="font-bold text-glow-red text-sm">SHAKEMAP</p>
+            <p class="font-bold -red text-sm">SHAKEMAP</p>
             <button
               onclick={() => {
                 shakeMap = null;
@@ -2008,13 +1998,13 @@
             <div
               class="absolute top-0 bottom-0 left-0 right-0 flex justify-center items-center"
             >
-              <p class="p-1 bg-black font-bold text-xs text-glow">GEMPA BUMI</p>
+              <p class="p-1 bg-black font-bold text-xs">GEMPA BUMI</p>
             </div>
           </div>
         {/snippet}
         {#snippet children()}
           <div
-            class="flex flex-col w-full justify-center items-center text-glow text-sm"
+            class="flex flex-col w-full justify-center items-center text-sm"
             style="font-size:10px"
           >
             <div class="w-full flex gap-2">
@@ -2030,7 +2020,7 @@
                   </div>
                   <div class="decal -blink -striped"></div>
                 </div>
-                <p class="text-glow font-bold">
+                <p class=" font-bold">
                   DEPTH : {GempaDirasakan?.readableDepth} KM
                 </p>
               </div>
@@ -2067,7 +2057,7 @@
               </div>
             </div>
             <div class="mt-2 bordered">
-              <p class="text-glow p-2 break-words">
+              <p class=" p-2 break-words">
                 {GempaDirasakan?.infoGempa.message}
               </p>
             </div>
@@ -2136,7 +2126,7 @@
 
   <!-- LOADING SCREEN -->
   <div
-    class="fixed m-auto top-0 bottom-0 left-0 right-0 flex flex-col justify-center items-center overlay-bg text-center z-10 text-glow-red"
+    class="fixed m-auto top-0 bottom-0 left-0 right-0 flex flex-col justify-center items-center overlay-bg text-center z-10 -red"
     id="loading-screen"
   >
     <span class="loader"></span>

@@ -480,31 +480,10 @@
     color: var(--text-color);
 }
 
-.text-glow-red {
-    --text-glow-color: rgba(var(--danger-glow-rgb), 0.5);
-    color: var(--danger-text-color);
-    text-box: trim-both cap alphabetic;
-    text-shadow:
-        -1px 1px 0 var(--text-glow-color),
-        1px -1px 0 var(--text-glow-color),
-        -1px -1px 0 var(--text-glow-color),
-        1px 1px 0 var(--text-glow-color);
-}
-
-.text-glow {
-    --text-glow-color: rgba(var(--glow-rgb), 0.5);
-    color: var(--text-color) !important;
-    text-box: trim-both cap alphabetic;
-    text-shadow:
-        -1px 1px 0 var(--text-glow-color),
-        1px -1px 0 var(--text-glow-color),
-        -1px -1px 0 var(--text-glow-color),
-        1px 1px 0 var(--text-glow-color);
-}
 
 .bordered {
     color: var(--text-color);
-    --border-glow-color: rgba(var(--glow-rgb), 0.7);
+    --border-glow-color: rgba(var(--glow-rgb));
     border-radius: var(--gutter-size);
     border-style: solid;
     border-width: 3px;
@@ -516,7 +495,7 @@
 
 .bordered-red {
     color: var(--danger-text-color);
-    --border-glow-color: rgba(var(--danger-glow-rgb), 0.7);
+    --border-glow-color: rgba(var(--danger-glow-rgb));
     border-radius: var(--gutter-size);
     border-style: solid;
     border-width: 3px;
@@ -526,7 +505,7 @@
 
 .bordered-red-bottom {
     color: var(--danger-text-color);
-    --border-glow-color: rgba(var(--danger-glow-rgb), 0.7);
+    --border-glow-color: rgba(var(--danger-glow-rgb));
     border-color: unset;
     border-bottom: 3px solid rgb(var(--danger-glow-rgb));
 
@@ -535,7 +514,7 @@
 
 .bordered-red-top {
     color: var(--danger-text-color);
-    --border-glow-color: rgba(var(--danger-glow-rgb), 0.7);
+    --border-glow-color: rgba(var(--danger-glow-rgb));
     border-color: unset;
     border-top: 3px solid rgb(var(--danger-glow-rgb));
 }
@@ -958,6 +937,10 @@
             rgba(0, 0, 0, 0.1) 50%);
     background-size: 100% 4px;
     pointer-events: none;
+
+    /* background-image: radial-gradient(circle, rgba(0, 0, 0, 0.2) 1px, transparent 1.5px);
+    background-size: 3px 3px;
+    z-index: 101; */
 }
 
 .scanline::after {
