@@ -42,7 +42,7 @@
 }
 
 .strip-bar-vertical {
-    height: 200vw;
+    height: max(200vw, 200vh);
     transform: translate3d(0, 0, 0);
     --stripe-color: var(--orange);
     --stripe-size: 15px;
@@ -59,7 +59,7 @@
 }
 
 .strip-bar-red-vertical {
-    height: 200vw;
+    height: max(200vw, 200vh);
     transform: translate3d(0, 0, 0);
     --stripe-color: var(--red);
     --stripe-size: 15px;
@@ -654,6 +654,7 @@
 .ews-title.internal .decal {
     border-radius: calc(var(--label-corner-size) - 1px);
     display: block;
+    min-width: 50px;
     height: 100px;
     width: 100%;
 }
@@ -661,6 +662,7 @@
 .ews-title.badge .decal {
     border-radius: calc(var(--label-corner-size) - 1px);
     display: block;
+    min-width: 50px;
     height: 100px;
     width: 100%;
 }
@@ -708,11 +710,11 @@
         padding: 6px;
     }
 
-    .ews-card-float {
+    /* .ews-card-float {
         margin: auto;
         right: 0.25rem;
         left: 0.25rem;
-    }
+    } */
 
     .ews-card-float .ews-card-header {
         border-bottom: unset;

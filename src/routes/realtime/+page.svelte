@@ -894,7 +894,7 @@
                         </p>
                     {/snippet}
                     {#snippet children()}
-                        <div class="w-full flex flex-col lg:flex-row gap-2">
+                        <div class="w-full flex flex-row gap-2">
                             <div
                                 class="badge ews-title text-3xl bordered flex justify-between mb-2 w-full"
                             >

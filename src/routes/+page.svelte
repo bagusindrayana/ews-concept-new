@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { onMount } from "svelte";
+  import { onMount, onDestroy } from "svelte";
   import "mapbox-gl/dist/mapbox-gl.css";
   import mapboxgl from "mapbox-gl";
   import { io } from "socket.io-client";
@@ -1131,6 +1131,13 @@
     });
     map.on("load", () => loadGeoJsonCoastline());
   });
+
+  onDestroy(() => {
+    if (socket) {
+      socket.removeAllListeners();
+      socket.disconnect();
+    }
+  });
 </script>
 
 <div class="min-h-screen bg-black font-mono relative overflow-hidden">
@@ -1330,7 +1337,14 @@
                     </div>
                     <div class="text">MAG</div>
                   </div>
-                  <div class="decal -blink -striped"></div>
+                  <div class="decal">
+                    <div
+                      class="w-full h-full strip-bar-vertical loop-strip-vertical anim-duration-20"
+                    ></div>
+                    <div
+                      class="w-full h-full strip-bar-vertical loop-strip-vertical anim-duration-20"
+                    ></div>
+                  </div>
                 </div>
                 <p class=" font-bold">
                   DEPTH : {alertGempaBumi?.readableDepth} KM
@@ -1526,7 +1540,14 @@
                       <div class="text -characters">{agi.readableMag}</div>
                       <div class="text">MAG</div>
                     </div>
-                    <div class="decal -blink -striped"></div>
+                    <div class="decal">
+                      <div
+                        class="w-full h-full strip-bar-vertical loop-strip-vertical anim-duration-20"
+                      ></div>
+                      <div
+                        class="w-full h-full strip-bar-vertical loop-strip-vertical anim-duration-20"
+                      ></div>
+                    </div>
                   </div>
                   <p class=" font-bold">
                     DEPTH : {agi.readableDepth} KM
@@ -1620,7 +1641,7 @@
   <!-- EVENT LOG -->
   {#if !loadingScreen && showEventLog}
     <Card
-      className="fixed right-0 md:right-3 top-1 md:top-3 ews-card-float md:w-1/3 lg:w-1/5 show-pop-up  "
+      className="fixed right-0 left-0 w-full md:right-0 md:left-auto lg:right-3 top-1 md:top-3 md:w-1/3 lg:w-1/5 show-pop-up ews-card bordered-red fixed right-0 md:right-3 top-1 md:top-3 ews-card-float md:w-1/3 lg:w-1/5 show-pop-up ews-card-float"
     >
       {#snippet title()}
         <div class="overflow-hidden">
@@ -1719,7 +1740,14 @@
                     </div>
                     <div class="text">MAG</div>
                   </div>
-                  <div class="decal -blink -striped"></div>
+                  <div class="decal">
+                    <div
+                      class="w-full h-full strip-bar-red-vertical loop-strip-vertical anim-duration-20"
+                    ></div>
+                    <div
+                      class="w-full h-full strip-bar-red-vertical loop-strip-vertical anim-duration-20"
+                    ></div>
+                  </div>
                 </div>
                 <p class=" font-bold">
                   DEPTH : {GempaDirasakan?.readableDepth} KM
@@ -2018,7 +2046,14 @@
                     </div>
                     <div class="text">MAG</div>
                   </div>
-                  <div class="decal -blink -striped"></div>
+                  <div class="decal">
+                    <div
+                      class="w-full h-full strip-bar-vertical loop-strip-vertical anim-duration-20"
+                    ></div>
+                    <div
+                      class="w-full h-full strip-bar-vertical loop-strip-vertical anim-duration-20"
+                    ></div>
+                  </div>
                 </div>
                 <p class=" font-bold">
                   DEPTH : {GempaDirasakan?.readableDepth} KM
