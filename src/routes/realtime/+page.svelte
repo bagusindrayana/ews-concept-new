@@ -759,8 +759,8 @@
             const text = decoder.decode(buffer);
 
             // console.log(text);
-            if (text == "OK") {
-                logMessages += `Server OK\n`;
+            if (text.trim() == "OK") {
+                logMessages += `${new Date().toLocaleString()} : Server OK\n`;
                 return;
             }
 
@@ -828,12 +828,12 @@
                     draw();
                 }
 
-                logMessages += `New Data\n`;
+                logMessages += `${new Date().toLocaleString()} : New Data...\n`;
             } catch (err) {
                 console.log(e);
                 console.error("Error parsing miniSEED data:", err);
-                logMessages += `Error parsing miniSEED data: ${err}\n`;
-                logMessages += `${text}\n`;
+                logMessages += `${new Date().toLocaleString()} : Error parsing miniSEED data: ${err}\n`;
+                logMessages += `${new Date().toLocaleString()} : ${text}\n`;
             }
         };
 
@@ -1191,7 +1191,8 @@
             </div>
 
             <div
-                class="bordered-red p-2 overflow-y-auto h-24 text-primary text-xs"
+                class="bordered-red p-1 lg:p-2 overflow-y-auto h-24 text-primary text-xs"
+                style="text-box: trim-both cap alphabetic;"
             >
                 <pre>{logMessages}</pre>
             </div>
