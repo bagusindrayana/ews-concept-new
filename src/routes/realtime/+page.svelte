@@ -156,6 +156,7 @@
     let isDragging = false;
     let lastMouseX = 0;
     let initialPinchDistance = 0;
+    let startedOnCanvas = false;
 
     // Buffer limit: only keep the last 5 minutes of data (300,000 ms)
     // to prevent memory issues.
@@ -254,6 +255,7 @@
     }
 
     function handleTouchStart(e: TouchEvent) {
+        startedOnCanvas = true;
         if (e.touches.length === 1) {
             isDragging = true;
             lastMouseX = e.touches[0].clientX;
@@ -266,6 +268,8 @@
     }
 
     function handleTouchMove(e: TouchEvent) {
+        if (!startedOnCanvas) return;
+
         if (e.cancelable) {
             e.preventDefault(); // Prevent page scrolling
         }
@@ -311,11 +315,14 @@
     }
 
     function handleTouchEnd(e: TouchEvent) {
+        if (!startedOnCanvas) return;
+
         if (e.touches.length < 2) {
             initialPinchDistance = 0;
         }
         if (e.touches.length === 0) {
             isDragging = false;
+            startedOnCanvas = false;
         } else if (e.touches.length === 1) {
             isDragging = true;
             lastMouseX = e.touches[0].clientX;
@@ -880,16 +887,16 @@
     <div class="w-full flex flex-col-reverse lg:flex-row gap-2 justify-center">
         {#if stationData != null}
             <div class="flex flex-col gap-4 w-auto h-full items-stretch">
-                <Card className="w-full lg:w-md ">
+                <Card className="glow-all w-full lg:w-md ">
                     {#snippet title()}
-                        <p class="p-1 text-xl text-glow label text-3xl">
+                        <p class="p-1 text-xl text-glow ews-title text-3xl">
                             STATION INFORMATION
                         </p>
                     {/snippet}
                     {#snippet children()}
                         <div class="w-full flex flex-col lg:flex-row gap-2">
                             <div
-                                class="badge label text-3xl bordered flex justify-between mb-2 w-full"
+                                class="badge ews-title text-3xl bordered flex justify-between mb-2 w-full"
                             >
                                 <div
                                     class="flex flex-col items-center justify-between p-1"
@@ -907,7 +914,10 @@
                                 </div>
                                 <div class="decal">
                                     <div
-                                        class="w-full h-full strip-bar-vertical"
+                                        class="w-full h-full strip-bar-vertical loop-strip-vertical anim-duration-20"
+                                    ></div>
+                                    <div
+                                        class="w-full h-full strip-bar-vertical loop-strip-vertical anim-duration-20"
                                     ></div>
                                 </div>
                             </div>
@@ -956,15 +966,15 @@
                         </div>
                     {/snippet}
                     {#snippet footer()}
-                        <div class="flex justify-center w-full label">
+                        <div class="flex justify-center w-full ews-title">
                             <span>{stationData.Network["Description"]}</span>
                         </div>
                     {/snippet}
                 </Card>
 
-                <Card className="w-full lg:w-md h-full grow ">
+                <Card className="glow-all w-full lg:w-md h-full grow ">
                     {#snippet title()}
-                        <p class="p-1 text-xl text-glow label text-3xl">
+                        <p class="p-1 text-xl text-glow ews-title text-3xl">
                             STATION CHANNEL
                         </p>
                     {/snippet}
@@ -974,8 +984,8 @@
                                 <div
                                     class="w-full h-full {channel['@attributes']
                                         .endDate == ''
-                                        ? 'yellow glow-orange-small '
-                                        : 'glow-red-small '}"
+                                        ? 'yellow glow-orange-small'
+                                        : 'glow-red-small'}"
                                 >
                                     <button
                                         class="w-full h-full cursor-pointer hex-hive bg-hex-flat opacity-0 show-pop-up {selectedChannel !=
@@ -1034,7 +1044,7 @@
 
                     {#snippet footer()}
                         <div class="flex flex-col gap-2 w-full">
-                            <button
+                            <!-- <button
                                 class="cursor-pointer p-0 b-0 overflow-hidden flex items-center justify-center bordered p-1"
                                 on:click={() => (isSettingsOpen = true)}
                             >
@@ -1051,26 +1061,33 @@
                                 >
                                     SETTING
                                 </span>
-                            </button>
+                            </button> -->
+                            <button
+                                class="ews-btn ews-btn-primary"
+                                on:click={() => (isSettingsOpen = true)}
+                                >SETTING</button
+                            >
                         </div>
                     {/snippet}
                 </Card>
             </div>
         {/if}
 
-        <div class="w-full max-w-7xl flex flex-col bordered p-1 grow gap-3">
+        <div
+            class="w-full max-w-7xl flex flex-col bordered p-1 grow gap-3 glow-all"
+        >
             <div
                 class="relative w-full h-[75vh] border-b-4 border-l-4 bg-black overflow-hidden flex flex-col items-center"
                 style="border-bottom-color: #fa0; border-left-color: #fa0;"
             >
                 <!-- Top Left -->
                 <div
-                    class="absolute right-2 lg:right-0 lg:top-6 left-4 lg:left-24 pointer-events-none text-glow z-5 max-w-100 flex flex-col justify-center items-end lg:items-start"
+                    class="absolute right-2 lg:right-0 lg:top-6 left-4 lg:left-24 pointer-events-none z-5 max-w-100 flex flex-col justify-center items-end lg:items-start gap-1"
                 >
                     <div
-                        class="rounded-sm bordered label text-3xl bg-black/60 shadow-lg h-10 text-center flex justify-center items-center px-1"
+                        class="rounded-sm bordered text-3xl bg-black/60 shadow-lg h-10 text-center flex justify-center items-center px-1"
                     >
-                        <div class="font-bold md:text-3xl uppercase">
+                        <div class="font-bold md:text-3xl uppercase ews-title">
                             {isDemoPsychoMode
                                 ? "PSYCHOGRAPHIC DISPLAY"
                                 : "SEISMIC WAVEFORM"}
@@ -1078,7 +1095,7 @@
                     </div>
                     {#if selectedChannel != null && selectedChannel != undefined}
                         <div
-                            class="font-bold mt-1 tracking-widest text-sm md:text-xl drop-shadow-[0_0_5px_rgba(255,102,0,1)]"
+                            class="font-bold mt-1 tracking-widest text-sm md:text-xl ews-title"
                         >
                             {isDemoPsychoMode
                                 ? "Phase 4 Link"
@@ -1088,7 +1105,7 @@
 
                         {#if !isDemoPsychoMode}
                             <div
-                                class="font-bold tracking-widest text-sm md:text-xl drop-shadow-[0_0_5px_rgba(255,102,0,1)]"
+                                class="font-bold tracking-widest text-sm md:text-xl ews-title"
                             >
                                 SENSOR : {selectedChannel["Sensor"]["Model"]}
                             </div>
@@ -1103,17 +1120,14 @@
                     <div
                         class="rounded-lg p-1 inline-block bg-black/60 shadow-lg"
                     >
-                        <div
-                            class="bordered px-3 py-1 flex flex-col label text-3xl"
-                        >
+                        <div class="bordered px-3 py-1 flex flex-col text-3xl">
                             <div
-                                class="font-bold text-[10px] md:text-sm tracking-widest leading-none mb-1"
+                                class="font-bold text-[10px] md:text-sm tracking-widest leading-none mb-1 ews-title"
                             >
                                 STATION:
                             </div>
                             <div
-                                class="font-bold text-2xl md:text-4xl tracking-widest leading-none text-right"
-                                style="color: #ff9900; text-shadow: 0 0 10px #fa0;"
+                                class="font-bold text-2xl md:text-4xl tracking-widest leading-none text-right ews-title"
                             >
                                 {stationData != null
                                     ? `${stationData.Network["@attributes"]["code"]} ${stationData.Network.Station["@attributes"]["code"]}`
@@ -1191,10 +1205,10 @@
     <div
         class="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4"
     >
-        <Card className="w-full max-w-lg shadow-2xl">
+        <Card className="glow-all w-full max-w-lg shadow-2xl">
             {#snippet title()}
                 <div class="flex justify-between items-center w-full">
-                    <p class="p-1 text-xl text-glow label text-3xl">
+                    <p class="p-1 text-xl text-glow ews-title text-3xl">
                         PENGATURAN CHART
                     </p>
                     <button
@@ -1290,7 +1304,7 @@
 {/if}
 
 <div
-    class="fixed m-auto top-0 bottom-0 left-0 right-0 flex flex-col justify-center items-center overlay-bg text-center z-5"
+    class="fixed m-auto top-0 bottom-0 left-0 right-0 flex flex-col justify-center items-center overlay-bg text-center z-5 text-glow-red"
     id="loading-screen"
 >
     <span class="loader"></span>

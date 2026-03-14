@@ -275,48 +275,48 @@
 .ews-btn-primary {
     background-color: var(--orange);
     color: black;
-    box-shadow:
+    /* box-shadow:
         0 0 8px rgba(var(--glow-rgb), 0.5),
-        inset 0 0 8px rgba(0, 0, 0, 0.1);
+        inset 0 0 8px rgba(0, 0, 0, 0.1); */
 }
 
 .ews-btn-primary:hover {
-    box-shadow:
+    /* box-shadow:
         0 0 5px rgba(var(--glow-rgb), 0.8),
         0 0 15px rgba(var(--glow-rgb), 0.4),
-        inset 0 0 8px rgba(0, 0, 0, 0.1);
+        inset 0 0 8px rgba(0, 0, 0, 0.1); */
     transform: scale(1.02);
 }
 
 .ews-btn-primary:active {
     transform: scale(0.98);
-    box-shadow:
+    /* box-shadow:
         0 0 5px rgba(var(--glow-rgb), 0.5),
-        inset 0 0 5px rgba(0, 0, 0, 0.3);
+        inset 0 0 5px rgba(0, 0, 0, 0.3); */
 }
 
 /* Danger (red) filled */
 .ews-btn-danger {
     background-color: var(--red);
     color: white;
-    box-shadow:
+    /* box-shadow:
         0 0 8px rgba(var(--danger-glow-rgb), 0.5),
-        inset 0 0 8px rgba(0, 0, 0, 0.1);
+        inset 0 0 8px rgba(0, 0, 0, 0.1); */
 }
 
 .ews-btn-danger:hover {
-    box-shadow:
+    /* box-shadow:
         0 0 5px rgba(var(--danger-glow-rgb), 0.8),
         0 0 15px rgba(var(--danger-glow-rgb), 0.4),
-        inset 0 0 8px rgba(0, 0, 0, 0.1);
+        inset 0 0 8px rgba(0, 0, 0, 0.1); */
     transform: scale(1.02);
 }
 
 .ews-btn-danger:active {
     transform: scale(0.98);
-    box-shadow:
+    /* box-shadow:
         0 0 5px rgba(var(--danger-glow-rgb), 0.5),
-        inset 0 0 5px rgba(0, 0, 0, 0.3);
+        inset 0 0 5px rgba(0, 0, 0, 0.3); */
 }
 
 /* Outlined orange */
@@ -324,17 +324,17 @@
     background-color: transparent;
     color: var(--text-color);
     border: 1px solid var(--text-color);
-    box-shadow:
+    /* box-shadow:
         0 0 5px rgba(var(--glow-rgb), 0.3),
-        inset 0 0 5px rgba(var(--glow-rgb), 0.1);
+        inset 0 0 5px rgba(var(--glow-rgb), 0.1); */
 }
 
 .ews-btn-outline:hover {
     background-color: rgba(var(--glow-rgb), 0.1);
-    box-shadow:
+    /* box-shadow:
         0 0 10px rgba(var(--glow-rgb), 0.5),
         0 0 5px rgba(var(--glow-rgb), 0.2),
-        inset 0 0 10px rgba(var(--glow-rgb), 0.15);
+        inset 0 0 10px rgba(var(--glow-rgb), 0.15); */
     transform: scale(1.02);
 }
 
@@ -347,17 +347,17 @@
     background-color: transparent;
     color: var(--danger-text-color);
     border: 1px solid var(--danger-text-color);
-    box-shadow:
+    /* box-shadow:
         0 0 5px rgba(var(--danger-glow-rgb), 0.3),
-        inset 0 0 5px rgba(var(--danger-glow-rgb), 0.1);
+        inset 0 0 5px rgba(var(--danger-glow-rgb), 0.1); */
 }
 
 .ews-btn-outline-danger:hover {
     background-color: rgba(var(--danger-glow-rgb), 0.1);
-    box-shadow:
+    /* box-shadow:
         0 0 10px rgba(var(--danger-glow-rgb), 0.5),
         0 0 5px rgba(var(--danger-glow-rgb), 0.2),
-        inset 0 0 10px rgba(var(--danger-glow-rgb), 0.15);
+        inset 0 0 10px rgba(var(--danger-glow-rgb), 0.15); */
     transform: scale(1.02);
 }
 
@@ -370,26 +370,26 @@
     background-color: transparent;
     color: var(--text-color);
     border: none;
-    text-shadow: 0 0 5px rgba(var(--glow-rgb), 0.5);
+    /* text-shadow: 0 0 5px rgba(var(--glow-rgb), 0.5); */
 }
 
 .ews-btn-ghost:hover {
-    text-shadow:
+    /* text-shadow:
         0 0 5px rgba(var(--glow-rgb), 0.8),
-        0 0 5px rgba(var(--glow-rgb), 0.4);
+        0 0 5px rgba(var(--glow-rgb), 0.4); */
     background-color: rgba(var(--glow-rgb), 0.05);
 }
 
 .ews-btn-ghost.danger {
     color: var(--danger-text-color);
-    text-shadow: 0 0 5px rgba(var(--danger-glow-rgb), 0.5);
+    /* text-shadow: 0 0 5px rgba(var(--danger-glow-rgb), 0.5); */
 }
 
 .ews-btn-ghost.danger:hover {
     text-shadow:
         0 0 5px rgba(var(--danger-glow-rgb), 0.8),
         0 0 5px rgba(var(--danger-glow-rgb), 0.4);
-    background-color: rgba(var(--danger-glow-rgb), 0.05);
+    /* background-color: rgba(var(--danger-glow-rgb), 0.05); */
 }
 
 /* Skewed / Jajar Genjang button */

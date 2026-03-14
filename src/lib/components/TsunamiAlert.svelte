@@ -106,8 +106,8 @@
               </div>
             </div>
           </div>
-          <div class="card bordered-red w-full h-auto">
-            <div class="card-header bordered-red-bottom">
+          <div class="ews-card bordered-red w-full h-auto">
+            <div class="ews-card-header bordered-red-bottom">
               <div class="overflow-hidden relative">
                 <div class="strip-wrapper">
                   <div
@@ -126,7 +126,7 @@
                 </div>
               </div>
             </div>
-            <div class="card-content p-2 custom-scrollbar">
+            <div class="ews-card-content p-1 lg:p-2 custom-scrollbar">
               <p class="text-xs">
                 {alertTsunami.infoTsunami.message}
               </p>

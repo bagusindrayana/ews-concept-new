@@ -47,7 +47,7 @@
   <title>Showcase UI Components</title>
 </svelte:head>
 
-<div class="p-8 min-h-screen w-4xl mx-auto text-xs">
+<div class="p-8 min-h-screen w-4xl mx-auto text-xs glow-all">
   <div class="mb-8">
     <h1 class="text-3xl font-bold mb-2">Showcase UI Components</h1>
     <p class="text-gray-400">
@@ -221,12 +221,12 @@
       </h2>
       <div class="flex flex-col gap-2 w-full justify-center items-center">
         <div class="flex gap-2 w-full justify-center items-center">
-          <div class="h-[100px] glow-red">
+          <div class="h-[100px]">
             <div class="basic-hex flex flex-col justify-center items-center">
               <p>LOREM</p>
             </div>
           </div>
-          <div class="h-[100px] glow-red">
+          <div class="h-[100px]">
             <div class="basic-hex flex flex-col justify-center items-center">
               <div
                 class="clip-hex-inner flex flex-col justify-center items-center text-center"
@@ -329,7 +329,7 @@
       <div class="flex flex-col gap-2 w-full">
         <div class="flex gap-2">
           <div
-            class="badge label text-3xl bordered flex justify-between mb-2 w-full lg:w-32"
+            class="badge ews-title text-3xl bordered flex justify-between mb-2 w-full lg:w-32"
           >
             <div class="flex flex-col items-center p-1">
               <div class="text -characters">7</div>
@@ -341,7 +341,7 @@
           </div>
 
           <div
-            class="badge label text-3xl bordered flex justify-between mb-2 w-full lg:w-32"
+            class="badge ews-title text-3xl bordered flex justify-between mb-2 w-full lg:w-32"
           >
             <div class="flex flex-col items-center p-1">
               <div class="text -characters">7</div>
@@ -354,7 +354,7 @@
         </div>
         <div class="flex gap-2">
           <div
-            class="badge label text-3xl bordered flex justify-between mb-2 w-full lg:w-32"
+            class="badge ews-title text-3xl bordered flex justify-between mb-2 w-full lg:w-32"
           >
             <div class="flex flex-col items-center p-1">
               <div class="text -characters">7</div>
@@ -368,7 +368,7 @@
           </div>
 
           <div
-            class="badge label text-3xl bordered flex justify-between mb-2 w-full lg:w-32"
+            class="badge ews-title text-3xl bordered flex justify-between mb-2 w-full lg:w-32"
           >
             <div class="flex flex-col items-center p-1">
               <div class="text -characters">7</div>

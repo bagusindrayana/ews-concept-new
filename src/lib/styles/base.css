@@ -58,3 +58,24 @@ body {
 .glow-orange-small {
     filter: drop-shadow(0 0 2px #fa0);
 }
+
+.glow-all {
+    filter: drop-shadow(0 0 1.5px rgb(255, 94, 0));
+    --border-glow-color: rgb(255, 94, 0);
+    box-shadow:
+        inset 0 0 0 1px var(--border-glow-color),
+        0 0 0 1px var(--border-glow-color);
+}
+
+.glow-all .ews-title {
+    filter: drop-shadow(0 0 1.5px rgb(255, 94, 0));
+    text-shadow:
+        -1px 1px 0 var(--text-glow-color),
+        1px -1px 0 var(--text-glow-color),
+        -1px -1px 0 var(--text-glow-color),
+        1px 1px 0 var(--text-glow-color);
+}
+
+/* .glow-all div {
+    filter: drop-shadow(0 0 1.5px rgb(255, 94, 0));
+} */

@@ -76,14 +76,14 @@
     lng: number;
   }): string {
     return `
-      <div class="card bordered-red min-h-48 min-w-48 whitespace-pre-wrap" data-id="${data.id}">
-        <div class="card-header bordered-red-bottom overflow-hidden">
+      <div class="ews-card bordered-red min-h-48 min-w-48 whitespace-pre-wrap" data-id="${data.id}">
+        <div class="ews-card-header bordered-red-bottom overflow-hidden">
           <div class="strip-wrapper"><div class="strip-bar-red loop-strip-reverse anim-duration-20"></div><div class="strip-bar-red loop-strip-reverse anim-duration-20"></div></div>
           <div class="absolute top-0 bottom-0 left-0 right-0 flex justify-center items-center">
-            <p class="p-1 bg-black font-bold text-xs label">GEMPA BUMI</p>
+            <p class="p-1 bg-black font-bold text-xs ews-title">GEMPA BUMI</p>
           </div>
         </div>
-        <div class="card-content p-2 text-glow text-sm w-full" style="font-size:10px">
+        <div class="ews-card-content p-1 lg:p-2  text-glow text-sm w-full" style="font-size:10px">
           <table class="w-full">
             <tbody>
               <tr><td class="flex">Magnitudo</td><td class="text-right break-words pl-2">${Number(data.mag).toFixed(1)}</td></tr>
@@ -1133,7 +1133,7 @@
   });
 </script>
 
-<div class="min-h-screen bg-black font-mono relative overflow-hidden">
+<div class="min-h-screen bg-black font-mono relative overflow-hidden glow-all">
   <audio id="danger" class="hidden"
     ><source src={dangerSound} type="audio/mp3" /></audio
   >
@@ -1179,10 +1179,10 @@
       onclick={() => (showSettingsModal = false)}
     >
       <div
-        class="settings-modal card bordered-red"
+        class="settings-modal ews-card bordered-red"
         onclick={(e) => e.stopPropagation()}
       >
-        <div class="card-header bordered-red-bottom overflow-hidden">
+        <div class="ews-card-header bordered-red-bottom overflow-hidden">
           <div class="strip-wrapper">
             <div class="strip-bar loop-strip-reverse anim-duration-20"></div>
             <div class="strip-bar loop-strip-reverse anim-duration-20"></div>
@@ -1190,7 +1190,7 @@
           <div
             class="absolute top-0 bottom-0 left-0 right-0 flex justify-between items-center px-3"
           >
-            <p class="p-1 bg-black font-bold text-sm label text-3xl">
+            <p class="p-1 bg-black font-bold text-sm ews-title text-3xl">
               PENGATURAN
             </p>
             <button
@@ -1200,7 +1200,7 @@
             >
           </div>
         </div>
-        <div class="card-content p-4">
+        <div class="ews-card-content p-1 lg:p-2 p-4">
           <!-- Card Toggles -->
           <p
             class="text-glow text-xs font-bold mb-3"
@@ -1328,7 +1328,7 @@
             <div class="w-full flex gap-2">
               <div>
                 <div
-                  class="label text-3xl internal bordered flex mb-2 w-full lg:w-32"
+                  class="ews-title text-3xl internal bordered flex mb-2 w-full lg:w-32"
                 >
                   <div class="flex flex-col items-center p-1">
                     <div class="text -characters">
@@ -1530,7 +1530,7 @@
               <div class="w-full flex gap-2">
                 <div>
                   <div
-                    class="label text-3xl internal bordered flex mb-2 w-full lg:w-32"
+                    class="ews-title text-3xl internal bordered flex mb-2 w-full lg:w-32"
                   >
                     <div class="flex flex-col items-center p-1">
                       <div class="text -characters">{agi.readableMag}</div>
@@ -1630,7 +1630,7 @@
   <!-- EVENT LOG -->
   {#if !loadingScreen && showEventLog}
     <Card
-      className="fixed right-0 md:right-3 top-1 md:top-3 card-float md:w-1/3 lg:w-1/5 show-pop-up"
+      className="fixed right-0 md:right-3 top-1 md:top-3 ews-card-float md:w-1/3 lg:w-1/5 show-pop-up"
     >
       {#snippet title()}
         <div class="overflow-hidden">
@@ -1641,7 +1641,7 @@
           <div
             class="absolute top-0 bottom-0 left-0 right-0 flex justify-center items-center"
           >
-            <p class="text-lg bg-black font-bold label text-3xl p-1">
+            <p class="text-lg bg-black font-bold ews-title text-3xl p-1">
               EVENT LOG
             </p>
           </div>
@@ -1684,7 +1684,7 @@
             <div
               class="absolute top-0 bottom-0 left-0 right-0 flex justify-center items-center"
             >
-              <p class="text-lg bg-black font-bold p-1 label text-3xl">
+              <p class="text-lg bg-black font-bold p-1 ews-title text-3xl">
                 GEMPA DIRASAKAN TERAKHIR
               </p>
             </div>
@@ -1721,7 +1721,7 @@
             <div class="w-full flex flex-col md:flex-row gap-2">
               <div>
                 <div
-                  class="label text-3xl internal bordered flex justify-between mb-2 w-full lg:w-32"
+                  class="ews-title text-3xl internal bordered flex justify-between mb-2 w-full lg:w-32"
                 >
                   <div class="flex flex-col items-center p-1">
                     <div class="text -characters">
@@ -1796,7 +1796,7 @@
             <div
               class="absolute top-0 bottom-0 left-0 right-0 flex justify-center items-center"
             >
-              <p class="bg-black font-bold p-1 label">
+              <p class="bg-black font-bold p-1 ews-title">
                 GEMPA TERDETEKSI TERAKHIR
               </p>
             </div>
@@ -1868,11 +1868,13 @@
   </div>
 
   <div
-    class="right-6 bottom-6 md:bottom-6 md:right-3 fixed pointer-events-none flex gap-2 justify-end items-end"
+    class="right-0 bottom-0 left-0 md:left-auto md:bottom-6 md:right-3 fixed pointer-events-none flex gap-2 justify-end items-end"
   >
     <!-- DETAIL INFO GEMPA & SHAKEMAP -->
     {#if !loadingScreen && detailInfoGempa != undefined && detailInfoGempa != null && showDetailEvent}
-      <Card className="show-pop-up pointer-events-auto">
+      <Card
+        className="show-pop-up pointer-events-auto max-w-[100vw] md:max-w-100 "
+      >
         {#snippet title()}
           <div class="flex justify-between">
             <p class="font-bold text-glow-red text-sm">DETAIL EVENT</p>
@@ -1885,74 +1887,74 @@
           </div>
         {/snippet}
         {#snippet children()}
-          <div class="text-glow text-sm w-full" style="font-size:10px">
-            <div class="flex flex-col w-full gap-2">
-              <div class="bordered p-2">
-                <table class="w-full">
-                  <tbody>
-                    <tr
-                      ><td class="text-left flex">PLACE</td><td
-                        class="text-right break-words pl-2"
-                        >{detailInfoGempa?.place}</td
-                      ></tr
-                    >
-                    <tr
-                      ><td class="text-left flex">TIME</td><td
-                        class="text-right break-words pl-2"
-                        data-time={detailInfoGempa?.time}
-                        >{detailInfoGempa?.time} WIB</td
-                      ></tr
-                    >
-                    <tr
-                      ><td class="text-left flex">MAG</td><td
-                        class="text-right break-words pl-2"
-                        >{Number(detailInfoGempa?.mag).toFixed(1)}</td
-                      ></tr
-                    >
-                    <tr
-                      ><td class="text-left flex">DEPTH</td><td
-                        class="text-right break-words pl-2"
-                        >{parseFloat(
-                          String(detailInfoGempa?.depth).replace("Km", ""),
-                        ).toFixed(2)} KM</td
-                      ></tr
-                    >
-                    <tr
-                      ><td class="text-left flex">LAT</td><td
-                        class="text-right break-words pl-2"
-                        >{detailInfoGempa?.lat}</td
-                      ></tr
-                    >
-                    <tr
-                      ><td class="text-left flex">LNG</td><td
-                        class="text-right break-words pl-2"
-                        >{detailInfoGempa?.lng}</td
-                      ></tr
-                    >
-                  </tbody>
-                </table>
-              </div>
-              <div class="bordered p-2 overflow-y-auto max-h-60">
-                <table
-                  id="histori_tabel"
-                  style="font-size:10px"
-                  class="w-full text-right"
-                >
-                  <thead>
-                    <tr
-                      ><th class="p-1">Time(UTC)</th><th class="p-1"
-                        >+OT(min)</th
-                      ><th class="p-1">Lat</th><th class="p-1">Lng</th><th
-                        class="p-1">Depth</th
-                      ><th class="p-1">Phase</th><th class="p-1">MagType</th><th
-                        class="p-1">Mag</th
-                      ><th class="p-1">MagCount</th><th class="p-1">Status</th
-                      ></tr
-                    >
-                  </thead>
-                  <tbody></tbody>
-                </table>
-              </div>
+          <div
+            class="flex flex-col w-full gap-2 text-glow text-sm w-full"
+            style="font-size:10px"
+          >
+            <div class="bordered p-2">
+              <table class="w-full">
+                <tbody>
+                  <tr
+                    ><td class="text-left flex">PLACE</td><td
+                      class="text-right break-words pl-2"
+                      >{detailInfoGempa?.place}</td
+                    ></tr
+                  >
+                  <tr
+                    ><td class="text-left flex">TIME</td><td
+                      class="text-right break-words pl-2"
+                      data-time={detailInfoGempa?.time}
+                      >{detailInfoGempa?.time} WIB</td
+                    ></tr
+                  >
+                  <tr
+                    ><td class="text-left flex">MAG</td><td
+                      class="text-right break-words pl-2"
+                      >{Number(detailInfoGempa?.mag).toFixed(1)}</td
+                    ></tr
+                  >
+                  <tr
+                    ><td class="text-left flex">DEPTH</td><td
+                      class="text-right break-words pl-2"
+                      >{parseFloat(
+                        String(detailInfoGempa?.depth).replace("Km", ""),
+                      ).toFixed(2)} KM</td
+                    ></tr
+                  >
+                  <tr
+                    ><td class="text-left flex">LAT</td><td
+                      class="text-right break-words pl-2"
+                      >{detailInfoGempa?.lat}</td
+                    ></tr
+                  >
+                  <tr
+                    ><td class="text-left flex">LNG</td><td
+                      class="text-right break-words pl-2"
+                      >{detailInfoGempa?.lng}</td
+                    ></tr
+                  >
+                </tbody>
+              </table>
+            </div>
+            <div class="bordered p-2 overflow-auto max-h-60">
+              <table
+                id="histori_tabel"
+                style="font-size:10px"
+                class="w-full text-right"
+              >
+                <thead>
+                  <tr
+                    ><th class="p-1">Time(UTC)</th><th class="p-1">+OT(min)</th
+                    ><th class="p-1">Lat</th><th class="p-1">Lng</th><th
+                      class="p-1">Depth</th
+                    ><th class="p-1">Phase</th><th class="p-1">MagType</th><th
+                      class="p-1">Mag</th
+                    ><th class="p-1">MagCount</th><th class="p-1">Status</th
+                    ></tr
+                  >
+                </thead>
+                <tbody></tbody>
+              </table>
             </div>
           </div>
         {/snippet}
@@ -2018,7 +2020,7 @@
             <div class="w-full flex gap-2">
               <div>
                 <div
-                  class="label text-3xl internal bordered flex mb-2 w-full lg:w-32"
+                  class="ews-title text-3xl internal bordered flex mb-2 w-full lg:w-32"
                 >
                   <div class="flex flex-col items-center p-1">
                     <div class="text -characters">
@@ -2134,7 +2136,7 @@
 
   <!-- LOADING SCREEN -->
   <div
-    class="fixed m-auto top-0 bottom-0 left-0 right-0 flex flex-col justify-center items-center overlay-bg text-center z-10"
+    class="fixed m-auto top-0 bottom-0 left-0 right-0 flex flex-col justify-center items-center overlay-bg text-center z-10 text-glow-red"
     id="loading-screen"
   >
     <span class="loader"></span>

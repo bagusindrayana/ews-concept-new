@@ -484,12 +484,22 @@
     --text-glow-color: rgba(var(--danger-glow-rgb), 0.5);
     color: var(--danger-text-color);
     text-box: trim-both cap alphabetic;
+    text-shadow:
+        -1px 1px 0 var(--text-glow-color),
+        1px -1px 0 var(--text-glow-color),
+        -1px -1px 0 var(--text-glow-color),
+        1px 1px 0 var(--text-glow-color);
 }
 
 .text-glow {
     --text-glow-color: rgba(var(--glow-rgb), 0.5);
     color: var(--text-color) !important;
     text-box: trim-both cap alphabetic;
+    text-shadow:
+        -1px 1px 0 var(--text-glow-color),
+        1px -1px 0 var(--text-glow-color),
+        -1px -1px 0 var(--text-glow-color),
+        1px 1px 0 var(--text-glow-color);
 }
 
 .bordered {
@@ -497,11 +507,11 @@
     --border-glow-color: rgba(var(--glow-rgb), 0.7);
     border-radius: var(--gutter-size);
     border-style: solid;
-    border-width: 1px;
-    border-color: unset;
-    box-shadow:
+    border-width: 3px;
+    border-color: var(--orange);
+    /* box-shadow:
         inset 0 0 0 1px var(--border-glow-color),
-        0 0 0 1px var(--border-glow-color);
+        0 0 0 1px var(--border-glow-color); */
 }
 
 .bordered-red {
@@ -509,50 +519,44 @@
     --border-glow-color: rgba(var(--danger-glow-rgb), 0.7);
     border-radius: var(--gutter-size);
     border-style: solid;
-    border-width: 1px;
-    border-color: unset;
-    box-shadow:
-        inset 0 0 0 1px var(--border-glow-color),
-        0 0 0 1px var(--border-glow-color);
+    border-width: 3px;
+    border-color: var(--red);
+
 }
 
 .bordered-red-bottom {
     color: var(--danger-text-color);
     --border-glow-color: rgba(var(--danger-glow-rgb), 0.7);
     border-color: unset;
-    border-bottom: 1px solid red;
-    box-shadow:
-        inset 0 0 0 1px var(--border-glow-color),
-        0 0 0 1px var(--border-glow-color);
+    border-bottom: 3px solid rgb(var(--danger-glow-rgb));
+
+
 }
 
 .bordered-red-top {
     color: var(--danger-text-color);
     --border-glow-color: rgba(var(--danger-glow-rgb), 0.7);
     border-color: unset;
-    border-top: 1px solid var(--danger-glow-rgb);
-    box-shadow:
-        inset 0 0 0 1px var(--border-glow-color),
-        0 0 0 1px var(--border-glow-color);
+    border-top: 3px solid rgb(var(--danger-glow-rgb));
 }
 
-.card {
+.ews-card {
     background-color: black;
     transition: 0.3s;
 }
 
-.card-header {
+.ews-card-header {
     padding: 6px;
     color: var(--orange);
     position: relative;
     border-radius: 10px 10px 0px 0px;
 }
 
-.card-header button {
+.ews-card-header button {
     cursor: pointer;
 }
 
-.card-footer {
+.ews-card-footer {
     padding: 6px;
     /* border-top: 3px var(--red) solid; */
     color: var(--orange);
@@ -560,26 +564,26 @@
     border-radius: 0px 0px 10px 10px;
 }
 
-.card-content {
-    padding: 12px;
-}
+/* .ews-card-content {
+    padding: unset;
+} */
 
-.card-content tbody {
+.ews-card-content tbody {
     font-size: 10px !important;
 }
 
-.card-float {
+.ews-card-float {
     transition: all 0.3s ease-in-out;
 }
 
-.card-float .card-content {
+.ews-card-float .ews-card-content {
     display: block;
     max-height: 45vh;
     overflow-y: auto;
     overflow-x: hidden;
 }
 
-.card-close-button {
+.ews-card-close-button {
     font-size: 24px;
     color: #e60003;
     padding: 2px 4px;
@@ -617,7 +621,7 @@
     position: relative;
 }
 
-.list-daerah .card-content {
+.list-daerah .ews-card-content {
     max-height: 50vh;
     overflow-y: auto;
 }
@@ -648,7 +652,7 @@
 
 
 
-.label {
+.ews-title {
     overflow: hidden;
     font: 400 "Roboto Condensed";
     letter-spacing: -1px;
@@ -659,23 +663,23 @@
     white-space: nowrap;
     --text-glow-color: rgba(var(--glow-rgb), 0.5);
     color: var(--text-color);
-    text-shadow:
+    /* text-shadow:
         -1px 1px 0 var(--text-glow-color),
         1px -1px 0 var(--text-glow-color),
         -1px -1px 0 var(--text-glow-color),
-        1px 1px 0 var(--text-glow-color);
+        1px 1px 0 var(--text-glow-color); */
     text-box: trim-both cap alphabetic;
 }
 
 
-.label.internal .decal {
+.ews-title.internal .decal {
     border-radius: calc(var(--label-corner-size) - 1px);
     display: block;
     height: 100px;
     width: 100%;
 }
 
-.label.badge .decal {
+.ews-title.badge .decal {
     border-radius: calc(var(--label-corner-size) - 1px);
     display: block;
     height: 100px;
@@ -704,34 +708,38 @@
     animation-timing-function: steps(1);
 }
 
-.label.internal .text.-characters {
+.ews-title.internal .text.-characters {
     font-size: 3.5rem;
     padding-top: var(--label-gutter-size);
 }
 
-.label.badge .text.-characters {
+.ews-title.badge .text.-characters {
     font-size: 3.5rem;
     padding-top: var(--label-gutter-size);
 }
 
 @media (max-width: 768px) {
-    .card-float .card-content {
+    .ews-card-float .ews-card-content {
         height: 0px;
         padding: 0px;
     }
 
-    .card-float.open .card-content {
+    .ews-card-float.open .ews-card-content {
         height: unset;
         padding: 6px;
     }
 
-    .card-float {
+    .ews-card-float {
         margin: auto;
         right: 0.25rem;
         left: 0.25rem;
     }
 
-    .card-header {
+    .ews-card-float .ews-card-header {
+        border-bottom: unset;
+    }
+
+    .ews-card-header {
         cursor: pointer;
     }
 }
@@ -989,6 +997,14 @@ table tr td {
 
 .bg-danger {
     background-color: var(--red);
+}
+
+.text-primary {
+    color: var(--orange);
+}
+
+.text-danger {
+    color: var(--red);
 }
 
 /* Fix mapbox marker positioning */
