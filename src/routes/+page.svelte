@@ -695,7 +695,7 @@
     markerData.forEach((m) => {
       const wrapper = document.createElement("div");
       const el = document.createElement("div");
-      el.className = "bordered p-1 text-time show-pop-up text-center";
+      el.className = "bordered p-1 text-time show-pop-up text-center  glow-all";
       const zoneClass = m.zone.replace(/\//g, "-");
       el.innerHTML = `<p class="uppercase text-xl" style="line-height:1rem"><span class="jam-${zoneClass}"></span></p><p>${m.label}</p>`;
       wrapper.appendChild(el);
@@ -1141,7 +1141,7 @@
 
   <!-- SETTINGS BUTTON -->
   <div
-    class="fixed top-12 md:top-2 left-0 right-0 m-auto flex justify-center items-center z-5 flex gap-2"
+    class="fixed top-12 md:top-2 left-0 right-0 m-auto flex justify-center items-center z-5 flex gap-2 glow-all"
     style="width:fit-content"
   >
     <button
@@ -1630,7 +1630,7 @@
   <!-- EVENT LOG -->
   {#if !loadingScreen && showEventLog}
     <Card
-      className="fixed right-0 md:right-3 top-1 md:top-3 ews-card-float md:w-1/3 lg:w-1/5 show-pop-up"
+      className="fixed right-0 md:right-3 top-1 md:top-3 ews-card-float md:w-1/3 lg:w-1/5 show-pop-up  glow-all"
     >
       {#snippet title()}
         <div class="overflow-hidden">
@@ -1652,7 +1652,7 @@
           {#each events as v, i}
             <li
               onclick={() => selectEvent(v.infoGempa)}
-              class="flex flex-col mb-2 list-event cursor-pointer slide-in-left"
+              class="flex flex-col mb-2 list-event cursor-pointer slide-in-left glow-all"
               style="animation-delay:{i * 0.01}s"
             >
               <span style="font-size:11px">{v.infoGempa.time} WIB</span>

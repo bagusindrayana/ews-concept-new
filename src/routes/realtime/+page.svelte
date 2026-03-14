@@ -921,7 +921,7 @@
                                     ></div>
                                 </div>
                             </div>
-                            <div class="bordered p-2 w-full">
+                            <div class="bordered p-2 w-full glow-all">
                                 <table class="w-full">
                                     <tbody>
                                         <tr>
