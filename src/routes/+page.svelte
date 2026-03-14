@@ -4,7 +4,7 @@
   import mapboxgl from "mapbox-gl";
   import { io } from "socket.io-client";
   import { DateTime } from "luxon";
-  import { XMLParser } from "fast-xml-parser";
+  import { EarthquakeDataService } from "$lib/services/earthquakeDataService";
   import * as turf from "@turf/turf";
   import AnimatedPopup from "mapbox-gl-animated-popup";
   import { TitikGempa } from "$lib/components/TitikGempa";
@@ -20,6 +20,7 @@
   let mapContainer: HTMLDivElement;
   let map: mapboxgl.Map;
   let socket: any;
+  const earthquakeService = new EarthquakeDataService();
 
   const dangerSound = "/sounds/siren-alarm-96503.mp3";
   const smallEarthQuakeSound = "/sounds/wrong-answer-129254.mp3";
@@ -544,122 +545,12 @@
             paint: { "fill-color": "red", "fill-opacity": 0 },
           });
         }
-        getTitikGempaJson();
+        initializeMapData();
         getTimezoneGeojson();
         getFaultLineGeojson();
         initWorker();
       })
       .catch((e) => alert("Failed: " + e));
-  }
-
-  function getTitikGempaJson() {
-    const url =
-      "https://bmkg-content-inatews.storage.googleapis.com/gempaQL.json?t=" +
-      new Date().getTime();
-    fetch(url)
-      .then((r) => r.json())
-      .then((data) => {
-        geoJsonTitikGempa = data;
-        setTimeout(() => {
-          const el = document.getElementById("loading-screen");
-          if (el) el.style.display = "none";
-          loadingScreen = false;
-        }, 1000);
-        let ntg: TitikGempa[] = [];
-        for (let index = 0; index < data.features.length; index++) {
-          const f = data.features[index];
-          const cekDuplicateEvents = events.find(
-            (v) => v.id == f.properties.id,
-          );
-          if (cekDuplicateEvents) continue;
-          const dt = DateTime.fromSQL(f.properties.time, {
-            zone: "UTC",
-          }).setZone("Asia/Jakarta");
-          ntg.push(
-            new TitikGempa(f.properties.id, {
-              id: f.properties.id,
-              lng: f.geometry.coordinates[0],
-              lat: f.geometry.coordinates[1],
-              mag: f.properties.mag,
-              depth: f.properties.depth,
-              place: f.properties.place,
-              time:
-                dt.toISODate() +
-                " " +
-                dt.toLocaleString(DateTime.TIME_24_WITH_SECONDS),
-              mmi: 0,
-            }),
-          );
-        }
-        tgs = ntg;
-        events = [...tgs];
-        if (!map.getLayer("earthquakes-layer")) {
-          map.addSource("earthquakes", { type: "geojson", data });
-          map.addLayer({
-            id: "earthquakes-layer",
-            type: "circle",
-            source: "earthquakes",
-            paint: {
-              "circle-radius": ["to-number", ["get", "mag"]],
-              "circle-stroke-width": 2,
-              "circle-color": [
-                "case",
-                ["<=", ["to-number", ["get", "depth"]], 50],
-                "red",
-                ["<=", ["to-number", ["get", "depth"]], 100],
-                "orange",
-                ["<=", ["to-number", ["get", "depth"]], 250],
-                "yellow",
-                ["<=", ["to-number", ["get", "depth"]], 600],
-                "green",
-                "blue",
-              ],
-              "circle-stroke-color": "white",
-            },
-          });
-        }
-        map.on("click", "earthquakes-layer", (e: any) => {
-          const coords = e.features[0].geometry.coordinates.slice();
-          const d = e.features[0].properties;
-          const placeholder = document.createElement("div");
-          placeholder.innerHTML = createGempaPopupHTML({
-            id: d.id,
-            mag: d.mag,
-            depth: d.depth,
-            time: new Date(d.time).toLocaleString(),
-            lat: coords[1],
-            lng: coords[0],
-          });
-          new AnimatedPopup({
-            openingAnimation: {
-              duration: 100,
-              easing: "easeOutSine",
-              transform: "scale",
-            },
-            closingAnimation: {
-              duration: 100,
-              easing: "easeInOutSine",
-              transform: "scale",
-            },
-          })
-            .setDOMContent(placeholder)
-            .setLngLat(coords)
-            .addTo(map);
-        });
-        map.on(
-          "mouseenter",
-          "earthquakes-layer",
-          () => (map.getCanvas().style.cursor = "pointer"),
-        );
-        map.on(
-          "mouseleave",
-          "earthquakes-layer",
-          () => (map.getCanvas().style.cursor = ""),
-        );
-        getGempa();
-        getGempaKecil();
-      })
-      .catch(console.error);
   }
 
   function getTimezoneGeojson() {
@@ -732,225 +623,138 @@
     });
   }
 
-  function getGempa() {
-    if (lastGempaId) return;
-    const url =
-      "https://bmkg-content-inatews.storage.googleapis.com/datagempa.json?t=" +
-      new Date().getTime();
-    fetch(url)
-      .then((r) => r.json())
-      .then((data) => {
-        const coords = data.info.point.coordinates.split(",");
-        lastGempaId = data.identifier;
-        const sentTime = DateTime.fromISO(data.sent.replace("WIB", ""), {
-          zone: "Asia/Jakarta",
-        });
-        const readAbleTime =
-          sentTime.toISODate() +
-          " " +
-          sentTime.toLocaleString(DateTime.TIME_24_WITH_SECONDS);
-        const nig: InfoGempa = {
-          id: data.identifier,
-          lng: parseFloat(coords[0]),
-          lat: parseFloat(coords[1]),
-          place: data.info.felt,
-          mag: data.info.magnitude,
-          depth: data.info.depth,
-          message: data.info.description,
-          time: readAbleTime,
-          mmi: parseInt(
-            readAbleTime
-              ?.replaceAll("-", "")
-              .replaceAll(" ", "")
-              .replaceAll(":", "") || "0",
-          ),
-        };
-        const cek = tgs.find((v) => v.id == data.identifier);
-        if (
-          DateTime.now().setZone("Asia/Jakarta").toMillis() -
-            sentTime.toMillis() <
-          600000
-        ) {
-          warningHandler({
-            id: data.identifier,
-            lng: parseFloat(coords[0]),
-            lat: parseFloat(coords[1]),
-            mag: parseFloat(data.info.magnitude),
-            place: data.info.felt,
-            depth: data.info.depth,
-            message: data.info.description + "\n" + data.info.instruction,
-            time: readAbleTime,
-          });
-          setTimeout(() => {
-            GempaDirasakan = new TitikGempa(nig.id, nig, { map });
-          }, 6000);
-        } else if (!cek) {
-          tgs.push(new TitikGempa(nig.id, nig));
-          tgs.sort(
-            (a, b) => new Date(b.time!).getTime() - new Date(a.time!).getTime(),
-          );
-          geoJsonTitikGempa.features.push({
-            geometry: {
-              type: "Point",
-              coordinates: [nig.lng, nig.lat, 1],
-            },
-            type: "Feature",
-            properties: {
-              id: nig.id,
-              depth: parseFloat(String(nig.depth).replace(" Km", "")).toFixed(
-                2,
-              ),
-              mag: nig.mag,
-              time: nig.time,
-              place: nig.place,
+  // GET DATA GEMPA (Unified Initialization)
+  function initializeMapData() {
+    earthquakeService
+      .initializeAllEarthquakes()
+      .then(({ geoJson, infoList, dirasakanInfo, kecilInfo }) => {
+        // Set master store references
+        geoJsonTitikGempa = geoJson;
+        
+        let ntg: TitikGempa[] = infoList.map(
+          (info) => new TitikGempa(info.id, info)
+        );
+        tgs = ntg;
+        events = [...tgs];
+
+        // Ensure loading screen is removed
+        setTimeout(() => {
+          const el = document.getElementById("loading-screen");
+          if (el) el.style.display = "none";
+          loadingScreen = false;
+        }, 1000);
+
+        // Add map layers and socket listeners ONLY once
+        if (map && !map.getLayer("earthquakes-layer")) {
+          map.addSource("earthquakes", { type: "geojson", data: geoJson });
+          map.addLayer({
+            id: "earthquakes-layer",
+            type: "circle",
+            source: "earthquakes",
+            paint: {
+              "circle-radius": ["to-number", ["get", "mag"]],
+              "circle-stroke-width": 2,
+              "circle-color": [
+                "case",
+                ["<=", ["to-number", ["get", "depth"]], 50],
+                "red",
+                ["<=", ["to-number", ["get", "depth"]], 100],
+                "orange",
+                ["<=", ["to-number", ["get", "depth"]], 250],
+                "yellow",
+                ["<=", ["to-number", ["get", "depth"]], 600],
+                "green",
+                "blue",
+              ],
+              "circle-stroke-color": "white",
             },
           });
-          (map.getSource("earthquakes") as mapboxgl.GeoJSONSource).setData(
-            geoJsonTitikGempa,
+          
+          map.on("click", "earthquakes-layer", (e: any) => {
+            const coords = e.features[0].geometry.coordinates.slice();
+            const d = e.features[0].properties;
+            const placeholder = document.createElement("div");
+            placeholder.innerHTML = createGempaPopupHTML({
+              id: d.id,
+              mag: d.mag,
+              depth: d.depth,
+              time: new Date(d.time).toLocaleString(),
+              lat: coords[1],
+              lng: coords[0],
+            });
+            new AnimatedPopup({
+              openingAnimation: {
+                duration: 100,
+                easing: "easeOutSine",
+                transform: "scale",
+              },
+              closingAnimation: {
+                duration: 100,
+                easing: "easeInOutSine",
+                transform: "scale",
+              },
+            })
+              .setDOMContent(placeholder)
+              .setLngLat(coords)
+              .addTo(map);
+          });
+          
+          map.on(
+            "mouseenter",
+            "earthquakes-layer",
+            () => (map.getCanvas().style.cursor = "pointer"),
           );
-          events = [...tgs];
+          
+          map.on(
+            "mouseleave",
+            "earthquakes-layer",
+            () => (map.getCanvas().style.cursor = ""),
+          );
         }
-        GempaDirasakan = new TitikGempa(nig.id, nig, { map });
+
+        // Handle Audio Alerts and Component State for Gempa Dirasakan
+        if (dirasakanInfo) {
+          lastGempaId = dirasakanInfo.id;
+          if (earthquakeService.isRecent(dirasakanInfo.sentTime)) {
+            warningHandler(earthquakeService.buildWarningData(dirasakanInfo.info, dirasakanInfo.raw));
+            setTimeout(() => {
+              GempaDirasakan = new TitikGempa(dirasakanInfo.info.id, dirasakanInfo.info, { map });
+            }, 6000);
+          } else {
+            GempaDirasakan = new TitikGempa(dirasakanInfo.info.id, dirasakanInfo.info, { map });
+          }
+        }
+
+        // Handle Audio Alerts and Component State for Gempa Kecil (Terakhir)
+        if (kecilInfo) {
+          lastGempaKecilId = kecilInfo.info.id;
+          if (earthquakeService.isRecentUtc(kecilInfo.sentTime)) {
+            var notif = new Audio(smallEarthQuakeSound);
+            notif.play();
+            alertGempaBumi = new TitikGempa(kecilInfo.info.id, kecilInfo.info);
+          }
+          GempaTerakhir = new TitikGempa(kecilInfo.info.id, kecilInfo.info, {
+            pWaveSpeed: 6000,
+            sWaveSpeed: 3000,
+            map,
+            description: kecilInfo.info.message,
+            zoomToPosition: true,
+            showMarker: true,
+            showPopup: false,
+          });
+        }
+
+        // Finally, spin up the Socket IO listeners
         socketInitializer();
       })
       .catch(console.error);
   }
 
-  function getGempaKecil() {
-    if (lastGempaKecilId) return;
-    const url =
-      "https://bmkg-content-inatews.storage.googleapis.com/lastQL.json?t=" +
-      new Date().getTime();
-    fetch(url)
-      .then((r) => r.json())
-      .then((data) => {
-        if (data.features.length > 0) {
-          const feature = data.features[0];
-          lastGempaKecilId = feature.properties.id;
-          const dt = DateTime.fromSQL(feature.properties.time, {
-            zone: "UTC",
-          }).setZone("Asia/Jakarta");
-          const readAbleTime =
-            dt.toISODate() +
-            " " +
-            dt.toLocaleString(DateTime.TIME_24_WITH_SECONDS);
-          const nig: InfoGempa = {
-            id: feature.properties.id,
-            lng: parseFloat(feature.geometry.coordinates[0]),
-            lat: parseFloat(feature.geometry.coordinates[1]),
-            mag: parseFloat(feature.properties.mag),
-            depth: feature.properties.depth,
-            message: `${feature.properties.place}\nMag : ${Number(feature.properties.mag).toFixed(1)}`,
-            place: feature.properties.place,
-            time: readAbleTime,
-            mmi: parseInt(
-              readAbleTime
-                ?.replaceAll("-", "")
-                .replaceAll(" ", "")
-                .replaceAll(":", "") || "0",
-            ),
-          };
-          if (
-            DateTime.now().setZone("UTC").toMillis() -
-              DateTime.fromSQL(feature.properties.time, {
-                zone: "UTC",
-              }).toMillis() <
-            600000
-          ) {
-            var notif = new Audio(smallEarthQuakeSound);
-            notif.play();
-            alertGempaBumi = new TitikGempa(feature.properties.id, nig);
-          }
-
-          GempaTerakhir = new TitikGempa(nig.id, nig, {
-            pWaveSpeed: 6000,
-            sWaveSpeed: 3000,
-            map,
-            description: nig.message,
-            zoomToPosition: true,
-            showMarker: true,
-            showPopup: false,
-          });
-          const cek = tgs.find((v) => v.id == feature.properties.id);
-          if (!cek) {
-            tgs.unshift(new TitikGempa(feature.properties.id, nig));
-            geoJsonTitikGempa.features.push(feature);
-            (map.getSource("earthquakes") as mapboxgl.GeoJSONSource).setData(
-              geoJsonTitikGempa,
-            );
-            events = [...tgs];
-          }
-        }
-      })
-      .catch(console.error);
-  }
-
-  function getGempaLive() {
-    const url =
-      "https://bmkg-content-inatews.storage.googleapis.com/live30event.xml";
-
-    fetch(url)
-      .then((r) => r.text())
-      .then((data) => {
-        const parser = new XMLParser();
-        let jObj = parser.parse(data);
-
-        let ntg: TitikGempa[] = [];
-        for (let index = 0; index < jObj.Infogempa.gempa.length; index++) {
-          const f = jObj.Infogempa.gempa[index];
-          const cekDuplicateEvents = events.find((v) => v.id == f.eventid);
-          if (cekDuplicateEvents) continue;
-          const dt = DateTime.fromSQL(f.waktu, {
-            zone: "UTC",
-          }).setZone("Asia/Jakarta");
-          ntg.push(
-            new TitikGempa(f.eventid, {
-              id: f.eventid,
-              lng: f.bujur,
-              lat: f.lintang,
-              mag: f.mag,
-              depth: f.dalam,
-              place: f.area,
-              time:
-                dt.toISODate() +
-                " " +
-                dt.toLocaleString(DateTime.TIME_24_WITH_SECONDS),
-              mmi: 0,
-            }),
-          );
-        }
-        tgs = ntg;
-        events = [...tgs];
-      })
-      .catch(alert);
-  }
-
   function updateGempa(data: any) {
-    const feature = data.features[0];
-    const msg = `${feature.properties.place}\nMag : ${Number(feature.properties.mag).toFixed(1)}\nDepth : ${feature.properties.depth}`;
-    const dt = DateTime.fromSQL(feature.properties.time, {
-      zone: "UTC",
-    }).setZone("Asia/Jakarta");
-    const nig: InfoGempa = {
-      id: feature.properties.id,
-      lng: parseFloat(feature.geometry.coordinates[0]),
-      lat: parseFloat(feature.geometry.coordinates[1]),
-      mag: parseFloat(feature.properties.mag),
-      depth: feature.properties.depth,
-      message: msg,
-      place: feature.properties.place,
-      time:
-        dt.toISODate() + " " + dt.toLocaleString(DateTime.TIME_24_WITH_SECONDS),
-      mmi: parseInt(
-        dt
-          .toISODate()
-          ?.replaceAll("-", "")
-          .replaceAll(" ", "")
-          .replaceAll(":", "") || "0",
-      ),
-    };
-    if (lastGempaKecilId != feature.properties.id) {
-      lastGempaKecilId = feature.properties.id;
+    const { feature: geoFeature, info: nig } =
+      earthquakeService.parseGempaFromSocket(data);
+    if (lastGempaKecilId != nig.id) {
+      lastGempaKecilId = nig.id;
       var notif = new Audio(smallEarthQuakeSound);
       notif.play();
       if (!map) return;
@@ -964,20 +768,9 @@
         GempaTerakhir.removeMarker();
         if (tgs.length > 0) {
           const ig = tgs[0].infoGempa;
-          geoJsonTitikGempa.features.push({
-            geometry: {
-              type: "Point",
-              coordinates: [ig.lng, ig.lat, 1],
-            },
-            type: "Feature",
-            properties: {
-              id: ig.id,
-              depth: ig.depth,
-              mag: ig.mag,
-              time: ig.time,
-              place: ig.place,
-            },
-          });
+          geoJsonTitikGempa.features.push(
+            earthquakeService.toGeoJsonFeature(ig),
+          );
           (map.getSource("earthquakes") as mapboxgl.GeoJSONSource).setData(
             geoJsonTitikGempa,
           );
@@ -991,7 +784,7 @@
           showMarker: true,
           showPopup: true,
           showPopUpInSecond: 1,
-          description: msg,
+          description: nig.message,
         }),
       );
       tgs.sort(
@@ -1003,27 +796,22 @@
   }
 
   function updateTsunami(data: any) {
-    var tsunami = false;
-    if (data.info.wzarea != undefined && data.info.wzarea.length > 0) {
-      if (data.info.subject == "Warning Tsunami PD-4") {
-        try {
-          map.removeLayer("outline-coastline");
-          map.removeLayer("outline");
-        } catch {}
-      } else if (data.info.subject.includes("Warning Tsunami")) tsunami = true;
+    const parsed = earthquakeService.parseTsunamiFromSocket(data);
+    if (parsed.isCancel) {
+      try {
+        map.removeLayer("outline-coastline");
+        map.removeLayer("outline");
+      } catch {}
     }
-    if (lastGempaId != data.identifier) {
-      lastGempaId = data.identifier;
-      const coords = data.info.point.coordinates.split(",");
-      const sentTime = DateTime.fromISO(data.sent.replace("WIB", ""), {
-        zone: "Asia/Jakarta",
-      });
-      if (tsunami) warningTsunamiHandler(data.info);
-      else
+    if (lastGempaId != parsed.id) {
+      lastGempaId = parsed.id;
+      if (parsed.isTsunami) warningTsunamiHandler(data.info);
+      else {
+        const sentTime = parsed.sentTime;
         warningHandler({
-          id: data.identifier,
-          lng: parseFloat(coords[0]),
-          lat: parseFloat(coords[1]),
+          id: parsed.id,
+          lng: parsed.coords[0],
+          lat: parsed.coords[1],
           place: data.info.felt,
           mag: parseFloat(parseFloat(data.info.magnitude).toFixed(1)),
           depth: data.info.depth,
@@ -1033,6 +821,7 @@
             " " +
             sentTime.toLocaleString(DateTime.TIME_24_WITH_SECONDS),
         });
+      }
     }
   }
 
@@ -1127,15 +916,10 @@
   }
 
   function testDemoTsunami() {
-    fetch(
-      "https://bmkg-content-inatews.storage.googleapis.com/last30tsunamievent.xml",
-    )
-      .then((r) => r.text())
-      .then((data) => {
+    earthquakeService
+      .fetchTsunamiEvents()
+      .then((infos) => {
         showSettingsModal = false;
-        const parser = new XMLParser();
-        let jObj = parser.parse(data);
-        var infos = jObj.alert.info.filter((v: any) => v.wzarea != undefined);
         var randInfo = infos[(Math.random() * infos.length) | 0];
         warningTsunamiHandler(randInfo);
       })
@@ -1174,8 +958,6 @@
       maxZoom: 22,
     });
     map.on("load", () => loadGeoJsonCoastline());
-
-    getGempaLive();
   });
 
   onDestroy(() => {
