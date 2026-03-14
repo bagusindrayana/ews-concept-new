@@ -568,6 +568,10 @@
         let ntg: TitikGempa[] = [];
         for (let index = 0; index < data.features.length; index++) {
           const f = data.features[index];
+          const cekDuplicateEvents = events.find(
+            (v) => v.id == f.properties.id,
+          );
+          if (cekDuplicateEvents) continue;
           const dt = DateTime.fromSQL(f.properties.time, {
             zone: "UTC",
           }).setZone("Asia/Jakarta");
@@ -881,6 +885,46 @@
       .catch(console.error);
   }
 
+  function getGempaLive() {
+    const url =
+      "https://bmkg-content-inatews.storage.googleapis.com/live30event.xml";
+
+    fetch(url)
+      .then((r) => r.text())
+      .then((data) => {
+        const parser = new XMLParser();
+        let jObj = parser.parse(data);
+
+        let ntg: TitikGempa[] = [];
+        for (let index = 0; index < jObj.Infogempa.gempa.length; index++) {
+          const f = jObj.Infogempa.gempa[index];
+          const cekDuplicateEvents = events.find((v) => v.id == f.eventid);
+          if (cekDuplicateEvents) continue;
+          const dt = DateTime.fromSQL(f.waktu, {
+            zone: "UTC",
+          }).setZone("Asia/Jakarta");
+          ntg.push(
+            new TitikGempa(f.eventid, {
+              id: f.eventid,
+              lng: f.bujur,
+              lat: f.lintang,
+              mag: f.mag,
+              depth: f.dalam,
+              place: f.area,
+              time:
+                dt.toISODate() +
+                " " +
+                dt.toLocaleString(DateTime.TIME_24_WITH_SECONDS),
+              mmi: 0,
+            }),
+          );
+        }
+        tgs = ntg;
+        events = [...tgs];
+      })
+      .catch(alert);
+  }
+
   function updateGempa(data: any) {
     const feature = data.features[0];
     const msg = `${feature.properties.place}\nMag : ${Number(feature.properties.mag).toFixed(1)}\nDepth : ${feature.properties.depth}`;
@@ -1130,6 +1174,8 @@
       maxZoom: 22,
     });
     map.on("load", () => loadGeoJsonCoastline());
+
+    getGempaLive();
   });
 
   onDestroy(() => {
