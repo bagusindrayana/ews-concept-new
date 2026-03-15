@@ -12,7 +12,7 @@
   import type { InfoGempa, InfoTsunami } from "$lib/types";
   import GempaBumiAlert from "$lib/components/GempaBumiAlert.svelte";
   import TsunamiAlert from "$lib/components/TsunamiAlert.svelte";
-  import Jam from "$lib/components/Jam.svelte";
+  // import Jam from "$lib/components/Jam.svelte";
   import AffectedAreaItem from "$lib/components/AffectedAreaItem.svelte";
   import Card from "$lib/components/Card.svelte";
   import { PUBLIC_SOCKET_DATA_URL } from "$env/static/public";
@@ -998,27 +998,6 @@
       onclick={() => (showSettingsModal = true)}>SETTING</button
     >
     <a class="ews-btn ews-btn-primary" href="/status-ui">STATION</a>
-    <!-- <button
-      class="settings-btn bordered bg-black cursor-pointer flex items-center gap-1 px-3 py-1"
-      onclick={() => (showSettingsModal = true)}
-    >
-      <svg
-        width="18"
-        height="18"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="2"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-      >
-        <circle cx="12" cy="12" r="3"></circle>
-        <path
-          d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"
-        ></path>
-      </svg>
-      <span class="text-sm">PENGATURAN</span>
-    </button> -->
   </div>
 
   <!-- SETTINGS MODAL -->
