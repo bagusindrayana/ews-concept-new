@@ -26,6 +26,7 @@ body {
 
 .custom-scrollbar::-webkit-scrollbar {
     width: 12px;
+    height: 12px;
     background-color: rgb(61, 61, 61);
 }
 

@@ -231,17 +231,6 @@ export class EarthquakeDataService {
       ]);
 
     // Extract successful data
-    let baseGeoJson: GeoJsonFeatureCollection = {
-      type: "FeatureCollection",
-      features: [],
-    };
-    let baseInfoList: InfoGempa[] = [];
-
-    if (titikResult.status === "fulfilled") {
-      baseGeoJson = titikResult.value.geoJson;
-      baseInfoList = titikResult.value.infoList;
-    }
-
     const dirasakanInfo =
       dirasakanResult.status === "fulfilled" ? dirasakanResult.value : null;
     const kecilInfo =
@@ -249,40 +238,50 @@ export class EarthquakeDataService {
     const liveItems =
       liveResult.status === "fulfilled" ? liveResult.value : [];
 
-    // Map `id` to `InfoGempa` for deduplication
+    // Map `id` to `InfoGempa` and `GeoJsonFeature` for deduplication
     const infoMap = new Map<string, InfoGempa>();
+    const featureMap = new Map<string, GeoJsonFeature>();
 
-    // Priority 1: Main List
-    for (const info of baseInfoList) {
-      infoMap.set(info.id, info);
+    // Priority 1: Main List (Titik Gempa)
+    if (titikResult.status === "fulfilled") {
+      titikResult.value.infoList.forEach((info) => infoMap.set(info.id, info));
+      titikResult.value.geoJson.features.forEach((f) => {
+        featureMap.set(f.properties.id, f);
+      });
     }
 
     // Priority 2: Live Events
     for (const item of liveItems) {
       if (!infoMap.has(item.id)) {
         infoMap.set(item.id, item.info);
+        featureMap.set(item.id, this.toGeoJsonFeature(item.info));
       }
     }
 
     // Priority 3: Gempa Kecil
     if (kecilInfo && !infoMap.has(kecilInfo.info.id)) {
       infoMap.set(kecilInfo.info.id, kecilInfo.info);
+      featureMap.set(kecilInfo.info.id, kecilInfo.feature);
     }
 
     // Priority 4: Gempa Dirasakan
     if (dirasakanInfo && !infoMap.has(dirasakanInfo.info.id)) {
       infoMap.set(dirasakanInfo.info.id, dirasakanInfo.info);
+      featureMap.set(
+        dirasakanInfo.info.id,
+        this.toGeoJsonFeature(dirasakanInfo.info),
+      );
     }
 
-    // Convert map values to arrays
+    // Convert map values to arrays and sort
     const finalInfoList = Array.from(infoMap.values());
     finalInfoList.sort(
       (a, b) => new Date(b.time!).getTime() - new Date(a.time!).getTime(),
     );
 
-    // Rebuild GeoJSON features from the final deduplicated info list
-    const finalGeoJsonFeatures = finalInfoList.map((info) =>
-      this.toGeoJsonFeature(info),
+    // Rebuild GeoJSON features array matching the sorted order
+    const finalGeoJsonFeatures = finalInfoList.map(
+      (info) => featureMap.get(info.id)!,
     );
 
     const mergedGeoJson: GeoJsonFeatureCollection = {
@@ -395,7 +394,7 @@ export class EarthquakeDataService {
   isRecent(sentTime: DateTime, thresholdMs: number = 600000): boolean {
     return (
       DateTime.now().setZone("Asia/Jakarta").toMillis() -
-        sentTime.toMillis() <
+      sentTime.toMillis() <
       thresholdMs
     );
   }

@@ -13,7 +13,7 @@
   import GempaBumiAlert from "$lib/components/GempaBumiAlert.svelte";
   import TsunamiAlert from "$lib/components/TsunamiAlert.svelte";
   import Jam from "$lib/components/Jam.svelte";
-  import ItemKotaTerdampak from "$lib/components/ItemKotaTerdampak.svelte";
+  import AffectedAreaItem from "$lib/components/AffectedAreaItem.svelte";
   import Card from "$lib/components/Card.svelte";
   import { PUBLIC_SOCKET_DATA_URL } from "$env/static/public";
   import StripeBar from "$lib/components/StripeBar.svelte";
@@ -128,7 +128,7 @@
       message: data.message,
       place: data.place,
       time: data.time || new Date().toLocaleString(),
-      listKotaTerdampak: [],
+      listAffectedArea: [],
       mmi: parseInt(
         (data.time || new Date().toLocaleString())
           ?.replaceAll("-", "")
@@ -199,7 +199,7 @@
       message: data.description + "\n" + data.instruction,
       level: data.subject,
       time: data.time || new Date().toLocaleString(),
-      listKotaTerdampak: [],
+      listAffectedArea: [],
     };
 
     let level = "WASPADA";
@@ -235,7 +235,7 @@
           turf.point([nit.lng, nit.lat]),
           turf.point([cek.properties.longitude, cek.properties.latitude]),
         );
-        nit.listKotaTerdampak!.push({
+        nit.listAffectedArea!.push({
           lng: cek.properties.longitude,
           lat: cek.properties.latitude,
           distance: dist,
@@ -247,7 +247,7 @@
         });
       }
     }
-    nit.listKotaTerdampak!.sort((a, b) => a.distance - b.distance);
+    nit.listAffectedArea!.sort((a, b) => a.distance - b.distance);
 
     for (let x = 0; x < results.length; x++) {
       const p: number[] = turf.centroid(results[x]).geometry.coordinates;
@@ -420,7 +420,7 @@
             .replaceAll(" ", "")
             .replaceAll(":", "") || "0",
         ),
-        listKotaTerdampak: [],
+        listAffectedArea: [],
       };
       for (let il = 0; il < tg.areaTerdampak.length; il++) {
         const at = tg.areaTerdampak[il];
@@ -434,7 +434,7 @@
         const time = Math.floor(dist / 3) * 1000;
         const timeArrival = new Date(new Date().getTime() + time);
 
-        nig.listKotaTerdampak!.push({
+        nig.listAffectedArea!.push({
           lng: at.center[1],
           lat: at.center[0],
           distance: at.distance,
@@ -443,7 +443,7 @@
           timeArrival: timeArrival,
         });
       }
-      nig.listKotaTerdampak!.sort((a, b) => a.distance - b.distance);
+      nig.listAffectedArea!.sort((a, b) => a.distance - b.distance);
       ntgs.push(new TitikGempa(tg.id, nig));
     }
     if (ntgs.length > 0) alertGempaBumis = ntgs;
@@ -1154,17 +1154,6 @@
               <p class="p-1 bg-black font-bold text-xs">GEMPA BUMI</p>
             </div>
           </StripeBar>
-          <!-- <div class="overflow-hidden">
-            <div class="stripe-wrapper">
-              <div
-                class="stripe-bar-red loop-stripe-reverse anim-duration-20"
-              ></div>
-              <div
-                class="stripe-bar-red loop-stripe-reverse anim-duration-20"
-              ></div>
-            </div>
-            
-          </div> -->
         {/snippet}
         {#snippet children()}
           <div
@@ -1239,14 +1228,14 @@
               style="max-height:20vh"
             >
               <ul>
-                {#if alertGempaBumi?.infoGempa.listKotaTerdampak}
-                  {#each alertGempaBumi?.infoGempa.listKotaTerdampak as kota, i}
+                {#if alertGempaBumi?.infoGempa.listAffectedArea}
+                  {#each alertGempaBumi?.infoGempa.listAffectedArea as kota, i}
                     <li
                       class="flex flex-grow justify-between items-center mb-2 item-daerah {kota.hit
                         ? 'danger'
                         : ''} slide-in-left"
                     >
-                      <ItemKotaTerdampak {kota} />
+                      <AffectedAreaItem {kota} />
                     </li>
                   {/each}
                 {/if}
@@ -1320,12 +1309,12 @@
               style="max-height:20vh"
             >
               <ul>
-                {#if infoTsunami?.infoTsunami.listKotaTerdampak}
-                  {#each infoTsunami?.infoTsunami.listKotaTerdampak as kota, i}
+                {#if infoTsunami?.infoTsunami.listAffectedArea}
+                  {#each infoTsunami?.infoTsunami.listAffectedArea as kota, i}
                     <li
                       class="flex flex-grow justify-between items-center mb-2 item-daerah slide-in-left"
                     >
-                      <ItemKotaTerdampak {kota} />
+                      <AffectedAreaItem {kota} />
                     </li>
                   {/each}
                 {/if}
@@ -1349,15 +1338,7 @@
           className="hidden md:block show-pop-up md:w-1/2 lg:w-2/5 xl:w-1/5 pointer-events-auto"
         >
           {#snippet title()}
-            <div class="overflow-hidden">
-              <div class="stripe-wrapper">
-                <div
-                  class="stripe-bar-red loop-stripe-reverse anim-duration-20"
-                ></div>
-                <div
-                  class="stripe-bar-red loop-stripe-reverse anim-duration-20"
-                ></div>
-              </div>
+            <StripeBar color="red" reverse={true} loop={true} duration={20}>
               <div
                 class="absolute top-0 bottom-0 left-0 right-0 flex justify-center items-center"
               >
@@ -1373,7 +1354,7 @@
                   style="color:#e60003">X</button
                 >
               </div>
-            </div>
+            </StripeBar>
           {/snippet}
           {#snippet children()}
             <div
@@ -1444,14 +1425,14 @@
                 style="max-height:20vh"
               >
                 <ul>
-                  {#if agi.infoGempa.listKotaTerdampak}
-                    {#each agi.infoGempa.listKotaTerdampak as kota, i}
+                  {#if agi.infoGempa.listAffectedArea}
+                    {#each agi.infoGempa.listAffectedArea as kota, i}
                       <li
                         class="flex flex-grow justify-between items-center mb-2 item-daerah {kota.hit
                           ? 'danger'
                           : ''} slide-in-left"
                       >
-                        <ItemKotaTerdampak {kota} />
+                        <AffectedAreaItem {kota} />
                       </li>
                     {/each}
                   {/if}
@@ -1493,19 +1474,15 @@
       className="fixed right-0 left-0 w-full md:right-0 md:left-auto lg:right-3 top-1 md:top-3 md:w-1/3 lg:w-1/5 show-pop-up ews-card bordered-red fixed right-0 md:right-3 top-1 md:top-3 ews-card-float md:w-1/3 lg:w-1/5 show-pop-up ews-card-float"
     >
       {#snippet title()}
-        <div class="overflow-hidden">
-          <div class="stripe-wrapper">
-            <div class="stripe-bar-red loop-stripe anim-duration-20"></div>
-            <div class="stripe-bar-red loop-stripe anim-duration-20"></div>
-          </div>
-          <div
+        <StripeBar color="red" loop={true} duration={20}
+          ><div
             class="absolute top-0 bottom-0 left-0 right-0 flex justify-center items-center"
           >
             <p class="text-lg bg-black font-bold ews-title text-3xl p-1">
               EVENT LOG
             </p>
-          </div>
-        </div>
+          </div></StripeBar
+        >
       {/snippet}
       {#snippet children()}
         <ul>
@@ -1549,19 +1526,6 @@
               </div>
             </div>
           </StripeBar>
-          <!-- <div class="overflow-hidden">
-            <div class="stripe-wrapper">
-              <div class="stripe-bar loop-stripe"></div>
-              <div class="stripe-bar loop-stripe"></div>
-            </div>
-            <div
-              class="absolute top-0 bottom-0 left-0 right-0 flex justify-center items-center"
-            >
-              <p class="text-lg bg-black font-bold p-1 ews-title text-3xl">
-                GEMPA DIRASAKAN TERAKHIR
-              </p>
-            </div>
-          </div> -->
         {/snippet}
         {#snippet footer()}
           <div
@@ -1816,7 +1780,7 @@
                 </tbody>
               </table>
             </div>
-            <div class="bordered p-2 overflow-auto max-h-60">
+            <div class="bordered p-2 overflow-auto max-h-60 custom-scrollbar">
               <table
                 id="histori_tabel"
                 style="font-size:10px"
@@ -1880,21 +1844,13 @@
     >
       <Card>
         {#snippet title()}
-          <div class="overflow-hidden">
-            <div class="stripe-wrapper">
-              <div
-                class="stripe-bar loop-stripe-reverse anim-duration-20"
-              ></div>
-              <div
-                class="stripe-bar loop-stripe-reverse anim-duration-20"
-              ></div>
-            </div>
+          <StripeBar reverse={true} loop={true} duration={20}>
             <div
               class="absolute top-0 bottom-0 left-0 right-0 flex justify-center items-center"
             >
               <p class="p-1 bg-black font-bold text-xs">GEMPA BUMI</p>
             </div>
-          </div>
+          </StripeBar>
         {/snippet}
         {#snippet children()}
           <div

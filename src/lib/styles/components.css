@@ -64,7 +64,7 @@
     padding: 2px 1px;
     background-color: black !important;
     right: 10px !important;
-    top: 8px !important;
+    top: 15px !important;
     text-box: trim-both cap alphabetic;
 }
 
@@ -252,7 +252,7 @@
     height: 100%;
     width: 100%;
     aspect-ratio: 584 / 507;
-    background-image: url("/images/hex_shape.svg");
+    background-image: url("data:image/svg+xml,%3Csvg width='584' height='507' viewBox='0 0 584 507' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M145.77 507L0 253.5L145.77 -3.05176e-05H437.28L583.05 253.5L437.28 507H145.77Z' fill='%23E60003'/%3E%3Cpath d='M149.046 500.648L6.92932 253.5L149.046 6.35181H433.253L575.37 253.5L433.253 500.648H149.046Z' fill='black'/%3E%3Cpath d='M155.007 492L18 253.5L155.007 15H428.993L566 253.5L428.993 492H155.007Z' fill='%23E60003'/%3E%3C/svg%3E%0A");
 
 
     background-size: contain;
@@ -277,7 +277,7 @@
 .basic-hex.rotate-hex {
     /* clip-path: unset;
     background-image: unset; */
-    background-image: url("/images/hex_shape_rotate.svg");
+    background-image: url("data:image/svg+xml,%3Csvg width='115' height='133' viewBox='0 0 115 133' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M115 99.1859L57.5 132.25L7.62939e-06 99.1859L7.62939e-06 33.0641L57.5 3.05176e-05L115 33.0641L115 99.1859Z' fill='%23E60003'/%3E%3Cpath d='M113.69 98.4426L57.6307 130.678L1.57149 98.4426L1.57149 33.9776L57.6307 1.74199L113.69 33.9776L113.69 98.4426Z' fill='black'/%3E%3Cpath d='M111.071 97.0671L57.6309 127.796L4.1913 97.0671L4.1913 35.6145L57.6309 4.88519L111.071 35.6145L111.071 97.0671Z' fill='%23E60003'/%3E%3C/svg%3E%0A");
 
 }
 
@@ -494,24 +494,24 @@
     top: 10px !important;
 }
 
-.jajar-genjang {
+.parallelogram {
     height: 30px;
     width: 100%;
     transform: skew(15deg);
     background-color: var(--orange);
-    box-shadow: 0px 0px 5px 0px rgba(252, 114, 22, 1);
+    /* box-shadow: 0px 0px 5px 0px rgba(252, 114, 22, 1); */
     display: flex;
     align-items: center;
     padding: 6px;
     overflow: hidden;
 }
 
-.jajar-genjang.danger {
+.parallelogram.danger {
     background-color: var(--red);
-    box-shadow: 0px 0px 5px 0px rgba(250, 23, 23, 1);
+    /* box-shadow: 0px 0px 5px 0px rgba(250, 23, 23, 1); */
 }
 
-.jajar-genjang p {
+.parallelogram p {
     transform: skew(-15deg);
     color: black;
     font-weight: bold;
@@ -535,11 +535,11 @@
     font-weight: bold;
 }
 
-.item-daerah .pinggir-jajar-genjang {
+.item-daerah .pinggir-parallelogram {
     background-color: var(--orange);
 }
 
-.item-daerah.danger .pinggir-jajar-genjang {
+.item-daerah.danger .pinggir-parallelogram {
     background-color: var(--red);
 }
 

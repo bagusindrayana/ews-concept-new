@@ -112,8 +112,8 @@
     position: relative;
     width: 72px;
     height: 83px;
-    clip-path: polygon(0% 25.13%, 50% 0%, 100% 25.13%, 100% 74.87%, 50% 100%, 0% 74.87%);
-    background-color: rgba(255, 170, 0, 0.08);
+    /* clip-path: polygon(0% 25.13%, 50% 0%, 100% 25.13%, 100% 74.87%, 50% 100%, 0% 74.87%);
+    background-color: rgba(255, 170, 0, 0.08); */
     display: flex;
     align-items: center;
     justify-content: center;
@@ -149,6 +149,19 @@
     background-position: center;
     background-repeat: no-repeat;
 }
+
+.hex-hive.flat {
+    clip-path: polygon(24.96% 100%, 0% 50%, 24.96% 0%, 74.87% 0%, 99.84% 50%, 74.87% 100%);
+    display: unset;
+    transition: unset;
+    background-color: transparent;
+    /* 
+    background-image: url("/images/hex_shape.svg");
+    background-size: contain;
+    background-position: center;
+    background-repeat: no-repeat; */
+}
+
 
 .bg-hex-flat.yellow {
     background-image: url("/images/hex_shape_orange.svg");

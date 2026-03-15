@@ -7,11 +7,11 @@ export interface InfoGempa {
   place?: string;
   time?: string;
   message?: string;
-  listKotaTerdampak?: KotaTerdampak[];
+  listAffectedArea?: AffectedArea[];
   mmi: number;
 }
 
-export interface KotaTerdampak {
+export interface AffectedArea {
   lng: number;
   lat: number;
   distance: number;
@@ -27,5 +27,5 @@ export interface InfoTsunami {
   level?: string;
   message?: string;
   time?: string;
-  listKotaTerdampak?: KotaTerdampak[];
+  listAffectedArea?: AffectedArea[];
 }

@@ -1,10 +1,10 @@
 <script lang="ts">
   import { onMount, onDestroy } from "svelte";
-  import type { KotaTerdampak } from "$lib/types";
+  import type { AffectedArea } from "$lib/types";
 
   interface Props {
-    kota: KotaTerdampak;
-    onClick?: (kota: KotaTerdampak) => void;
+    kota: AffectedArea;
+    onClick?: (kota: AffectedArea) => void;
   }
 
   let { kota, onClick }: Props = $props();
@@ -52,7 +52,7 @@
 {/if}
 
 <div
-  class="jajar-genjang flex justify-end {finish
+  class="parallelogram flex justify-end {finish
     ? 'danger blink blink-fast'
     : ''}"
 >

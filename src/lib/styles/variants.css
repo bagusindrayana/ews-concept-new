@@ -397,7 +397,7 @@
     transform: skew(-15deg);
     background-color: var(--orange);
     color: black;
-    box-shadow: 0 0 8px rgba(var(--glow-rgb), 0.5);
+    /* box-shadow: 0 0 8px rgba(var(--glow-rgb), 0.5); */
     padding: 8px 24px;
 }
 
@@ -407,21 +407,21 @@
 }
 
 .ews-btn-skew:hover {
-    box-shadow:
+    /* box-shadow:
         0 0 5px rgba(var(--glow-rgb), 0.8),
-        0 0 15px rgba(var(--glow-rgb), 0.4);
+        0 0 15px rgba(var(--glow-rgb), 0.4); */
 }
 
 .ews-btn-skew.danger {
     background-color: var(--red);
     color: white;
-    box-shadow: 0 0 8px rgba(var(--danger-glow-rgb), 0.5);
+    /* box-shadow: 0 0 8px rgba(var(--danger-glow-rgb), 0.5); */
 }
 
 .ews-btn-skew.danger:hover {
-    box-shadow:
+    /* box-shadow:
         0 0 5px rgba(var(--danger-glow-rgb), 0.8),
-        0 0 15px rgba(var(--danger-glow-rgb), 0.4);
+        0 0 15px rgba(var(--danger-glow-rgb), 0.4); */
 }
 
 /* Button with blinking glow */

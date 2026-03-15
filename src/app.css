@@ -7,4 +7,7 @@
 @import "./lib/styles/variants.css";
 @import "./lib/styles/status.css";
 @import "./lib/styles/hex-grid.css";
+
+/* refactor code */
 @import "./lib/styles/stripe-bar.css";
+@import "./lib/styles/hex-shape.css";
