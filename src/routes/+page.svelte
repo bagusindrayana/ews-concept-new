@@ -26,6 +26,7 @@
   import { createGempaPopupHTML } from "$lib/utils/mapUtils";
   import { generateRandomGempaData } from "$lib/utils/geoUtils";
   import { demoStore } from "$lib/stores/demoStore";
+  import sourceDataConfig from "$lib/config/source-data.json";
 
   let mapContainer: HTMLDivElement;
   let map: mapboxgl.Map;
@@ -66,6 +67,8 @@
   let showGempaTerdeteksi = $state(true);
   let showDetailEvent = $state(true);
   let showShakeMap = $state(true);
+  let showSourceModal = $state(false);
+  let sourceDataInput = $state(JSON.stringify(sourceDataConfig, null, 4));
   let historyRecords = $state<string[][]>([]);
 
   // Missing earthquake tracking states
@@ -439,11 +442,38 @@
     }
   }
 
-  // GET DATA GEMPA (Unified Initialization)
-  function initializeMapData() {
-    earthquakeService
-      .initializeAllEarthquakes()
+  // GET DATA GEMPA (Unified Initialization via Server-Side Proxy)
+  function initializeMapData(customConfig?: any) {
+    const fetchOptions = customConfig
+      ? {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(customConfig),
+        }
+      : { method: "GET" };
+
+    fetch("/api/earthquakes", fetchOptions)
+      .then((res) => res.json())
       .then(({ geoJson, infoList, dirasakanInfo, kecilInfo }) => {
+        // Helper to parse dates from server reliably
+        const parseDate = (val: any) => {
+          if (!val) return DateTime.now();
+          const dt = DateTime.fromISO(val);
+          if (dt.isValid) return dt;
+          return DateTime.fromFormat(
+            String(val).substring(0, 19),
+            "yyyy-MM-dd HH:mm:ss",
+          );
+        };
+
+        // Re-wrap date strings into DateTime objects for logic that requires it
+        if (dirasakanInfo) {
+          dirasakanInfo.sentTime = parseDate(dirasakanInfo.sentTime);
+        }
+        if (kecilInfo) {
+          kecilInfo.sentTime = parseDate(kecilInfo.sentTime);
+        }
+
         // Set master store references
         geoJsonTitikGempa = geoJson;
 
@@ -731,6 +761,24 @@
     alertGempaBumis = alertGempaBumis.filter((_, idx) => idx !== index);
   }
 
+  function saveSourceData() {
+    try {
+      const parsed = JSON.parse(sourceDataInput);
+      localStorage.setItem("custom_source_data", sourceDataInput);
+      showSourceModal = false;
+      initializeMapData(parsed);
+    } catch (e) {
+      alert("Invalid JSON: " + e);
+    }
+  }
+
+  function resetSourceData() {
+    sourceDataInput = JSON.stringify(sourceDataConfig, null, 4);
+    localStorage.removeItem("custom_source_data");
+    showSourceModal = false;
+    initializeMapData();
+  }
+
   onMount(() => {
     map = new mapboxgl.Map({
       container: mapContainer,
@@ -739,7 +787,20 @@
       zoom: 5,
       maxZoom: 22,
     });
-    map.on("load", () => loadGeoJsonCoastline());
+    map.on("load", () => {
+      const customData = localStorage.getItem("custom_source_data");
+      if (customData) {
+        try {
+          sourceDataInput = customData;
+          initializeMapData(JSON.parse(customData));
+        } catch (e) {
+          initializeMapData();
+        }
+      } else {
+        initializeMapData();
+      }
+      loadGeoJsonCoastline();
+    });
   });
 
   onDestroy(() => {
@@ -765,6 +826,10 @@
     <button
       class="ews-btn ews-btn-primary"
       onclick={() => (showSettingsModal = true)}>SETTING</button
+    >
+    <button
+      class="ews-btn ews-btn-primary"
+      onclick={() => (showSourceModal = true)}>SOURCE</button
     >
     <a class="ews-btn ews-btn-primary" href="/status-ui">STATION</a>
   </div>
@@ -879,6 +944,52 @@
                 ></button
               >
             </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  {/if}
+
+  <!-- SOURCE DATA MODAL -->
+  {#if showSourceModal}
+    <div
+      class="settings-modal-overlay"
+      onclick={() => (showSourceModal = false)}
+    >
+      <div
+        class="settings-modal ews-card bordered-red !w-11/12 !max-w-4xl"
+        onclick={(e) => e.stopPropagation()}
+      >
+        <div class="ews-card-header bordered-red-bottom overflow-hidden">
+          <div class="stripe-wrapper">
+            <div class="stripe-bar loop-stripe-reverse anim-duration-20"></div>
+            <div class="stripe-bar loop-stripe-reverse anim-duration-20"></div>
+          </div>
+          <div
+            class="absolute top-0 bottom-0 left-0 right-0 flex justify-between items-center px-3"
+          >
+            <p class="p-1 bg-black font-bold text-sm ews-title text-3xl">
+              SOURCE DATA CONFIG
+            </p>
+            <button
+              class="bg-black px-2 py-1 cursor-pointer"
+              style="color:#e60003"
+              onclick={() => (showSourceModal = false)}>X</button
+            >
+          </div>
+        </div>
+        <div class="ews-card-content p-4 flex flex-col gap-4">
+          <textarea
+            bind:value={sourceDataInput}
+            class="w-full h-96 bg-black text-green-500 font-mono p-2 border border-gray-700 focus:outline-none focus:border-red-500 custom-scrollbar text-xs"
+          ></textarea>
+          <div class="flex gap-2 justify-end">
+            <button class="ews-btn ews-btn-danger" onclick={resetSourceData}
+              >RESET</button
+            >
+            <button class="ews-btn ews-btn-primary" onclick={saveSourceData}
+              >SAVE & RELOAD</button
+            >
           </div>
         </div>
       </div>
