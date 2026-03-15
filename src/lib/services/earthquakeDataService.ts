@@ -1,6 +1,45 @@
 import { XMLParser } from "fast-xml-parser";
 import { DateTime } from "luxon";
 import type { InfoGempa, InfoTsunami } from "$lib/types";
+import { DataNormalizer, type DataMappingConfig } from "./dataNormalizer";
+import sourceDataConfig from "$lib/config/source-data.json";
+
+// ── Utility Helpers ────────────────────────────────────────────────────────
+
+/**
+ * Robustly parses a SQL-style timestamp (UTC) and converts it to Jakarta time.
+ * Handles formats like "2026-03-15 22:45:47.386256"
+ */
+function utcSqlToJakarta(value: string | undefined): DateTime {
+  if (!value) return DateTime.now().setZone("Asia/Jakarta");
+  
+  // Try direct SQL parse
+  let dt = DateTime.fromSQL(value, { zone: "UTC" });
+  if (!dt.isValid) {
+    // Try fromISO fallback (replacing space with T)
+    dt = DateTime.fromISO(value.replace(" ", "T"), { zone: "UTC" });
+  }
+  if (!dt.isValid) {
+    // Try fromFormat fallback (first 19 chars)
+    dt = DateTime.fromFormat(value.substring(0, 19), "yyyy-MM-dd HH:mm:ss", { zone: "UTC" });
+  }
+  
+  return dt.isValid ? dt.setZone("Asia/Jakarta") : DateTime.now().setZone("Asia/Jakarta");
+}
+
+function formatReadableTime(dt: DateTime): string {
+  if (!dt.isValid) return "Invalid Date";
+  return dt.toFormat("yyyy-MM-dd HH:mm:ss");
+}
+
+function timeToMmi(readableTime: string): number {
+  return parseInt(
+    readableTime
+      ?.replaceAll("-", "")
+      .replaceAll(" ", "")
+      .replaceAll(":", "") || "0",
+  );
+}
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -61,27 +100,18 @@ function cacheBust(url: string): string {
   return `${url}${sep}t=${Date.now()}`;
 }
 
-function utcSqlToJakarta(sqlTime: string): DateTime {
-  return DateTime.fromSQL(sqlTime, { zone: "UTC" }).setZone("Asia/Jakarta");
-}
-
-function formatReadableTime(dt: DateTime): string {
-  return `${dt.toISODate()} ${dt.toLocaleString(DateTime.TIME_24_WITH_SECONDS)}`;
-}
-
-function timeToMmi(readableTime: string): number {
-  return parseInt(
-    readableTime
-      ?.replaceAll("-", "")
-      .replaceAll(" ", "")
-      .replaceAll(":", "") || "0",
-  );
-}
-
 // ── Service ────────────────────────────────────────────────────────────────
 
 export class EarthquakeDataService {
   private parser = new XMLParser();
+  private normalizer = new DataNormalizer();
+  private configs = sourceDataConfig as DataMappingConfig[];
+
+  private getConfig(id: string): DataMappingConfig {
+    const cfg = this.configs.find((c) => c.id === id);
+    if (!cfg) throw new Error(`Configuration not found for: ${id}`);
+    return cfg;
+  }
 
   // ──── gempaQL.json → GeoJSON + InfoGempa list ────────────────────────
 
@@ -186,23 +216,26 @@ export class EarthquakeDataService {
     const jObj = this.parser.parse(text);
 
     const items: GempaLiveItem[] = [];
-    for (const f of jObj.Infogempa.gempa) {
-      if (existingEventIds.has(f.eventid)) continue;
-      const dt = utcSqlToJakarta(f.waktu);
-      const readableTime = formatReadableTime(dt);
-      items.push({
-        id: f.eventid,
-        info: {
+    if (jObj.Infogempa && jObj.Infogempa.gempa) {
+      const gempas = Array.isArray(jObj.Infogempa.gempa) ? jObj.Infogempa.gempa : [jObj.Infogempa.gempa];
+      for (const f of gempas) {
+        if (existingEventIds.has(f.eventid)) continue;
+        const dt = utcSqlToJakarta(f.waktu);
+        const readableTime = formatReadableTime(dt);
+        items.push({
           id: f.eventid,
-          lng: f.bujur,
-          lat: f.lintang,
-          mag: f.mag,
-          depth: f.dalam,
-          place: f.area,
-          time: readableTime,
-          mmi: 0,
-        },
-      });
+          info: {
+            id: f.eventid,
+            lng: f.bujur,
+            lat: f.lintang,
+            mag: f.mag,
+            depth: f.dalam,
+            place: f.area,
+            time: readableTime,
+            mmi: 0,
+          },
+        });
+      }
     }
 
     return items;
@@ -221,56 +254,104 @@ export class EarthquakeDataService {
 
   // ──── Unified Initialization ───────────────────────────────────────────
 
-  async initializeAllEarthquakes(): Promise<InitializeEarthquakesResult> {
-    const [titikResult, dirasakanResult, kecilResult, liveResult] =
-      await Promise.allSettled([
-        this.fetchTitikGempa(),
-        this.fetchGempaDirasakan(),
-        this.fetchGempaKecil(),
-        this.fetchGempaLive(),
-      ]);
+  async fetchAllFromConfig(): Promise<Map<string, any>> {
+    const results = new Map<string, any>();
+    const promises = this.configs.map(async (cfg) => {
+      try {
+        const url = cacheBust(cfg.source_url);
+        const res = await fetch(url);
+        const data = cfg.type === "xml" ? await res.text() : await res.json();
+        const normalized = await this.normalizer.parseAndNormalize<InfoGempa>(data, cfg);
+        results.set(cfg.id, { config: cfg, raw: data, normalized });
+      } catch (error) {
+        console.error(`Error fetching/normalizing source ${cfg.id}:`, error);
+        results.set(cfg.id, null);
+      }
+    });
+    await Promise.all(promises);
+    return results;
+  }
 
-    // Extract successful data
-    const dirasakanInfo =
-      dirasakanResult.status === "fulfilled" ? dirasakanResult.value : null;
-    const kecilInfo =
-      kecilResult.status === "fulfilled" ? kecilResult.value : null;
-    const liveItems =
-      liveResult.status === "fulfilled" ? liveResult.value : [];
+  // ──── Unified Initialization ───────────────────────────────────────────
 
-    // Map `id` to `InfoGempa` and `GeoJsonFeature` for deduplication
+  async initializeAllEarthquakes(
+    customConfigs?: DataMappingConfig[],
+  ): Promise<InitializeEarthquakesResult> {
+    const configsToUse = customConfigs || this.configs;
+    const results = new Map<string, any>();
+    const promises = configsToUse.map(async (cfg) => {
+      try {
+        const url = cacheBust(cfg.source_url);
+        const res = await fetch(url);
+        const data = cfg.type === "xml" ? await res.text() : await res.json();
+        const normalized = await this.normalizer.parseAndNormalize<InfoGempa>(
+          data,
+          cfg,
+        );
+        results.set(cfg.id, { config: cfg, raw: data, normalized });
+      } catch (error) {
+        console.error(`Error fetching/normalizing source ${cfg.id}:`, error);
+        results.set(cfg.id, null);
+      }
+    });
+    await Promise.all(promises);
+
+    const configResults = results;
+
+    let dirasakanInfo: FetchGempaDirasakanResult | null = null;
+    let kecilInfo: FetchGempaKecilResult | null = null;
+    let mainGeoJson: GeoJsonFeatureCollection | null = null;
+
     const infoMap = new Map<string, InfoGempa>();
     const featureMap = new Map<string, GeoJsonFeature>();
 
-    // Priority 1: Main List (Titik Gempa)
-    if (titikResult.status === "fulfilled") {
-      titikResult.value.infoList.forEach((info) => infoMap.set(info.id, info));
-      titikResult.value.geoJson.features.forEach((f) => {
-        featureMap.set(f.properties.id, f);
-      });
-    }
+    for (const [id, result] of configResults.entries()) {
+      if (!result) continue;
 
-    // Priority 2: Live Events
-    for (const item of liveItems) {
-      if (!infoMap.has(item.id)) {
-        infoMap.set(item.id, item.info);
-        featureMap.set(item.id, this.toGeoJsonFeature(item.info));
+      const { config, raw, normalized } = result;
+
+      // Handle main GeoJSON (usually from the first "all" source that has features)
+      if (config.category === "all" && !mainGeoJson && raw.type === "FeatureCollection") {
+        mainGeoJson = raw;
+      } else if (config.category === "all" && !mainGeoJson && Array.isArray(raw.features)) {
+          mainGeoJson = { type: "FeatureCollection", features: raw.features };
       }
-    }
 
-    // Priority 3: Gempa Kecil
-    if (kecilInfo && !infoMap.has(kecilInfo.info.id)) {
-      infoMap.set(kecilInfo.info.id, kecilInfo.info);
-      featureMap.set(kecilInfo.info.id, kecilInfo.feature);
-    }
+      // Route data based on category
+      switch (config.category) {
+        case "feel":
+          if (!dirasakanInfo && normalized[0]) {
+            const info = normalized[0];
+            const sentTime = DateTime.fromISO(raw.sent.replace("WIB", "").trim(), {
+              zone: "Asia/Jakarta",
+            });
+            dirasakanInfo = { id: info.id, info, sentTime, raw };
+          }
+          break;
+        case "small":
+          if (!kecilInfo && normalized[0]) {
+            const info = normalized[0];
+            const feature = raw.features?.[0];
+            const dt = feature ? utcSqlToJakarta(feature.properties.time) : DateTime.now();
+            kecilInfo = { feature, info, sentTime: dt, raw };
+          }
+          break;
+      }
 
-    // Priority 4: Gempa Dirasakan
-    if (dirasakanInfo && !infoMap.has(dirasakanInfo.info.id)) {
-      infoMap.set(dirasakanInfo.info.id, dirasakanInfo.info);
-      featureMap.set(
-        dirasakanInfo.info.id,
-        this.toGeoJsonFeature(dirasakanInfo.info),
-      );
+      // Add all items to global maps for deduplication and sorting
+      normalized.forEach((info: InfoGempa) => {
+        if (!infoMap.has(info.id)) {
+          infoMap.set(info.id, info);
+          
+          // Try to find corresponding feature in raw data or generate one
+          let feature = null;
+          if (Array.isArray(raw.features)) {
+            feature = raw.features.find((f: any) => f.properties.id === info.id);
+          }
+          
+          featureMap.set(info.id, feature || this.toGeoJsonFeature(info));
+        }
+      });
     }
 
     // Convert map values to arrays and sort
@@ -284,10 +365,15 @@ export class EarthquakeDataService {
       (info) => featureMap.get(info.id)!,
     );
 
-    const mergedGeoJson: GeoJsonFeatureCollection = {
+    const mergedGeoJson: GeoJsonFeatureCollection = mainGeoJson || {
       type: "FeatureCollection",
       features: finalGeoJsonFeatures,
     };
+
+    // If we merged multiple sources, ensure features match the info list
+    if (configResults.size > 1) {
+        mergedGeoJson.features = finalGeoJsonFeatures;
+    }
 
     return {
       geoJson: mergedGeoJson,
