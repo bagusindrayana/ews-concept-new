@@ -30,8 +30,8 @@
     let psychoInterval: ReturnType<typeof setInterval>;
     let psychoPoints: { nx: number; ny: number }[] = [];
 
-    // --- PENGATURAN KEKUSUTAN (TANGLE SETTINGS) ---
-    // Ubah angka-angka di bawah ini untuk mengatur tingkat kekusutan
+    // --- PSYCHOGRAPHIC SETTING ---
+    // Ubah angka-angka di bawah ini
     const PSYCHO_JUMP_SIZE = 0.3; // Semakin besar, semakin lebar zigzag/lompatannya (misal: 0.2 halus, 0.8 kasar)
     const PSYCHO_MAX_POINTS = 300; // Semakin besar, semakin tebal dan padat benang kusut di dalam kotak (misal: 300 sepi, 1000 penuh)
     const PSYCHO_POINTS_PER_TICK = 10; // Kecepatan gerak/animasi garis baru
@@ -1031,37 +1031,10 @@
                                 </div>
                             {/each}
                         </HexGrid>
-                        <!-- <div class="bordered p-1 w-full flex flex-col gap-1 mt-2">
-                        {#each stationData.Network["Station"].Channel as channel, channelIndex}
-                            <div
-                                class="bg-primary w-full p-1 flex justify-center items-center text-center text-black"
-                            >
-                                {channel["@attributes"]["code"]}
-                            </div>
-                        {/each}
-                    </div> -->
                     {/snippet}
 
                     {#snippet footer()}
                         <div class="flex flex-col gap-2 w-full">
-                            <!-- <button
-                                class="cursor-pointer p-0 b-0 overflow-hidden flex items-center justify-center bordered p-1"
-                                on:click={() => (isSettingsOpen = true)}
-                            >
-                                <div class="stripe-wrapper">
-                                    <div
-                                        class="stripe-bar anim-duration-20"
-                                    ></div>
-                                    <div
-                                        class="stripe-bar anim-duration-20"
-                                    ></div>
-                                </div>
-                                <span
-                                    class="absolute bg-black ews- px-2 py-1"
-                                >
-                                    SETTING
-                                </span>
-                            </button> -->
                             <button
                                 class="ews-btn ews-btn-primary"
                                 on:click={() => (isSettingsOpen = true)}

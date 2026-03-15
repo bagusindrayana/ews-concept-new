@@ -15,7 +15,10 @@
   // import Jam from "$lib/components/Jam.svelte";
   import AffectedAreaItem from "$lib/components/AffectedAreaItem.svelte";
   import Card from "$lib/components/Card.svelte";
-  import { PUBLIC_SOCKET_DATA_URL } from "$env/static/public";
+  import {
+    PUBLIC_SOCKET_DATA_URL,
+    PUBLIC_MAPBOX_ACCESS_TOKEN,
+  } from "$env/static/public";
   import StripeBar from "$lib/components/StripeBar.svelte";
 
   let mapContainer: HTMLDivElement;
@@ -27,6 +30,7 @@
   const smallEarthQuakeSound = "/sounds/wrong-answer-129254.mp3";
   const tsunamiAlertSound = "/sounds/security-alarm-80493.mp3";
 
+  //center of indonesia
   let lng = $state(123.90146694265115);
   let lat = $state(-1.370489908625089);
 
@@ -66,8 +70,7 @@
   let blinkInterval: ReturnType<typeof setInterval> | null = null;
   let selectedPopup: any = null;
 
-  mapboxgl.accessToken =
-    "pk.eyJ1IjoiYmFndXNpbmRyYXlhbmEiLCJhIjoiY2p0dHMxN2ZhMWV5bjRlbnNwdGY4MHFuNSJ9.0j5UAU7dprNjZrouWnoJyg";
+  mapboxgl.accessToken = PUBLIC_MAPBOX_ACCESS_TOKEN;
 
   function createGempaPopupHTML(data: {
     id: string;
@@ -1949,12 +1952,12 @@
       ><div class="bmkg-icon"></div>
       <span>BMKG</span></a
     >
-    <!-- <a
-      href="https://github.com/bagusindrayana/ews-concept"
+    <a
+      href="https://github.com/bagusindrayana/ews-concept-new"
       class="flex gap-1 pointer-events-auto"
       ><div class="github-icon"></div>
       <span>Github</span></a
-    > -->
+    >
   </div>
 
   <!-- TSUNAMI ALERT -->
