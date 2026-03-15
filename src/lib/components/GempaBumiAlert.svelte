@@ -102,16 +102,16 @@
         ></div>
       </div>
     </div>
-    <div class="strip top-0">
-      <div class="strip-wrapper">
-        <div class="strip-bar loop-strip-reverse"></div>
-        <div class="strip-bar loop-strip-reverse"></div>
+    <div class="stripe top-0">
+      <div class="stripe-wrapper">
+        <div class="stripe-bar loop-stripe-reverse"></div>
+        <div class="stripe-bar loop-stripe-reverse"></div>
       </div>
     </div>
-    <div class="strip bottom-0">
-      <div class="strip-wrapper">
-        <div class="strip-bar loop-strip"></div>
-        <div class="strip-bar loop-strip"></div>
+    <div class="stripe bottom-0">
+      <div class="stripe-wrapper">
+        <div class="stripe-bar loop-stripe"></div>
+        <div class="stripe-bar loop-stripe"></div>
       </div>
     </div>
   </div>

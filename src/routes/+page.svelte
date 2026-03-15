@@ -16,6 +16,7 @@
   import ItemKotaTerdampak from "$lib/components/ItemKotaTerdampak.svelte";
   import Card from "$lib/components/Card.svelte";
   import { PUBLIC_SOCKET_DATA_URL } from "$env/static/public";
+  import StripeBar from "$lib/components/StripeBar.svelte";
 
   let mapContainer: HTMLDivElement;
   let map: mapboxgl.Map;
@@ -79,7 +80,7 @@
     return `
       <div class="ews-card bordered-red min-h-48 min-w-48 whitespace-pre-wrap" data-id="${data.id}">
         <div class="ews-card-header bordered-red-bottom overflow-hidden">
-          <div class="strip-wrapper"><div class="strip-bar-red loop-strip-reverse anim-duration-20"></div><div class="strip-bar-red loop-strip-reverse anim-duration-20"></div></div>
+          <div class="stripe-wrapper"><div class="stripe-bar-red loop-stripe-reverse anim-duration-20"></div><div class="stripe-bar-red loop-stripe-reverse anim-duration-20"></div></div>
           <div class="absolute top-0 bottom-0 left-0 right-0 flex justify-center items-center">
             <p class="p-1 bg-black font-bold text-xs ews-title">GEMPA BUMI</p>
           </div>
@@ -630,9 +631,9 @@
       .then(({ geoJson, infoList, dirasakanInfo, kecilInfo }) => {
         // Set master store references
         geoJsonTitikGempa = geoJson;
-        
+
         let ntg: TitikGempa[] = infoList.map(
-          (info) => new TitikGempa(info.id, info)
+          (info) => new TitikGempa(info.id, info),
         );
         tgs = ntg;
         events = [...tgs];
@@ -669,7 +670,7 @@
               "circle-stroke-color": "white",
             },
           });
-          
+
           map.on("click", "earthquakes-layer", (e: any) => {
             const coords = e.features[0].geometry.coordinates.slice();
             const d = e.features[0].properties;
@@ -698,13 +699,13 @@
               .setLngLat(coords)
               .addTo(map);
           });
-          
+
           map.on(
             "mouseenter",
             "earthquakes-layer",
             () => (map.getCanvas().style.cursor = "pointer"),
           );
-          
+
           map.on(
             "mouseleave",
             "earthquakes-layer",
@@ -716,12 +717,25 @@
         if (dirasakanInfo) {
           lastGempaId = dirasakanInfo.id;
           if (earthquakeService.isRecent(dirasakanInfo.sentTime)) {
-            warningHandler(earthquakeService.buildWarningData(dirasakanInfo.info, dirasakanInfo.raw));
+            warningHandler(
+              earthquakeService.buildWarningData(
+                dirasakanInfo.info,
+                dirasakanInfo.raw,
+              ),
+            );
             setTimeout(() => {
-              GempaDirasakan = new TitikGempa(dirasakanInfo.info.id, dirasakanInfo.info, { map });
+              GempaDirasakan = new TitikGempa(
+                dirasakanInfo.info.id,
+                dirasakanInfo.info,
+                { map },
+              );
             }, 6000);
           } else {
-            GempaDirasakan = new TitikGempa(dirasakanInfo.info.id, dirasakanInfo.info, { map });
+            GempaDirasakan = new TitikGempa(
+              dirasakanInfo.info.id,
+              dirasakanInfo.info,
+              { map },
+            );
           }
         }
 
@@ -1018,9 +1032,9 @@
         onclick={(e) => e.stopPropagation()}
       >
         <div class="ews-card-header bordered-red-bottom overflow-hidden">
-          <div class="strip-wrapper">
-            <div class="strip-bar loop-strip-reverse anim-duration-20"></div>
-            <div class="strip-bar loop-strip-reverse anim-duration-20"></div>
+          <div class="stripe-wrapper">
+            <div class="stripe-bar loop-stripe-reverse anim-duration-20"></div>
+            <div class="stripe-bar loop-stripe-reverse anim-duration-20"></div>
           </div>
           <div
             class="absolute top-0 bottom-0 left-0 right-0 flex justify-between items-center px-3"
@@ -1088,12 +1102,12 @@
               <button
                 onclick={testDemoGempa}
                 class="cursor-pointer p-0 b-0 overflow-hidden flex items-center justify-center bordered p-1"
-                ><div class="strip-wrapper">
+                ><div class="stripe-wrapper">
                   <div
-                    class="strip-bar loop-strip-reverse anim-duration-20"
+                    class="stripe-bar loop-stripe-reverse anim-duration-20"
                   ></div>
                   <div
-                    class="strip-bar loop-strip-reverse anim-duration-20"
+                    class="stripe-bar loop-stripe-reverse anim-duration-20"
                   ></div>
                 </div>
                 <span class="absolute bg-black ews- px-2 py-1"
@@ -1104,12 +1118,12 @@
               <button
                 onclick={testDemoTsunami}
                 class="cursor-pointer p-0 b-0 overflow-hidden flex items-center justify-center bordered p-1"
-                ><div class="strip-wrapper">
+                ><div class="stripe-wrapper">
                   <div
-                    class="strip-bar-red loop-strip-reverse anim-duration-20"
+                    class="stripe-bar-red loop-stripe-reverse anim-duration-20"
                   ></div>
                   <div
-                    class="strip-bar-red loop-strip-reverse anim-duration-20"
+                    class="stripe-bar-red loop-stripe-reverse anim-duration-20"
                   ></div>
                 </div>
                 <span class="absolute bg-black ews- px-2 py-1"
@@ -1133,21 +1147,24 @@
         className="hidden md:block show-pop-up md:w-1/2 lg:w-2/5 xl:w-1/5 pointer-events-auto"
       >
         {#snippet title()}
-          <div class="overflow-hidden">
-            <div class="strip-wrapper">
-              <div
-                class="strip-bar-red loop-strip-reverse anim-duration-20"
-              ></div>
-              <div
-                class="strip-bar-red loop-strip-reverse anim-duration-20"
-              ></div>
-            </div>
+          <StripeBar color="red" loop={true} reverse={true} duration={20}>
             <div
               class="absolute top-0 bottom-0 left-0 right-0 flex justify-center items-center"
             >
               <p class="p-1 bg-black font-bold text-xs">GEMPA BUMI</p>
             </div>
-          </div>
+          </StripeBar>
+          <!-- <div class="overflow-hidden">
+            <div class="stripe-wrapper">
+              <div
+                class="stripe-bar-red loop-stripe-reverse anim-duration-20"
+              ></div>
+              <div
+                class="stripe-bar-red loop-stripe-reverse anim-duration-20"
+              ></div>
+            </div>
+            
+          </div> -->
         {/snippet}
         {#snippet children()}
           <div
@@ -1167,10 +1184,10 @@
                   </div>
                   <div class="decal">
                     <div
-                      class="w-full h-full strip-bar-vertical loop-strip-vertical anim-duration-20"
+                      class="w-full h-full stripe-bar-vertical loop-stripe-vertical anim-duration-20"
                     ></div>
                     <div
-                      class="w-full h-full strip-bar-vertical loop-strip-vertical anim-duration-20"
+                      class="w-full h-full stripe-bar-vertical loop-stripe-vertical anim-duration-20"
                     ></div>
                   </div>
                 </div>
@@ -1270,9 +1287,13 @@
       >
         {#snippet title()}
           <div class="overflow-hidden">
-            <div class="strip-wrapper">
-              <div class="strip-bar loop-strip-reverse anim-duration-20"></div>
-              <div class="strip-bar loop-strip-reverse anim-duration-20"></div>
+            <div class="stripe-wrapper">
+              <div
+                class="stripe-bar loop-stripe-reverse anim-duration-20"
+              ></div>
+              <div
+                class="stripe-bar loop-stripe-reverse anim-duration-20"
+              ></div>
             </div>
             <div
               class="absolute top-0 bottom-0 left-0 right-0 flex justify-center items-center"
@@ -1329,12 +1350,12 @@
         >
           {#snippet title()}
             <div class="overflow-hidden">
-              <div class="strip-wrapper">
+              <div class="stripe-wrapper">
                 <div
-                  class="strip-bar-red loop-strip-reverse anim-duration-20"
+                  class="stripe-bar-red loop-stripe-reverse anim-duration-20"
                 ></div>
                 <div
-                  class="strip-bar-red loop-strip-reverse anim-duration-20"
+                  class="stripe-bar-red loop-stripe-reverse anim-duration-20"
                 ></div>
               </div>
               <div
@@ -1370,10 +1391,10 @@
                     </div>
                     <div class="decal">
                       <div
-                        class="w-full h-full strip-bar-vertical loop-strip-vertical anim-duration-20"
+                        class="w-full h-full stripe-bar-vertical loop-stripe-vertical anim-duration-20"
                       ></div>
                       <div
-                        class="w-full h-full strip-bar-vertical loop-strip-vertical anim-duration-20"
+                        class="w-full h-full stripe-bar-vertical loop-stripe-vertical anim-duration-20"
                       ></div>
                     </div>
                   </div>
@@ -1473,9 +1494,9 @@
     >
       {#snippet title()}
         <div class="overflow-hidden">
-          <div class="strip-wrapper">
-            <div class="strip-bar-red loop-strip anim-duration-20"></div>
-            <div class="strip-bar-red loop-strip anim-duration-20"></div>
+          <div class="stripe-wrapper">
+            <div class="stripe-bar-red loop-stripe anim-duration-20"></div>
+            <div class="stripe-bar-red loop-stripe anim-duration-20"></div>
           </div>
           <div
             class="absolute top-0 bottom-0 left-0 right-0 flex justify-center items-center"
@@ -1515,10 +1536,23 @@
         className="hidden md:block show-pop-up md:w-1/2 lg:w-2/5 xl:w-1/5 pointer-events-auto"
       >
         {#snippet title()}
-          <div class="overflow-hidden">
-            <div class="strip-wrapper">
-              <div class="strip-bar loop-strip"></div>
-              <div class="strip-bar loop-strip"></div>
+          <StripeBar loop={true}>
+            <div
+              class="absolute top-0 bottom-0 left-0 right-0 flex justify-center items-center"
+            >
+              <div
+                class="absolute top-0 bottom-0 left-0 right-0 flex justify-center items-center"
+              >
+                <p class="text-lg bg-black font-bold p-1 ews-title text-3xl">
+                  GEMPA DIRASAKAN TERAKHIR
+                </p>
+              </div>
+            </div>
+          </StripeBar>
+          <!-- <div class="overflow-hidden">
+            <div class="stripe-wrapper">
+              <div class="stripe-bar loop-stripe"></div>
+              <div class="stripe-bar loop-stripe"></div>
             </div>
             <div
               class="absolute top-0 bottom-0 left-0 right-0 flex justify-center items-center"
@@ -1527,7 +1561,7 @@
                 GEMPA DIRASAKAN TERAKHIR
               </p>
             </div>
-          </div>
+          </div> -->
         {/snippet}
         {#snippet footer()}
           <div
@@ -1570,10 +1604,10 @@
                   </div>
                   <div class="decal">
                     <div
-                      class="w-full h-full strip-bar-red-vertical loop-strip-vertical anim-duration-20"
+                      class="w-full h-full stripe-bar-red-vertical loop-stripe-vertical anim-duration-20"
                     ></div>
                     <div
-                      class="w-full h-full strip-bar-red-vertical loop-strip-vertical anim-duration-20"
+                      class="w-full h-full stripe-bar-red-vertical loop-stripe-vertical anim-duration-20"
                     ></div>
                   </div>
                 </div>
@@ -1635,9 +1669,9 @@
       >
         {#snippet title()}
           <div class="overflow-hidden">
-            <div class="strip-wrapper">
-              <div class="strip-bar loop-strip"></div>
-              <div class="strip-bar loop-strip"></div>
+            <div class="stripe-wrapper">
+              <div class="stripe-bar loop-stripe"></div>
+              <div class="stripe-bar loop-stripe"></div>
             </div>
             <div
               class="absolute top-0 bottom-0 left-0 right-0 flex justify-center items-center"
@@ -1847,9 +1881,13 @@
       <Card>
         {#snippet title()}
           <div class="overflow-hidden">
-            <div class="strip-wrapper">
-              <div class="strip-bar loop-strip-reverse anim-duration-20"></div>
-              <div class="strip-bar loop-strip-reverse anim-duration-20"></div>
+            <div class="stripe-wrapper">
+              <div
+                class="stripe-bar loop-stripe-reverse anim-duration-20"
+              ></div>
+              <div
+                class="stripe-bar loop-stripe-reverse anim-duration-20"
+              ></div>
             </div>
             <div
               class="absolute top-0 bottom-0 left-0 right-0 flex justify-center items-center"
@@ -1876,10 +1914,10 @@
                   </div>
                   <div class="decal">
                     <div
-                      class="w-full h-full strip-bar-vertical loop-strip-vertical anim-duration-20"
+                      class="w-full h-full stripe-bar-vertical loop-stripe-vertical anim-duration-20"
                     ></div>
                     <div
-                      class="w-full h-full strip-bar-vertical loop-strip-vertical anim-duration-20"
+                      class="w-full h-full stripe-bar-vertical loop-stripe-vertical anim-duration-20"
                     ></div>
                   </div>
                 </div>

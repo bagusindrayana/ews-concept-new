@@ -65,36 +65,36 @@
         <div
           class="absolute w-full h-2 m-auto top-0 left-0 right-0 overflow-hidden"
         >
-          <div class="w-2 h-full strip-bar-red strip-animation"></div>
+          <div class="w-2 h-full stripe-bar-red stripe-animation"></div>
         </div>
         <div
           class="absolute w-full h-2 m-auto bottom-0 left-0 right-0 overflow-hidden"
         >
-          <div class="w-2 h-full strip-bar-red strip-animation-reverse"></div>
+          <div class="w-2 h-full stripe-bar-red stripe-animation-reverse"></div>
         </div>
         <div
           class="absolute w-2 h-full m-auto top-0 bottom-0 left-0 overflow-hidden"
         >
           <div
-            class="w-2 h-full strip-bar-red-vertical loop-strip-vertical-reverse"
+            class="w-2 h-full stripe-bar-red-vertical loop-stripe-vertical-reverse"
           ></div>
         </div>
         <div
           class="absolute w-2 h-full m-auto top-0 bottom-0 right-0 overflow-hidden"
         >
           <div
-            class="w-2 h-full strip-bar-red-vertical loop-strip-vertical"
+            class="w-2 h-full stripe-bar-red-vertical loop-stripe-vertical"
           ></div>
         </div>
         <div class="w-full h-full p-6">
           <div class="bordered-red p-2 text-center w-full mb-2">
             <div class="overflow-hidden relative">
-              <div class="strip-wrapper">
+              <div class="stripe-wrapper">
                 <div
-                  class="strip-bar loop-strip-reverse anim-duration-20"
+                  class="stripe-bar loop-stripe-reverse anim-duration-20"
                 ></div>
                 <div
-                  class="strip-bar loop-strip-reverse anim-duration-20"
+                  class="stripe-bar loop-stripe-reverse anim-duration-20"
                 ></div>
               </div>
               <div
@@ -107,12 +107,12 @@
           <div class="ews-card bordered-red w-full h-auto">
             <div class="ews-card-header bordered-red-bottom">
               <div class="overflow-hidden relative">
-                <div class="strip-wrapper">
+                <div class="stripe-wrapper">
                   <div
-                    class="strip-bar loop-strip-reverse anim-duration-20"
+                    class="stripe-bar loop-stripe-reverse anim-duration-20"
                   ></div>
                   <div
-                    class="strip-bar loop-strip-reverse anim-duration-20"
+                    class="stripe-bar loop-stripe-reverse anim-duration-20"
                   ></div>
                 </div>
                 <div

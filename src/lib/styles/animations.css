@@ -8,23 +8,27 @@
     }
 }
 
-.loop-strip-vertical {
-    animation: stripAnimationVertical 15s infinite linear;
+.loop-stripe-vertical {
+    animation: stripeAnimationVertical 15s infinite linear;
 }
 
-.loop-strip-vertical-reverse {
-    animation: stripAnimationVertical 15s infinite linear reverse;
+.loop-stripe-vertical.reverse {
+    animation: loopStripVertical 15s infinite linear reverse;
 }
 
-.strip-animation {
-    animation: stripAnimation 10s infinite linear;
+.loop-stripe-vertical-reverse {
+    animation: loopStripVertical 15s infinite linear reverse;
 }
 
-.strip-animation-reverse {
-    animation: stripAnimation 10s infinite linear reverse;
+.stripe-animation {
+    animation: stripeAnimation 10s infinite linear;
 }
 
-@keyframes stripAnimationVertical {
+.stripe-animation-reverse {
+    animation: stripeAnimation 10s infinite linear reverse;
+}
+
+@keyframes loopStripVertical {
     from {
         transform: translateY(0);
     }
@@ -35,7 +39,18 @@
     }
 }
 
-@keyframes stripAnimation {
+@keyframes stripeAnimationVertical {
+    from {
+        transform: translateY(0);
+    }
+
+    to {
+        transform: translateY(calc(-42.4264px * 47));
+        /* ≈ -2000px, but exact multiple of repeating unit */
+    }
+}
+
+@keyframes stripeAnimation {
     from {
         transform: translateX(0);
     }
@@ -45,12 +60,16 @@
     }
 }
 
-.loop-strip {
-    animation: loopStrip infinite linear;
+.loop-stripe {
+    animation: stripeAnimation infinite linear;
     animation-duration: 10s;
 }
 
-.loop-strip-reverse {
+.loop-stripe.reverse {
+    animation: loopStrip infinite linear reverse;
+}
+
+.loop-stripe-reverse {
     animation: loopStrip infinite linear reverse;
     animation-duration: 10s;
 }

@@ -7,6 +7,11 @@
   import type { TitikTsunami } from "$lib/components/TitikTsunami";
   import HexGrid from "$lib/components/HexGrid.svelte";
 
+  import Highlight from "svelte-highlight";
+  import css from "svelte-highlight/languages/css";
+  import vbscriptHtml from "svelte-highlight/languages/vbscript-html";
+  import StripeBar from "$lib/components/StripeBar.svelte";
+
   let showGempaBumiAlert = $state(false);
   let showTsunamiAlert = $state(false);
 
@@ -50,90 +55,269 @@
 <div class="p-8 min-h-screen w-4xl mx-auto text-xs">
   <div class="mb-8">
     <h1 class="text-3xl font-bold mb-2">Showcase UI Components</h1>
-    <p class="text-gray-400">
-      Demo page for various UI components used in this Early Warning System
-      project.
+    <p class="text-red-500 bg-black p-2 rounded">
+      All custom CSS here is intended to be used with Tailwind CSS
     </p>
   </div>
 
-  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-    <section>
-      <h1 class="text-xl font-semibold mb-4 border-b border-gray-700 pb-2">
-        Strip
-      </h1>
-      <div class="w-full">
-        <p>Still</p>
-        <div class="overflow-hidden">
-          <div class="strip-wrapper">
-            <div class="strip-bar"></div>
-            <div class="strip-bar"></div>
-          </div>
-        </div>
-        <p>Animated</p>
-        <div class="overflow-hidden">
-          <div class="strip-wrapper">
-            <div class="strip-bar loop-strip anim-duration-20"></div>
-            <div class="strip-bar loop-strip anim-duration-20"></div>
-          </div>
-        </div>
-        <p>Red</p>
-        <div class="overflow-hidden">
-          <div class="strip-wrapper">
-            <div class="strip-bar-red loop-strip anim-duration-20"></div>
-            <div class="strip-bar-red loop-strip anim-duration-20"></div>
-          </div>
-        </div>
-        <p>Reverse</p>
-        <div class="overflow-hidden">
-          <div class="strip-wrapper">
-            <div
-              class="strip-bar-red loop-strip-reverse anim-duration-20"
-            ></div>
-            <div
-              class="strip-bar-red loop-strip-reverse anim-duration-20"
-            ></div>
-          </div>
-        </div>
+  <section>
+    <h1 class="text-xl font-semibold mb-4 border-b border-gray-700 pb-2">
+      Strip
+    </h1>
 
-        <p>Vertical</p>
-        <div class="overflow-hidden h-[200px] flex gap-2">
-          <div class="w-[40px] h-full strip-bar-vertical"></div>
-          <div class="w-[40px] h-full overflow-hidden">
-            <div
-              class="w-full h-full strip-bar-vertical loop-strip-vertical anim-duration-20"
-            ></div>
-            <div
-              class="w-full h-full strip-bar-vertical loop-strip-vertical anim-duration-20"
-            ></div>
-          </div>
-          <div class="w-[40px] h-full overflow-hidden">
-            <div
-              class="w-full h-full strip-bar-red-vertical loop-strip-vertical-reverse anim-duration-20"
-            ></div>
-            <div
-              class="w-full h-full strip-bar-red-vertical loop-strip-vertical-reverse anim-duration-20"
-            ></div>
-          </div>
-          <div class="w-[40px] blink blink-fast h-full">
-            <div
-              class="w-full h-full strip-bar-red-vertical loop-strip-vertical-reverse anim-duration-10"
-            ></div>
-            <div
-              class="w-full h-full strip-bar-red-vertical loop-strip-vertical-reverse anim-duration-10"
-            ></div>
-          </div>
-          <div class="w-[40px] blink blink-fast h-full">
-            <div
-              class="w-full h-full strip-bar-vertical loop-strip-vertical anim-duration-10"
-            ></div>
-            <div
-              class="w-full h-full strip-bar-vertical loop-strip-vertical anim-duration-10"
-            ></div>
-          </div>
+    <div class="w-full">
+      <details class="mb-2">
+        <summary class="cursor-pointer"> Custom CSS </summary>
+        <div class="w-full">
+          <Highlight
+            language={css}
+            code={`
+:root {
+  --orange: #fa0;
+  --red: red;
+
+}
+
+.stripe-wrapper {
+    width: max(200vw, 2000px);
+    height: 30px;
+    overflow: hidden;
+    white-space: nowrap;
+    margin: 0px !important;
+    padding: 0px !important;
+    display: flex;
+}
+
+.stripe-wrapper.vertical {
+    height: max(200vh, 2000px);
+    width: 30px;
+}
+
+
+.stripe-bar {
+    width: max(200vw, 2000px);
+    height: 100%;
+    display: inline-block;
+    flex-shrink: 0;
+    margin-right: 0px !important;
+    margin-left: 0px !important;
+    margin-bottom: -5px;
+    --stripee-color: var(--orange);
+    --stripee-size: 15px;
+    --glow-color: rgba(255, 94, 0, 0.8);
+    --glow-size: 3px;
+    background-image: repeating-linear-gradient(-45deg,
+            var(--glow-color) calc(-1 * var(--glow-size)),
+            var(--stripee-color) 0,
+            var(--stripee-color) calc(var(--stripee-size) - var(--glow-size) / 2),
+            var(--glow-color) calc(var(--stripee-size) + var(--glow-size) / 2),
+            transparent calc(var(--stripee-size) + var(--glow-size) / 2),
+            transparent calc(2 * var(--stripee-size)),
+            var(--glow-color) calc(2 * var(--stripee-size) - var(--glow-size)));
+}
+
+.stripe-bar.red {
+    --stripee-color: var(--red);
+    --stripee-size: 15px;
+    --glow-color: rgba(255, 17, 0, 0.8);
+    --glow-size: 3px;
+}
+
+.stripe-bar.vertical {
+    width: 100%;
+    height: max(200vw, 200vh);
+    transform: translate3d(0, 0, 0);
+}
+
+
+.loop-stripe-vertical {
+    animation: loopStripVertical 15s infinite linear;
+}
+
+.loop-stripe-vertical.reverse {
+    animation: loopStripVertical 15s infinite linear reverse;
+}
+
+.loop-stripe {
+    animation: loopStrip infinite linear;
+    animation-duration: 10s;
+}
+
+.loop-stripe.reverse {
+    animation: loopStrip infinite linear reverse;
+}
+
+@keyframes loopStripVertical {
+    from {
+        transform: translateY(0);
+    }
+
+    to {
+        transform: translateY(calc(-42.4264px * 47));
+    }
+}
+
+@keyframes loopStrip {
+    from {
+        transform: translateX(0);
+    }
+
+    to {
+        transform: translateX(calc(-42.4264px * 47));
+    }
+}
+
+.anim-duration-5 {
+    animation-duration: 5s !important;
+}
+
+.anim-duration-10 {
+    animation-duration: 10s !important;
+}
+
+.anim-duration-20 {
+    animation-duration: 20s !important;
+}
+    `}
+          />
         </div>
+      </details>
+      <p>Default</p>
+      <!-- <div class="overflow-hidden my-2">
+        <div class="stripe-wrapper">
+          <div class="stripe-bar"></div>
+        </div>
+      </div> -->
+      <StripeBar className="my-2"></StripeBar>
+
+      <details class="mb-2">
+        <summary class="cursor-pointer">HTML</summary>
+        <div class="w-full">
+          <Highlight
+            language={vbscriptHtml}
+            code={`
+<div class="overflow-hidden">
+  <div class="stripe-wrapper">
+    <div class="stripe-bar"></div>
+  </div>
+</div>
+    `}
+          />
+        </div>
+      </details>
+
+      <hr />
+
+      <p>Animated</p>
+      <StripeBar loop={true}></StripeBar>
+      <details class="mb-2">
+        <summary class="cursor-pointer">HTML</summary>
+        <div class="w-full">
+          <Highlight
+            language={vbscriptHtml}
+            code={`
+<div class="overflow-hidden">
+  <div class="stripe-wrapper">
+    <div class="stripe-bar loop-stripe anim-duration-20"></div>
+    <div class="stripe-bar loop-stripe anim-duration-20"></div>
+  </div>
+</div>
+    `}
+          />
+        </div>
+      </details>
+
+      <p>Red</p>
+      <StripeBar color="red" loop={true} duration={20}></StripeBar>
+      <details class="mb-2">
+        <summary class="cursor-pointer">HTML</summary>
+        <div class="w-full">
+          <Highlight
+            language={vbscriptHtml}
+            code={`
+<div class="overflow-hidden">
+  <div class="stripe-wrapper">
+    <div class="stripe-bar red loop-stripe anim-duration-20"></div>
+    <div class="stripe-bar red loop-stripe anim-duration-20"></div>
+  </div>
+</div>
+    `}
+          />
+        </div>
+      </details>
+
+      <p>Reverse</p>
+      <StripeBar color="red" loop={true} reverse={true} duration={20}
+      ></StripeBar>
+      <details class="mb-2">
+        <summary class="cursor-pointer">HTML</summary>
+        <div class="w-full">
+          <Highlight
+            language={vbscriptHtml}
+            code={`
+<div class="overflow-hidden">
+  <div class="stripe-wrapper">
+    <div class="stripe-bar red loop-stripe-reverse anim-duration-20"></div>
+    <div class="stripe-bar red loop-stripe-reverse anim-duration-20"></div>
+  </div>
+</div>
+    `}
+          />
+        </div>
+      </details>
+
+      <p>Vertical</p>
+      <div class="h-[100px] flex gap-2">
+        <StripeBar orientation="vertical"></StripeBar>
+
+        <StripeBar orientation="vertical" color="red"></StripeBar>
       </div>
-    </section>
+    </div>
 
+    <details class="mb-2">
+      <summary class="cursor-pointer">HTML</summary>
+      <div class="w-full">
+        <Highlight
+          language={vbscriptHtml}
+          code={`
+<div class="overflow-hidden h-[200px] w-[40px]">
+  <div class="stripe-wrapper vertical">
+    <div class="stripe-bar vertical"></div>
+    <div class="stripe-bar vertical"></div>
+  </div>
+</div>
+    `}
+        />
+      </div>
+    </details>
+
+    <p>Vertical Animated</p>
+    <div class="h-[100px] flex gap-2">
+      <StripeBar orientation="vertical" loop={true}></StripeBar>
+      <StripeBar orientation="vertical" color="red" loop={true}></StripeBar>
+      <StripeBar orientation="vertical" color="red" loop={true} reverse={true}
+      ></StripeBar>
+    </div>
+
+    <details class="mb-2">
+      <summary class="cursor-pointer">HTML</summary>
+      <div class="w-full">
+        <Highlight
+          language={vbscriptHtml}
+          code={`
+<div class="overflow-hidden h-[200px]">
+  <div class="stripe-wrapper vertical">
+    <div class="stripe-bar vertical loop-stripe-vertical-reverse"></div>
+    <div class="stripe-bar vertical loop-stripe-vertical-reverse"></div>
+  </div>
+</div>
+    `}
+        />
+      </div>
+    </details>
+  </section>
+
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
     <!-- CARD DEMO -->
     <section>
       <h2 class="text-xl font-semibold mb-4 border-b border-gray-700 pb-2">
@@ -155,59 +339,33 @@
 
       <Card className="w-full mb-4">
         {#snippet title()}
-          <div class="overflow-hidden">
-            <div class="strip-wrapper">
-              <div class="strip-bar loop-strip anim-duration-20"></div>
-              <div class="strip-bar loop-strip anim-duration-20"></div>
-            </div>
-          </div>
+          <StripeBar loop={true} duration={20}></StripeBar>
         {/snippet}
         {#snippet children()}
           <p class="text-sm">CARD CONTENT</p>
         {/snippet}
         {#snippet footer()}
-          <div class="overflow-hidden">
-            <div class="strip-wrapper">
-              <div class="strip-bar loop-strip-reverse anim-duration-20"></div>
-              <div class="strip-bar loop-strip-reverse anim-duration-20"></div>
-            </div>
-          </div>
+          <StripeBar loop={true} duration={20} reverse={true}></StripeBar>
         {/snippet}
       </Card>
 
       <Card className="w-full mb-4">
         {#snippet title()}
-          <div class="overflow-hidden">
-            <div class="strip-wrapper">
-              <div class="strip-bar-red loop-strip anim-duration-20"></div>
-              <div class="strip-bar-red loop-strip anim-duration-20"></div>
-            </div>
-            <div
-              class="absolute top-0 bottom-0 left-0 right-0 flex justify-center items-center"
-            >
+          <StripeBar color="red" loop={true} duration={20}>
+            <div class="ews-card-text">
               <p class="p-1 bg-black font-bold text-xs">CARD TITLE</p>
             </div>
-          </div>
+          </StripeBar>
         {/snippet}
         {#snippet children()}
           <p class="text-sm">CARD CONTENT</p>
         {/snippet}
         {#snippet footer()}
-          <div class="overflow-hidden">
-            <div class="strip-wrapper">
-              <div
-                class="strip-bar-red loop-strip-reverse anim-duration-20"
-              ></div>
-              <div
-                class="strip-bar-red loop-strip-reverse anim-duration-20"
-              ></div>
-            </div>
-            <div
-              class="absolute top-0 bottom-0 left-0 right-0 flex justify-center items-center"
-            >
+          <StripeBar color="red" loop={true} reverse={true} duration={20}>
+            <div class="ews-card-text">
               <p class="p-1 bg-black font-bold text-xs">CARD FOOTER</p>
             </div>
-          </div>
+          </StripeBar>
         {/snippet}
       </Card>
     </section>
@@ -229,9 +387,9 @@
               <div
                 class="clip-hex-inner flex flex-col justify-center items-center text-center"
               >
-                <div class="strip-wrapper bg-black">
-                  <div class="strip-bar loop-strip anim-duration-20"></div>
-                  <div class="strip-bar loop-strip anim-duration-20"></div>
+                <div class="stripe-wrapper bg-black">
+                  <div class="stripe-bar loop-stripe anim-duration-20"></div>
+                  <div class="stripe-bar loop-stripe anim-duration-20"></div>
                 </div>
               </div>
             </div>
@@ -245,9 +403,9 @@
               <div
                 class="clip-hex-inner flex flex-col justify-center items-center text-center"
               >
-                <div class="strip-wrapper bg-black">
-                  <div class="strip-bar-red"></div>
-                  <div class="strip-bar-red"></div>
+                <div class="stripe-wrapper bg-black">
+                  <div class="stripe-bar red"></div>
+                  <div class="stripe-bar red"></div>
                 </div>
               </div>
             </div>
@@ -259,9 +417,9 @@
               <div
                 class="clip-hex-inner flex flex-col justify-center items-center text-center"
               >
-                <div class="strip-wrapper bg-black">
-                  <div class="strip-bar anim-duration-20"></div>
-                  <div class="strip-bar anim-duration-20"></div>
+                <div class="stripe-wrapper bg-black">
+                  <div class="stripe-bar anim-duration-20"></div>
+                  <div class="stripe-bar anim-duration-20"></div>
                 </div>
               </div>
             </div>
@@ -334,7 +492,7 @@
               <div class="text">MAG</div>
             </div>
             <div class="decal">
-              <div class="w-full h-full strip-bar-vertical"></div>
+              <div class="w-full h-full stripe-bar vertical"></div>
             </div>
           </div>
 
@@ -346,7 +504,7 @@
               <div class="text">MAG</div>
             </div>
             <div class="decal">
-              <div class="w-full h-full strip-bar-red-vertical"></div>
+              <div class="w-full h-full stripe-bar red vertical"></div>
             </div>
           </div>
         </div>
@@ -360,7 +518,7 @@
             </div>
             <div class="decal">
               <div
-                class="w-full h-full strip-bar-vertical loop-strip-vertical-reverse anim-duration-10"
+                class="w-full h-full stripe-bar vertical loop-stripe-vertical-reverse anim-duration-10"
               ></div>
             </div>
           </div>
@@ -374,7 +532,7 @@
             </div>
             <div class="decal">
               <div
-                class="w-full h-full strip-bar-red-vertical loop-strip-vertical anim-duration-10"
+                class="w-full h-full stripe-bar red vertical loop-stripe-vertical anim-duration-10"
               ></div>
             </div>
           </div>
@@ -563,13 +721,13 @@
           <p class="text-gray-500 text-xs mb-1">Input + Strip</p>
           <div class="flex flex-col gap-0">
             <div class="overflow-hidden">
-              <div class="strip-wrapper">
+              <div class="stripe-wrapper">
                 <div
-                  class="strip-bar loop-strip anim-duration-20"
+                  class="stripe-bar loop-stripe anim-duration-20"
                   style="height:6px;"
                 ></div>
                 <div
-                  class="strip-bar loop-strip anim-duration-20"
+                  class="stripe-bar loop-stripe anim-duration-20"
                   style="height:6px;"
                 ></div>
               </div>
@@ -577,17 +735,17 @@
             <input
               class="ews-input"
               type="text"
-              placeholder="With strip decoration..."
+              placeholder="With stripe decoration..."
               style="border-radius: 0;"
             />
             <div class="overflow-hidden">
-              <div class="strip-wrapper">
+              <div class="stripe-wrapper">
                 <div
-                  class="strip-bar loop-strip-reverse anim-duration-20"
+                  class="stripe-bar loop-stripe-reverse anim-duration-20"
                   style="height:6px;"
                 ></div>
                 <div
-                  class="strip-bar loop-strip-reverse anim-duration-20"
+                  class="stripe-bar loop-stripe-reverse anim-duration-20"
                   style="height:6px;"
                 ></div>
               </div>
@@ -682,12 +840,12 @@
               <button
                 class="cursor-pointer p-0 b-0 overflow-hidden flex items-center justify-center bordered p-1"
               >
-                <div class="strip-wrapper">
+                <div class="stripe-wrapper">
                   <div
-                    class="strip-bar loop-strip-reverse anim-duration-20"
+                    class="stripe-bar loop-stripe-reverse anim-duration-20"
                   ></div>
                   <div
-                    class="strip-bar loop-strip-reverse anim-duration-20"
+                    class="stripe-bar loop-stripe-reverse anim-duration-20"
                   ></div>
                 </div>
                 <span class="absolute bg-black ews- px-2 py-1"
@@ -700,9 +858,13 @@
               <button
                 class="cursor-pointer p-0 b-0 overflow-hidden flex items-center justify-center bordered-red p-1"
               >
-                <div class="strip-wrapper">
-                  <div class="strip-bar-red loop-strip anim-duration-20"></div>
-                  <div class="strip-bar-red loop-strip anim-duration-20"></div>
+                <div class="stripe-wrapper">
+                  <div
+                    class="stripe-bar red loop-stripe anim-duration-20"
+                  ></div>
+                  <div
+                    class="stripe-bar red loop-stripe anim-duration-20"
+                  ></div>
                 </div>
                 <span class="absolute bg-black ews- danger px-2 py-1"
                   >⚠ EMERGENCY BUTTON</span

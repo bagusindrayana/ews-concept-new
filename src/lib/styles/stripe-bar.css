@@ -1,0 +1,125 @@
+/* Strip Bar Styles */
+.stripe-wrapper {
+    width: max(200vw, 2000px);
+    height: 30px;
+    overflow: hidden;
+    white-space: nowrap;
+    margin: 0px !important;
+    padding: 0px !important;
+    display: flex;
+}
+
+.stripe-wrapper.vertical {
+    height: max(200vh, 2000px);
+    width: 30px;
+}
+
+
+.stripe-bar {
+    width: max(200vw, 2000px);
+    height: 100%;
+    display: inline-block;
+    flex-shrink: 0;
+    margin-right: 0px !important;
+    margin-left: 0px !important;
+    margin-bottom: -5px;
+    --stripee-color: var(--orange);
+    --stripee-size: 15px;
+    --glow-color: rgba(255, 94, 0, 0.8);
+    --glow-size: 3px;
+    background-image: repeating-linear-gradient(-45deg,
+            var(--glow-color) calc(-1 * var(--glow-size)),
+            var(--stripee-color) 0,
+            var(--stripee-color) calc(var(--stripee-size) - var(--glow-size) / 2),
+            var(--glow-color) calc(var(--stripee-size) + var(--glow-size) / 2),
+            transparent calc(var(--stripee-size) + var(--glow-size) / 2),
+            transparent calc(2 * var(--stripee-size)),
+            var(--glow-color) calc(2 * var(--stripee-size) - var(--glow-size)));
+}
+
+.stripe-bar.red {
+    --stripee-color: var(--red);
+    --stripee-size: 15px;
+    --glow-color: rgba(255, 17, 0, 0.8);
+    --glow-size: 3px;
+}
+
+.stripe-bar.vertical {
+    width: 100%;
+    height: max(200vw, 200vh);
+    transform: translate3d(0, 0, 0);
+}
+
+
+.stripe-bar-red {
+    width: max(200vw, 2000px);
+    height: 30px;
+    display: inline-block;
+    flex-shrink: 0;
+    margin-bottom: -5px;
+    --stripee-color: var(--red);
+    --stripee-size: 15px;
+    --glow-color: rgba(255, 17, 0, 0.8);
+    --glow-size: 3px;
+    background-image: repeating-linear-gradient(-45deg,
+            var(--glow-color) calc(-1 * var(--glow-size)),
+            var(--stripee-color) 0,
+            var(--stripee-color) calc(var(--stripee-size) - var(--glow-size) / 2),
+            var(--glow-color) calc(var(--stripee-size) + var(--glow-size) / 2),
+            transparent calc(var(--stripee-size) + var(--glow-size) / 2),
+            transparent calc(2 * var(--stripee-size)),
+            var(--glow-color) calc(2 * var(--stripee-size) - var(--glow-size)));
+}
+
+.stripe-bar-vertical {
+    height: max(200vw, 200vh);
+    transform: translate3d(0, 0, 0);
+    --stripee-color: var(--orange);
+    --stripee-size: 15px;
+    --glow-color: rgba(255, 94, 0, 0.8);
+    --glow-size: 3px;
+    background-image: repeating-linear-gradient(45deg,
+            var(--glow-color) calc(-1 * var(--glow-size)),
+            var(--stripee-color) 0,
+            var(--stripee-color) calc(var(--stripee-size) - var(--glow-size) / 2),
+            var(--glow-color) calc(var(--stripee-size) + var(--glow-size) / 2),
+            transparent calc(var(--stripee-size) + var(--glow-size) / 2),
+            transparent calc(2 * var(--stripee-size)),
+            var(--glow-color) calc(2 * var(--stripee-size) - var(--glow-size)));
+}
+
+.stripe-bar-red-vertical {
+    height: max(200vw, 200vh);
+    transform: translate3d(0, 0, 0);
+    --stripee-color: var(--red);
+    --stripee-size: 15px;
+    --glow-color: rgba(255, 17, 0, 0.8);
+    --glow-size: 3px;
+    background-image: repeating-linear-gradient(45deg,
+            var(--glow-color) calc(-1 * var(--glow-size)),
+            var(--stripee-color) 0,
+            var(--stripee-color) calc(var(--stripee-size) - var(--glow-size) / 2),
+            var(--glow-color) calc(var(--stripee-size) + var(--glow-size) / 2),
+            transparent calc(var(--stripee-size) + var(--glow-size) / 2),
+            transparent calc(2 * var(--stripee-size)),
+            var(--glow-color) calc(2 * var(--stripee-size) - var(--glow-size)));
+}
+
+.stripe-wrapper-vertical {
+    height: max(200vh, 2000px);
+    overflow: hidden;
+    white-space: nowrap;
+    margin: 0px !important;
+    padding: 0px !important;
+    display: flex;
+}
+
+
+
+.stripe {
+    background-color: black;
+    width: 100vw;
+    border-top: 1px solid var(--red);
+    border-bottom: 1px solid var(--red);
+    position: fixed;
+}

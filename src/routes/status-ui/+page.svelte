@@ -135,13 +135,13 @@
     class="mb-2 text-center p-2 z-10 w-full bordered flex justify-center items-center relative"
   >
     <div class="overflow-hidden">
-      <div class="strip-wrapper h-12">
+      <div class="stripe-wrapper h-12">
         <div
-          class="strip-bar-red loop-strip anim-duration-10"
+          class="stripe-bar-red loop-stripe anim-duration-10"
           style="height: 100%;"
         ></div>
         <div
-          class="strip-bar-red loop-strip anim-duration-10"
+          class="stripe-bar-red loop-stripe anim-duration-10"
           style="height: 100%;"
         ></div>
       </div>

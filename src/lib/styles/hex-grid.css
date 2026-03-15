@@ -255,7 +255,7 @@
 }
 
 /* ---- 4. Hex with Strip Decoration ---- */
-.hex-strip-cell {
+.hex-stripe-cell {
     position: relative;
     width: 110px;
     height: 127px;
@@ -268,15 +268,15 @@
     transition: transform 0.2s ease;
 }
 
-.hex-strip-cell:hover {
+.hex-stripe-cell:hover {
     transform: scale(1.06);
 }
 
-.hex-strip-cell.hex-danger {
+.hex-stripe-cell.hex-danger {
     background-color: rgba(255, 34, 51, 0.08);
 }
 
-.hex-strip-bg {
+.hex-stripe-bg {
     position: relative;
     width: 100%;
     height: 100%;
@@ -286,7 +286,7 @@
     overflow: hidden;
 }
 
-.hex-strip-content {
+.hex-stripe-content {
     position: relative;
     z-index: 2;
     display: flex;

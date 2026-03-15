@@ -156,7 +156,7 @@ export class TitikGempa {
             <div class="ews-card bordered-red min-h-48 min-w-48 whitespace-pre-wrap">
                 <div class="ews-card-header bordered-red-bottom">
                     <div class="overflow-hidden">
-                        <div class="strip-wrapper"><div class="strip-bar loop-strip-reverse anim-duration-20"></div><div class="strip-bar loop-strip-reverse anim-duration-20"></div></div>
+                        <div class="stripe-wrapper"><div class="stripe-bar loop-stripe-reverse anim-duration-20"></div><div class="stripe-bar loop-stripe-reverse anim-duration-20"></div></div>
                         <div class="absolute top-0 bottom-0 left-0 right-0 flex justify-center items-center">
                             <p class="p-1 bg-black font-bold text-xs text-glow">GEMPA BUMI</p>
                         </div>

@@ -914,10 +914,10 @@
                                 </div>
                                 <div class="decal">
                                     <div
-                                        class="w-full h-full strip-bar-vertical loop-strip-vertical anim-duration-20"
+                                        class="w-full h-full stripe-bar-vertical loop-stripe-vertical anim-duration-20"
                                     ></div>
                                     <div
-                                        class="w-full h-full strip-bar-vertical loop-strip-vertical anim-duration-20"
+                                        class="w-full h-full stripe-bar-vertical loop-stripe-vertical anim-duration-20"
                                     ></div>
                                 </div>
                             </div>
@@ -1048,12 +1048,12 @@
                                 class="cursor-pointer p-0 b-0 overflow-hidden flex items-center justify-center bordered p-1"
                                 on:click={() => (isSettingsOpen = true)}
                             >
-                                <div class="strip-wrapper">
+                                <div class="stripe-wrapper">
                                     <div
-                                        class="strip-bar anim-duration-20"
+                                        class="stripe-bar anim-duration-20"
                                     ></div>
                                     <div
-                                        class="strip-bar anim-duration-20"
+                                        class="stripe-bar anim-duration-20"
                                     ></div>
                                 </div>
                                 <span
@@ -1256,15 +1256,15 @@
                             class="cursor-pointer p-0 b-0 overflow-hidden flex items-center justify-center bordered p-1"
                             on:click={toggleDemoData}
                         >
-                            <div class="strip-wrapper">
+                            <div class="stripe-wrapper">
                                 <div
-                                    class="strip-bar anim-duration-20 {isDemoMode
-                                        ? 'loop-strip-reverse'
+                                    class="stripe-bar anim-duration-20 {isDemoMode
+                                        ? 'loop-stripe-reverse'
                                         : ''}"
                                 ></div>
                                 <div
-                                    class="strip-bar anim-duration-20 {isDemoMode
-                                        ? 'loop-strip-reverse'
+                                    class="stripe-bar anim-duration-20 {isDemoMode
+                                        ? 'loop-stripe-reverse'
                                         : ''}"
                                 ></div>
                             </div>
@@ -1277,15 +1277,15 @@
                             class="cursor-pointer p-0 b-0 overflow-hidden flex items-center justify-center bordered p-1 mt-2"
                             on:click={toggleDemoPsycho}
                         >
-                            <div class="strip-wrapper">
+                            <div class="stripe-wrapper">
                                 <div
-                                    class="strip-bar-red anim-duration-20 {isDemoPsychoMode
-                                        ? 'loop-strip-reverse'
+                                    class="stripe-bar-red anim-duration-20 {isDemoPsychoMode
+                                        ? 'loop-stripe-reverse'
                                         : ''}"
                                 ></div>
                                 <div
-                                    class="strip-bar-red anim-duration-20 {isDemoPsychoMode
-                                        ? 'loop-strip-reverse'
+                                    class="stripe-bar-red anim-duration-20 {isDemoPsychoMode
+                                        ? 'loop-stripe-reverse'
                                         : ''}"
                                 ></div>
                             </div>

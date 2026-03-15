@@ -1,5 +1,6 @@
 .status-node {
-    background-image: url("/images/SkewRectangle_Green.svg");
+    --bg-url: url("/images/SkewRectangle_Green.svg");
+    background-image: var(--bg-url);
     background-size: contain;
     background-position: center;
     background-repeat: no-repeat;
@@ -7,9 +8,6 @@
     position: relative;
     z-index: 1;
 }
-
-
-
 
 .parent-node {
     transform: translateX(0px);
@@ -31,8 +29,23 @@
 
 
 .status-node.danger {
-    background-image: url("/images/SkewRectangle_Red.svg");
+    --bg-url: url("/images/SkewRectangle_Red.svg");
+    background-image: var(--bg-url);
 }
+
+
+/* .status-node::before {
+    content: '';
+    position: absolute;
+    inset: -4px;
+    background: var(--bg-url) center/contain no-repeat;
+    filter: blur(8px);
+    opacity: 0.7;
+    z-index: -1;
+    will-change: opacity;
+    transform: translateZ(0);
+} */
+
 
 
 .status-node-flip {
