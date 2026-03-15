@@ -1,0 +1,135 @@
+[
+    {
+        "id": "gempa_dirasakan",
+        "category": "feel",
+        "source_url": "https://bmkg-content-inatews.storage.googleapis.com/datagempa.json",
+        "type": "json",
+        "single_data": true,
+        "attribute": "",
+        "data_mapping": {
+            "id": { "attribute": "identifier" },
+            "lng": {
+                "attribute": "info.point.coordinates",
+                "func": [
+                    { "split": { "separator": ",", "index": 0 } },
+                    { "toFloat": {} }
+                ]
+            },
+            "lat": {
+                "attribute": "info.point.coordinates",
+                "func": [
+                    { "split": { "separator": ",", "index": 1 } },
+                    { "toFloat": {} }
+                ]
+            },
+            "mag": { "attribute": "info.magnitude", "func": [{ "toFloat": {} }] },
+            "depth": { "attribute": "info.depth" },
+            "place": { "attribute": "info.felt" },
+            "message": { "attribute": "info.description" },
+            "time": {
+                "attribute": "sent",
+                "func": [
+                    { "replace": { "from": "WIB", "to": "" } },
+                    { "fromISO": { "zone": "Asia/Jakarta" } },
+                    { "formatReadable": {} }
+                ]
+            }
+        }
+    },
+    {
+        "id": "gempa_kecil",
+        "category": "small",
+        "source_url": "https://bmkg-content-inatews.storage.googleapis.com/lastQL.json",
+        "type": "json",
+        "single_data": false,
+        "attribute": "features",
+        "data_mapping": {
+            "id": { "attribute": "properties.id" },
+            "lng": { "attribute": "geometry.coordinates", "index": 0, "func": [{ "toFloat": {} }] },
+            "lat": { "attribute": "geometry.coordinates", "index": 1, "func": [{ "toFloat": {} }] },
+            "mag": { "attribute": "properties.mag", "func": [{ "toFloat": {} }] },
+            "depth": { "attribute": "properties.depth" },
+            "place": { "attribute": "properties.place" },
+            "time": {
+                "attribute": "properties.time",
+                "func": [
+                    { "utcSqlToJakarta": {} },
+                    { "formatReadable": {} }
+                ]
+            }
+        }
+    },
+    {
+        "id": "titik_gempa",
+        "category": "all",
+        "source_url": "https://bmkg-content-inatews.storage.googleapis.com/gempaQL.json",
+        "type": "json",
+        "single_data": false,
+        "attribute": "features",
+        "data_mapping": {
+            "id": { "attribute": "properties.id" },
+            "lng": { "attribute": "geometry.coordinates", "index": 0, "func": [{ "toFloat": {} }] },
+            "lat": { "attribute": "geometry.coordinates", "index": 1, "func": [{ "toFloat": {} }] },
+            "mag": { "attribute": "properties.mag", "func": [{ "toFloat": {} }] },
+            "depth": { "attribute": "properties.depth" },
+            "place": { "attribute": "properties.place" },
+            "time": {
+                "attribute": "properties.time",
+                "func": [
+                    { "utcSqlToJakarta": {} },
+                    { "formatReadable": {} }
+                ]
+            }
+        }
+    },
+    {
+        "id": "live_30_event",
+        "category": "all",
+        "source_url": "https://bmkg-content-inatews.storage.googleapis.com/live30event.xml",
+        "type": "xml",
+        "single_data": false,
+        "attribute": "Infogempa.gempa",
+        "data_mapping": {
+            "id": { "attribute": "eventid" },
+            "lng": { "attribute": "bujur", "func": [{ "toFloat": {} }] },
+            "lat": { "attribute": "lintang", "func": [{ "toFloat": {} }] },
+            "mag": { "attribute": "mag", "func": [{ "toFloat": {} }] },
+            "depth": { "attribute": "dalam" },
+            "place": { "attribute": "area" },
+            "time": {
+                "attribute": "waktu",
+                "func": [
+                    { "utcSqlToJakarta": {} },
+                    { "formatReadable": {} }
+                ]
+            }
+        }
+    },
+    {
+        "id": "ssn_mexico",
+        "category": "all",
+        "source_url": "http://www.ssn.unam.mx/j/656823557",
+        "type": "json",
+        "single_data": false,
+        "attribute": "",
+        "data_mapping": {
+            "id": { 
+                "attribute": "", 
+                "func": [{ "template": { "format": "${6}-${0}-${1}" } }] 
+            },
+            "lng": { "attribute": "", "index": 3, "func": [{ "toFloat": {} }] },
+            "lat": { "attribute": "", "index": 2, "func": [{ "toFloat": {} }] },
+            "mag": { "attribute": "", "index": 5, "func": [{ "toFloat": {} }] },
+            "depth": { "attribute": "", "index": 4 },
+            "place": { "attribute": "", "index": 6 },
+            "time": { 
+                "attribute": "", 
+                "func": [
+                    { "template": { "format": "${0} ${1}" } },
+                    { "fromFormat": { "format": "yyyy-MM-dd HH:mm:ss", "zone": "UTC" } },
+                    { "formatReadable": {} }
+                ] 
+            }
+        }
+    }
+]
