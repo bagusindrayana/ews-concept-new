@@ -20,15 +20,18 @@
     PUBLIC_MAPBOX_ACCESS_TOKEN,
   } from "$env/static/public";
   import StripeBar from "$lib/components/StripeBar.svelte";
+  import { MapLayerService } from "$lib/services/mapLayerService";
+  import { AudioService, SOUNDS } from "$lib/services/audioService";
+  // import { fadeOutAudio } from "$lib/utils/audio";
+  import { createGempaPopupHTML } from "$lib/utils/mapUtils";
+  import { generateRandomGempaData } from "$lib/utils/geoUtils";
 
   let mapContainer: HTMLDivElement;
   let map: mapboxgl.Map;
   let socket: any;
   const earthquakeService = new EarthquakeDataService();
-
-  const dangerSound = "/sounds/siren-alarm-96503.mp3";
-  const smallEarthQuakeSound = "/sounds/wrong-answer-129254.mp3";
-  const tsunamiAlertSound = "/sounds/security-alarm-80493.mp3";
+  const mapLayerService = new MapLayerService();
+  const audioService = new AudioService();
 
   //center of indonesia
   let lng = $state(123.90146694265115);
@@ -62,6 +65,7 @@
   let showGempaTerdeteksi = $state(true);
   let showDetailEvent = $state(true);
   let showShakeMap = $state(true);
+  let historyRecords = $state<string[][]>([]);
 
   // Missing earthquake tracking states
   let GempaDirasakan: TitikGempa | null = $state(null);
@@ -69,53 +73,9 @@
 
   let blinkInterval: ReturnType<typeof setInterval> | null = null;
   let selectedPopup: any = null;
+  let timezoneInterval: any = null;
 
   mapboxgl.accessToken = PUBLIC_MAPBOX_ACCESS_TOKEN;
-
-  function createGempaPopupHTML(data: {
-    id: string;
-    mag: number;
-    depth: string;
-    time: string;
-    lat: number;
-    lng: number;
-  }): string {
-    return `
-      <div class="ews-card bordered-red min-h-48 min-w-48 whitespace-pre-wrap" data-id="${data.id}">
-        <div class="ews-card-header bordered-red-bottom overflow-hidden">
-          <div class="stripe-wrapper"><div class="stripe-bar-red loop-stripe-reverse anim-duration-20"></div><div class="stripe-bar-red loop-stripe-reverse anim-duration-20"></div></div>
-          <div class="absolute top-0 bottom-0 left-0 right-0 flex justify-center items-center">
-            <p class="p-1 bg-black font-bold text-xs ews-title">GEMPA BUMI</p>
-          </div>
-        </div>
-        <div class="ews-card-content p-1 lg:p-2   text-sm w-full" style="font-size:10px">
-          <table class="w-full">
-            <tbody>
-              <tr><td class="flex">Magnitudo</td><td class="text-right break-words pl-2">${Number(data.mag).toFixed(1)}</td></tr>
-              <tr><td class="flex">Kedalaman</td><td class="text-right break-words pl-2">${data.depth}</td></tr>
-              <tr><td class="flex">Waktu</td><td class="text-right break-words pl-2">${data.time}</td></tr>
-              <tr><td class="flex">Lokasi (Lat,Lng)</td><td class="text-right break-words pl-2">${data.lat} , ${data.lng}</td></tr>
-            </tbody>
-          </table>
-        </div>
-      </div>`
-      .trim()
-      .replace(/>\s+</g, "><");
-  }
-
-  function fadeOutAudio(audioElement: HTMLAudioElement, duration: number) {
-    let fadeInterval = 50;
-    let step = audioElement.volume / (duration / fadeInterval);
-    let fadeAudio = setInterval(() => {
-      if (audioElement.volume > step) {
-        audioElement.volume -= step;
-      } else {
-        audioElement.volume = 0;
-        audioElement.pause();
-        clearInterval(fadeAudio);
-      }
-    }, fadeInterval);
-  }
 
   async function warningHandler(data: any) {
     const time = new Date().toLocaleTimeString();
@@ -154,20 +114,9 @@
     titikGempaBaru.push(tg);
     alertGempaBumis = [...alertGempaBumis, tg];
 
-    var bgNotif = new Audio("/sounds/alert-109578.wav");
-    bgNotif.volume = 0.3;
-    bgNotif.loop = true;
-    bgNotif.play();
-    const audioDangerElement = document.getElementById(
-      "danger",
-    ) as HTMLAudioElement;
-    setTimeout(() => {
-      if (audioDangerElement) audioDangerElement.play();
-      setTimeout(() => {
-        new Audio("/voice/gempabumi.wav").play();
-      }, 2000);
-      setTimeout(() => fadeOutAudio(bgNotif, 2000), 6000);
-    }, 2000);
+    audioService.playEarthquakeSequence(
+      document.getElementById("danger") as HTMLAudioElement,
+    );
 
     await new Promise((r) => setTimeout(r, 6000));
     events = [...tgs];
@@ -305,40 +254,7 @@
     blinkCoastline();
     map.moveLayer("outline-coastline");
 
-    var bgNotif = new Audio("/sounds/security-alarm-63578.wav");
-    bgNotif.volume = 0.3;
-    bgNotif.loop = true;
-    bgNotif.play();
-    var notif = new Audio(tsunamiAlertSound);
-    notif.loop = true;
-    notif.play();
-
-    setTimeout(() => {
-      new Audio("/voice/terdeteksi.wav").play();
-      setTimeout(() => {
-        new Audio("/voice/" + level.toLowerCase() + ".wav").play();
-        setTimeout(() => {
-          new Audio("/voice/potensi.wav").play();
-          if (level == "AWAS") {
-            setTimeout(() => {
-              new Audio("/voice/evakuasi.wav").play();
-              setTimeout(() => {
-                fadeOutAudio(notif, 1000);
-                fadeOutAudio(bgNotif, 1000);
-              }, 4000);
-            }, 6000);
-          } else {
-            setTimeout(() => {
-              new Audio("/voice/informasi.wav").play();
-              setTimeout(() => {
-                fadeOutAudio(notif, 1000);
-                fadeOutAudio(bgNotif, 1000);
-              }, 4000);
-            }, 6000);
-          }
-        }, 5000);
-      }, 5000);
-    }, 2000);
+    audioService.playTsunamiSequence(level);
 
     setTimeout(() => {
       shakeMap = data.shakemap;
@@ -497,134 +413,25 @@
     sendWave();
   }
 
-  function loadGeoJsonCoastline() {
-    fetch("/geojson/garis_pantai.geojson")
-      .then((r) => r.json())
-      .then((data) => {
-        geoJsonCoastline = data;
-        if (!map.getSource("coastline")) {
-          map.addSource("coastline", {
-            type: "geojson",
-            generateId: true,
-            data,
-          });
-          map.addLayer({
-            id: "outline-coastline",
-            type: "line",
-            source: "coastline",
-            layout: { visibility: "none" },
-            paint: {
-              "line-color": ["get", "color"],
-              "line-width": 5,
-              "line-opacity": 1,
-            },
-          });
-        }
-        loadGeoJsonData();
-      })
-      .catch((e) => alert("Failed: " + e));
+  async function loadGeoJsonCoastline() {
+    try {
+      geoJsonCoastline = await mapLayerService.loadCoastlineLayer(map);
+      loadGeoJsonData();
+    } catch (e) {
+      alert("Failed: " + e);
+    }
   }
 
-  function loadGeoJsonData() {
-    fetch("/geojson/all_kabkota_ind_reduce.geojson")
-      .then((r) => r.json())
-      .then((data) => {
-        geoJsonData = data;
-        if (!map.getSource("wilayah")) {
-          map.addSource("wilayah", { type: "geojson", generateId: true, data });
-          map.addLayer({
-            id: "outline",
-            type: "line",
-            source: "wilayah",
-            paint: {
-              "line-color": "#807a72",
-              "line-width": 1,
-              "line-opacity": 0.7,
-            },
-          });
-          map.addLayer({
-            id: "wilayah-fill",
-            type: "fill",
-            source: "wilayah",
-            paint: { "fill-color": "red", "fill-opacity": 0 },
-          });
-        }
-        initializeMapData();
-        getTimezoneGeojson();
-        getFaultLineGeojson();
-        initWorker();
-      })
-      .catch((e) => alert("Failed: " + e));
-  }
-
-  function getTimezoneGeojson() {
-    map.addSource("timezone", {
-      type: "geojson",
-      generateId: true,
-      data: "/geojson/timezones_wVVG8.geojson",
-    });
-    map.addLayer({
-      id: "timezone-line",
-      type: "line",
-      source: "timezone",
-      paint: { "line-color": "orange", "line-width": 1, "line-opacity": 0.5 },
-    });
-
-    const markerData = [
-      {
-        lng: 107.4999769225339,
-        lat: 3.4359354227361933,
-        zone: "Asia/Jakarta",
-        label: "WIB / GMT+7",
-      },
-      {
-        lng: 119.1174733337183,
-        lat: 3.4359354227361933,
-        zone: "Asia/Makassar",
-        label: "WITA / GMT+8",
-      },
-      {
-        lng: 131.58387377752751,
-        lat: 3.4359354227361933,
-        zone: "Asia/Jayapura",
-        label: "WIT / GMT+9",
-      },
-    ];
-
-    markerData.forEach((m) => {
-      const wrapper = document.createElement("div");
-      const el = document.createElement("div");
-      el.className = "bordered p-1 text-time show-pop-up text-center  ";
-      const zoneClass = m.zone.replace(/\//g, "-");
-      el.innerHTML = `<p class="uppercase text-xl" style="line-height:1rem"><span class="jam-${zoneClass}"></span></p><p>${m.label}</p>`;
-      wrapper.appendChild(el);
-      new mapboxgl.Marker({ element: wrapper })
-        .setLngLat([m.lng, m.lat])
-        .addTo(map);
-    });
-
-    setInterval(() => {
-      markerData.forEach((m) => {
-        const zoneClass = m.zone.replace(/\//g, "-");
-        const el = document.querySelector(`.jam-${zoneClass}`);
-        if (el)
-          el.textContent = DateTime.now().setZone(m.zone).toFormat("HH:mm:ss");
-      });
-    }, 1000);
-  }
-
-  function getFaultLineGeojson() {
-    map.addSource("indo_faults_lines", {
-      type: "geojson",
-      generateId: true,
-      data: "/geojson/indo_faults_lines.geojson",
-    });
-    map.addLayer({
-      id: "indo_faults_line_layer",
-      type: "line",
-      source: "indo_faults_lines",
-      paint: { "line-color": "red", "line-width": 1, "line-opacity": 0.5 },
-    });
+  async function loadGeoJsonData() {
+    try {
+      geoJsonData = await mapLayerService.loadTerritoryLayer(map);
+      initializeMapData();
+      timezoneInterval = mapLayerService.addTimezoneLayer(map, mapboxgl);
+      mapLayerService.addFaultLinesLayer(map);
+      initWorker();
+    } catch (e) {
+      alert("Failed: " + e);
+    }
   }
 
   // GET DATA GEMPA (Unified Initialization)
@@ -746,7 +553,7 @@
         if (kecilInfo) {
           lastGempaKecilId = kecilInfo.info.id;
           if (earthquakeService.isRecentUtc(kecilInfo.sentTime)) {
-            var notif = new Audio(smallEarthQuakeSound);
+            var notif = new Audio(SOUNDS.SMALL_EARTHQUAKE);
             notif.play();
             alertGempaBumi = new TitikGempa(kecilInfo.info.id, kecilInfo.info);
           }
@@ -772,7 +579,7 @@
       earthquakeService.parseGempaFromSocket(data);
     if (lastGempaKecilId != nig.id) {
       lastGempaKecilId = nig.id;
-      var notif = new Audio(smallEarthQuakeSound);
+      var notif = new Audio(SOUNDS.SMALL_EARTHQUAKE);
       notif.play();
       if (!map) return;
 
@@ -842,11 +649,10 @@
     }
   }
 
-  function selectEvent(d: InfoGempa) {
+  async function selectEvent(d: InfoGempa) {
     detailInfoGempa = d;
     if (selectedPopup) selectedPopup.remove();
     if (d.mmi != 0) {
-      // shakeMap = d.mmi.toString() + ".mmi.jpg";
       fetch(
         "https://bmkg-content-inatews.storage.googleapis.com/" +
           d.mmi.toString() +
@@ -888,48 +694,21 @@
       .setDOMContent(placeholder)
       .setLngLat([d.lng, d.lat])
       .addTo(map);
-    const cekTable = document.querySelector("#histori_tabel tbody");
-    if (cekTable) cekTable.innerHTML = "<tr></tr>";
-    setTimeout(() => {
-      readTextFile(
-        "https://bmkg-content-inatews.storage.googleapis.com/history." +
-          d.id +
-          ".txt",
-      );
-    }, 500);
+
+    historyRecords = [];
+    if (d.id) {
+      historyRecords = await earthquakeService.fetchHistoryRecords(d.id);
+    }
   }
 
   function testDemoGempa() {
-    if (geoJsonData == null) {
+    const data = generateRandomGempaData(geoJsonData);
+    if (!data) {
       alert("Wait loading geojson");
       return;
     }
     showSettingsModal = false;
-    const bbox = turf.bbox(geoJsonData);
-    const randomPosition = turf.randomPosition(bbox);
-    const mag = (Math.random() * (10 - 5) + 5).toFixed(1);
-    const depth = (Math.random() * 20).toFixed(1) + " Km";
-    const message =
-      "Gempa Bumi Test : Lat " +
-      randomPosition[1].toFixed(4) +
-      " Lng " +
-      randomPosition[0].toFixed(4) +
-      " Mag " +
-      mag +
-      " Depth " +
-      depth;
-    const dt = DateTime.now();
-    const readAbleTime =
-      dt.toISODate() + " " + dt.toLocaleString(DateTime.TIME_24_WITH_SECONDS);
-    warningHandler({
-      id: `tg-${new Date().getTime()}`,
-      lng: parseFloat(randomPosition[0].toFixed(4)),
-      lat: parseFloat(randomPosition[1].toFixed(4)),
-      mag: parseFloat(mag),
-      depth,
-      message,
-      time: readAbleTime,
-    });
+    warningHandler(data);
   }
 
   function testDemoTsunami() {
@@ -943,27 +722,11 @@
       .catch(alert);
   }
 
-  function readTextFile(e: string) {
-    var t = new XMLHttpRequest();
-    t.open("GET", e, false);
-    t.onreadystatechange = function () {
-      if (4 === t.readyState && (200 === t.status || 0 == t.status)) {
-        let u = t.responseText.split("\n");
-        var table = document.getElementById(
-          "histori_tabel",
-        ) as HTMLTableElement;
-        for (let i = 1; i < u.length - 1; i++) {
-          let T = u[i].split("|");
-          var n = table.insertRow(i);
-          for (let j = 0; j < T.length; j++) n.insertCell(j).innerHTML = T[j];
-        }
-      }
-    };
-    t.send(null);
-  }
-
   function removeAlertGempaBumi(index: number) {
+    console.log(alertGempaBumis);
+    console.log(index);
     alertGempaBumis = alertGempaBumis.filter((_, idx) => idx !== index);
+    console.log(alertGempaBumis);
   }
 
   onMount(() => {
@@ -982,12 +745,13 @@
       socket.removeAllListeners();
       socket.disconnect();
     }
+    if (timezoneInterval) clearInterval(timezoneInterval);
   });
 </script>
 
 <div class="min-h-screen bg-black font-mono relative overflow-hidden">
   <audio id="danger" class="hidden"
-    ><source src={dangerSound} type="audio/mp3" /></audio
+    ><source src={SOUNDS.DANGER} type="audio/mp3" /></audio
   >
   <div bind:this={mapContainer} class="w-full h-screen"></div>
 
@@ -1315,7 +1079,7 @@
 
     <!-- ALERT GEMPA BUMIS LIST -->
     {#if !loadingScreen}
-      {#each alertGempaBumis as agi, i}
+      {#each alertGempaBumis as agi, i (agi.id)}
         <Card
           className="hidden md:block show-pop-up md:w-1/2 lg:w-2/5 xl:w-1/5 pointer-events-auto"
         >
@@ -1468,7 +1232,7 @@
       {/snippet}
       {#snippet children()}
         <ul>
-          {#each events as v, i}
+          {#each events as v, i (v.id)}
             <li
               onclick={() => selectEvent(v.infoGempa)}
               class="flex flex-col mb-2 list-event cursor-pointer slide-in-left"
@@ -1779,7 +1543,15 @@
                     ></tr
                   >
                 </thead>
-                <tbody></tbody>
+                <tbody>
+                  {#each historyRecords as row}
+                    <tr>
+                      {#each row as cell}
+                        <td class="p-1">{cell}</td>
+                      {/each}
+                    </tr>
+                  {/each}
+                </tbody>
               </table>
             </div>
           </div>
@@ -1932,7 +1704,7 @@
 
   <!-- GEMPA ALERT -->
   {#if !loadingScreen}
-    {#each alertGempaBumis as v, i}
+    {#each alertGempaBumis as v, i (v.id)}
       <div>
         <GempaBumiAlert
           magnitudo={v.mag}

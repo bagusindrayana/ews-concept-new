@@ -439,4 +439,26 @@ export class EarthquakeDataService {
       time: info.time || new Date().toLocaleString(),
     };
   }
+
+  /**
+   * Fetches historical records for a specific earthquake event.
+   * @param eventId The ID of the earthquake event.
+   * @returns Array of record rows (each row is an array of strings).
+   */
+  async fetchHistoryRecords(eventId: string): Promise<string[][]> {
+    const url = cacheBust(
+      `https://bmkg-content-inatews.storage.googleapis.com/history.${eventId}.txt`,
+    );
+    try {
+      const res = await fetch(url);
+      if (!res.ok) return [];
+      const text = await res.text();
+      const lines = text.split("\n").filter((line) => line.trim().length > 0);
+      // Skip the first line (header) like in the original logic
+      return lines.slice(1).map((line) => line.split("|"));
+    } catch (error) {
+      console.error("Error fetching history records:", error);
+      return [];
+    }
+  }
 }
