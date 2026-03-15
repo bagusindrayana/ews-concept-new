@@ -1241,7 +1241,7 @@
                                         : ''}"
                                 ></div>
                             </div>
-                            <span class="absolute bg-black ews- px-2 py-1"
+                            <span class="absolute bg-black ews-label px-2 py-1"
                                 >⚠ DEMO DATA</span
                             >
                         </button>
@@ -1262,7 +1262,7 @@
                                         : ''}"
                                 ></div>
                             </div>
-                            <span class="absolute bg-black ews- px-2 py-1"
+                            <span class="absolute bg-black ews-label px-2 py-1"
                                 >⚠ DEMO PSYCHOGRAPHIC DATA</span
                             >
                         </button>

@@ -25,6 +25,7 @@
   // import { fadeOutAudio } from "$lib/utils/audio";
   import { createGempaPopupHTML } from "$lib/utils/mapUtils";
   import { generateRandomGempaData } from "$lib/utils/geoUtils";
+  import { demoStore } from "$lib/stores/demoStore";
 
   let mapContainer: HTMLDivElement;
   let map: mapboxgl.Map;
@@ -118,6 +119,8 @@
       document.getElementById("danger") as HTMLAudioElement,
     );
 
+    demoStore.triggerGempa(nig);
+
     await new Promise((r) => setTimeout(r, 6000));
     events = [...tgs];
     if (worker != null) sendWave();
@@ -143,7 +146,7 @@
     const results: any[] = [];
     const id = data.id || `tg-${new Date().getTime()}`;
     const coordinates = data.point.coordinates.split(",");
-
+    console.log(data);
     const nit: InfoTsunami = {
       id,
       lng: parseFloat(coordinates[0]),
@@ -231,7 +234,7 @@
       closePopUpInSecond: 13,
     });
     tts.push(tt);
-    alertTsunami = tt;
+    // alertTsunami = tt;
 
     if (results.length > 0) {
       if (map.getSource("coastline"))
@@ -255,12 +258,14 @@
     map.moveLayer("outline-coastline");
 
     audioService.playTsunamiSequence(level);
+    console.log(nit);
+    demoStore.triggerTsunami(nit);
 
     setTimeout(() => {
       shakeMap = data.shakemap;
     }, 9000);
     setTimeout(() => {
-      alertTsunami = null;
+      // alertTsunami = null;
       infoTsunami = tt;
     }, 10000);
   }
@@ -723,10 +728,7 @@
   }
 
   function removeAlertGempaBumi(index: number) {
-    console.log(alertGempaBumis);
-    console.log(index);
     alertGempaBumis = alertGempaBumis.filter((_, idx) => idx !== index);
-    console.log(alertGempaBumis);
   }
 
   onMount(() => {
@@ -856,7 +858,7 @@
                     class="stripe-bar loop-stripe-reverse anim-duration-20"
                   ></div>
                 </div>
-                <span class="absolute bg-black ews- px-2 py-1"
+                <span class="absolute bg-black ews-label px-2 py-1"
                   >⚠ TEST GEMPA</span
                 ></button
               >
@@ -872,7 +874,7 @@
                     class="stripe-bar-red loop-stripe-reverse anim-duration-20"
                   ></div>
                 </div>
-                <span class="absolute bg-black ews- px-2 py-1"
+                <span class="absolute bg-black ews-label px-2 py-1"
                   >⚠ TEST TSUNAMI</span
                 ></button
               >
@@ -1733,7 +1735,9 @@
   </div>
 
   <!-- TSUNAMI ALERT -->
-  {#if !loadingScreen && alertTsunami}<TsunamiAlert {alertTsunami} />{/if}
+  {#if !loadingScreen && alertTsunami != null && alertTsunami != undefined}
+    <TsunamiAlert infoTsunami={alertTsunami.infoTsunami} />
+  {/if}
 
   <!-- LOADING SCREEN -->
   <div

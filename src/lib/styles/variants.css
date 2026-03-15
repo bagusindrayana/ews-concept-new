@@ -3,11 +3,16 @@
    ======================================== */
 
 /* Base EWS text */
+.ews-label {
+    text-box: trim-both cap alphabetic;
+}
+
 .ews-text {
     font-family: "Roboto Condensed", Arial, Helvetica, sans-serif;
     text-transform: uppercase;
     letter-spacing: 1px;
     color: var(--text-color);
+    text-box: trim-both cap alphabetic;
 }
 
 .ews-text.danger {

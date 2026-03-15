@@ -632,7 +632,7 @@
                 class="cursor-pointer p-0 b-0 overflow-hidden flex items-center justify-center bordered p-1"
               >
                 <StripeBar loop={true} reverse={true} duration={20}></StripeBar>
-                <span class="absolute bg-black ews- px-2 py-1"
+                <span class="absolute bg-black ews-label px-2 py-1"
                   >⚠ EMERGENCY BUTTON</span
                 >
               </button>
@@ -645,7 +645,7 @@
                 <StripeBar color="red" loop={true} reverse={true} duration={20}
                 ></StripeBar>
 
-                <span class="absolute bg-black ews- danger px-2 py-1"
+                <span class="absolute bg-black ews-label danger px-2 py-1"
                   >⚠ EMERGENCY BUTTON</span
                 >
               </button>

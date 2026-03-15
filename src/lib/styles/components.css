@@ -748,9 +748,9 @@
     }
 }
 
-.main {
+#bg-tsunami {
     width: calc(max(120vh, 120vw) + 100px);
-    margin-left: -35vh;
+    margin-left: -25vh;
     transform: translateY(min(-29vw, -40vw));
     display: grid;
     grid-template-columns: repeat(auto-fit, calc(var(--s) + 2 * var(--mh)));
