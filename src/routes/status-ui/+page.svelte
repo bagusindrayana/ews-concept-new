@@ -74,34 +74,32 @@
           : [networksList];
 
         console.log("Ada hasil " + networks.length);
-        setTimeout(() => {
-          networks.forEach((networkNode) => {
-            const netCode =
-              (networkNode["@attributes"] as any)?.code || "UNKNOWN";
-            const stationsList = networkNode.Station as JsonNode[];
+        networks.forEach((networkNode) => {
+          const netCode =
+            (networkNode["@attributes"] as any)?.code || "UNKNOWN";
+          const stationsList = networkNode.Station as JsonNode[];
 
-            // Handle both single station and multiple stations
-            const stations = Array.isArray(stationsList)
-              ? stationsList
-              : [stationsList];
+          // Handle both single station and multiple stations
+          const stations = Array.isArray(stationsList)
+            ? stationsList
+            : [stationsList];
 
-            stations.forEach((stationNode) => {
-              const staCode =
-                (stationNode["@attributes"] as any)?.code || "UNKNOWN";
-              const startDate = (stationNode["@attributes"] as any)?.startDate;
-              const endDate = (stationNode["@attributes"] as any)?.endDate;
+          stations.forEach((stationNode) => {
+            const staCode =
+              (stationNode["@attributes"] as any)?.code || "UNKNOWN";
+            const startDate = (stationNode["@attributes"] as any)?.startDate;
+            const endDate = (stationNode["@attributes"] as any)?.endDate;
 
-              statuses.push({
-                id: `${netCode}-${staCode}`,
-                title: `${netCode}-${staCode}`,
-                status: endDate ? "OFFLINE" : "ACTIVE",
-                type: endDate ? "danger" : "normal",
-                stationCode: `${staCode}`,
-                networkCode: `${netCode}`,
-              });
+            statuses.push({
+              id: `${netCode}-${staCode}`,
+              title: `${netCode}-${staCode}`,
+              status: endDate ? "OFFLINE" : "ACTIVE",
+              type: endDate ? "danger" : "normal",
+              stationCode: `${staCode}`,
+              networkCode: `${netCode}`,
             });
           });
-        }, 1000);
+        });
       })
       .catch((error) => {
         console.error("Terjadi kesalahan:", error);
@@ -129,39 +127,43 @@
 </svelte:head>
 
 <div
-  class="min-h-screen py-1 md:py-8 flex flex-col items-center overflow-x-hidden overflow-y-auto font-mono"
+  class="min-h-screen py-1 md:py-4 flex flex-col items-center overflow-x-hidden overflow-y-auto font-mono"
 >
-  <div
-    class="mb-2 text-center p-2 z-10 w-full bordered flex justify-center items-center relative"
-  >
-    <div class="overflow-hidden">
-      <div class="stripe-wrapper h-12">
+  {#if chunkedStatuses.length > 0}
+    <div
+      class="mb-2 text-center p-2 z-10 w-full bordered flex justify-center items-center relative show-pop-up"
+    >
+      <div class="overflow-hidden">
+        <div class="stripe-wrapper h-12">
+          <div
+            class="stripe-bar-red loop-stripe anim-duration-10"
+            style="height: 100%;"
+          ></div>
+          <div
+            class="stripe-bar-red loop-stripe anim-duration-10"
+            style="height: 100%;"
+          ></div>
+        </div>
         <div
-          class="stripe-bar-red loop-stripe anim-duration-10"
-          style="height: 100%;"
-        ></div>
-        <div
-          class="stripe-bar-red loop-stripe anim-duration-10"
-          style="height: 100%;"
-        ></div>
-      </div>
-      <div
-        class="absolute top-0 bottom-0 left-0 right-0 flex justify-center items-center"
-      >
-        <h1
-          class="text-xl p-1 font-bold ews-title text-3xl danger uppercase bg-black"
+          class="absolute top-0 bottom-0 left-0 right-0 flex justify-center items-center"
         >
-          Station Status
-        </h1>
+          <h1
+            class="text-xl p-1 font-bold ews-title text-3xl danger uppercase bg-black"
+          >
+            Station Status
+          </h1>
+        </div>
       </div>
     </div>
-  </div>
-  <div class="mb-2 w-full bordered text-center p-1 hidden md:block">
-    <p class="text-black font-bold text-sm bg-primary p-4 uppercase">
-      GEOFON STATION - FDSN (International Federation of Digital Seismograph
-      Networks)
-    </p>
-  </div>
+    <div
+      class="mb-2 w-full bordered text-center p-1 hidden md:block show-pop-up"
+    >
+      <p class="text-black font-bold text-sm bg-primary p-4 uppercase">
+        GEOFON STATION - FDSN (International Federation of Digital Seismograph
+        Networks)
+      </p>
+    </div>
+  {/if}
   <div class="w-full h-1 bg-primary"></div>
   <div
     class="inline-flex h-auto justify-center gap-4 w-full px-4 overflow-none relative"
