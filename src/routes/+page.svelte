@@ -15,6 +15,7 @@
   // import Jam from "$lib/components/Jam.svelte";
   import AffectedAreaItem from "$lib/components/AffectedAreaItem.svelte";
   import Card from "$lib/components/Card.svelte";
+  import Modal from "$lib/components/Modal.svelte";
   import {
     PUBLIC_SOCKET_DATA_URL,
     PUBLIC_MAPBOX_ACCESS_TOKEN,
@@ -835,166 +836,107 @@
   </div>
 
   <!-- SETTINGS MODAL -->
-  {#if showSettingsModal}
+  <Modal bind:show={showSettingsModal} title="SETTING" variant="medium">
+    <!-- Card Toggles -->
+    <p class=" text-xs font-bold mb-3" style="color:var(--orange)">
+      SHOWING CARD
+    </p>
+    <div class="settings-item">
+      <span class=" text-sm">Event Log</span>
+      <label class="toggle-switch">
+        <input type="checkbox" bind:checked={showEventLog} />
+        <span class="toggle-slider"></span>
+      </label>
+    </div>
+    <div class="settings-item">
+      <span class=" text-sm">Last Earthquake Felt</span>
+      <label class="toggle-switch">
+        <input type="checkbox" bind:checked={showGempaDirasakan} />
+        <span class="toggle-slider"></span>
+      </label>
+    </div>
+    <div class="settings-item">
+      <span class=" text-sm">Last Detected Earthquake</span>
+      <label class="toggle-switch">
+        <input type="checkbox" bind:checked={showGempaTerdeteksi} />
+        <span class="toggle-slider"></span>
+      </label>
+    </div>
+    <div class="settings-item">
+      <span class=" text-sm">Detail Event</span>
+      <label class="toggle-switch">
+        <input type="checkbox" bind:checked={showDetailEvent} />
+        <span class="toggle-slider"></span>
+      </label>
+    </div>
+    <div class="settings-item">
+      <span class=" text-sm">Shakemap</span>
+      <label class="toggle-switch">
+        <input type="checkbox" bind:checked={showShakeMap} />
+        <span class="toggle-slider"></span>
+      </label>
+    </div>
+
+    <!-- Test Buttons -->
     <div
-      class="settings-modal-overlay"
-      onclick={() => (showSettingsModal = false)}
+      class="mt-4 pt-3"
+      style="border-top: 1px solid rgba(var(--danger-glow-rgb), 0.3)"
     >
-      <div
-        class="settings-modal ews-card bordered-red"
-        onclick={(e) => e.stopPropagation()}
-      >
-        <div class="ews-card-header bordered-red-bottom overflow-hidden">
-          <div class="stripe-wrapper">
+      <p class=" text-xs font-bold mb-3" style="color:var(--orange)">
+        SIMULATION
+      </p>
+      <div class="flex gap-2">
+        <button
+          onclick={testDemoGempa}
+          class="cursor-pointer p-0 b-0 overflow-hidden flex items-center justify-center bordered p-1"
+          ><div class="stripe-wrapper">
             <div class="stripe-bar loop-stripe-reverse anim-duration-20"></div>
             <div class="stripe-bar loop-stripe-reverse anim-duration-20"></div>
           </div>
-          <div
-            class="absolute top-0 bottom-0 left-0 right-0 flex justify-between items-center px-3"
-          >
-            <p class="p-1 bg-black font-bold text-sm ews-title text-3xl">
-              SETTING
-            </p>
-            <button
-              class="bg-black px-2 py-1 cursor-pointer"
-              style="color:#e60003"
-              onclick={() => (showSettingsModal = false)}>X</button
-            >
-          </div>
-        </div>
-        <div class="ews-card-content p-1 lg:p-2 p-4">
-          <!-- Card Toggles -->
-          <p class=" text-xs font-bold mb-3" style="color:var(--orange)">
-            TAMPILKAN CARD
-          </p>
-          <div class="settings-item">
-            <span class=" text-sm">Event Log</span>
-            <label class="toggle-switch">
-              <input type="checkbox" bind:checked={showEventLog} />
-              <span class="toggle-slider"></span>
-            </label>
-          </div>
-          <div class="settings-item">
-            <span class=" text-sm">Last Earthquake Felt</span>
-            <label class="toggle-switch">
-              <input type="checkbox" bind:checked={showGempaDirasakan} />
-              <span class="toggle-slider"></span>
-            </label>
-          </div>
-          <div class="settings-item">
-            <span class=" text-sm">Last Detected Earthquake</span>
-            <label class="toggle-switch">
-              <input type="checkbox" bind:checked={showGempaTerdeteksi} />
-              <span class="toggle-slider"></span>
-            </label>
-          </div>
-          <div class="settings-item">
-            <span class=" text-sm">Detail Event</span>
-            <label class="toggle-switch">
-              <input type="checkbox" bind:checked={showDetailEvent} />
-              <span class="toggle-slider"></span>
-            </label>
-          </div>
-          <div class="settings-item">
-            <span class=" text-sm">Shakemap</span>
-            <label class="toggle-switch">
-              <input type="checkbox" bind:checked={showShakeMap} />
-              <span class="toggle-slider"></span>
-            </label>
-          </div>
+          <span class="absolute bg-black ews-label px-2 py-1"
+            >⚠ TEST GEMPA</span
+          ></button
+        >
 
-          <!-- Test Buttons -->
-          <div
-            class="mt-4 pt-3"
-            style="border-top: 1px solid rgba(var(--danger-glow-rgb), 0.3)"
-          >
-            <p class=" text-xs font-bold mb-3" style="color:var(--orange)">
-              SIMULATION
-            </p>
-            <div class="flex gap-2">
-              <button
-                onclick={testDemoGempa}
-                class="cursor-pointer p-0 b-0 overflow-hidden flex items-center justify-center bordered p-1"
-                ><div class="stripe-wrapper">
-                  <div
-                    class="stripe-bar loop-stripe-reverse anim-duration-20"
-                  ></div>
-                  <div
-                    class="stripe-bar loop-stripe-reverse anim-duration-20"
-                  ></div>
-                </div>
-                <span class="absolute bg-black ews-label px-2 py-1"
-                  >⚠ TEST GEMPA</span
-                ></button
-              >
-
-              <button
-                onclick={testDemoTsunami}
-                class="cursor-pointer p-0 b-0 overflow-hidden flex items-center justify-center bordered p-1"
-                ><div class="stripe-wrapper">
-                  <div
-                    class="stripe-bar-red loop-stripe-reverse anim-duration-20"
-                  ></div>
-                  <div
-                    class="stripe-bar-red loop-stripe-reverse anim-duration-20"
-                  ></div>
-                </div>
-                <span class="absolute bg-black ews-label px-2 py-1"
-                  >⚠ TEST TSUNAMI</span
-                ></button
-              >
-            </div>
+        <button
+          onclick={testDemoTsunami}
+          class="cursor-pointer p-0 b-0 overflow-hidden flex items-center justify-center bordered p-1"
+          ><div class="stripe-wrapper">
+            <div
+              class="stripe-bar-red loop-stripe-reverse anim-duration-20"
+            ></div>
+            <div
+              class="stripe-bar-red loop-stripe-reverse anim-duration-20"
+            ></div>
           </div>
-        </div>
+          <span class="absolute bg-black ews-label px-2 py-1"
+            >⚠ TEST TSUNAMI</span
+          ></button
+        >
       </div>
     </div>
-  {/if}
+  </Modal>
 
   <!-- SOURCE DATA MODAL -->
-  {#if showSourceModal}
-    <div
-      class="settings-modal-overlay"
-      onclick={() => (showSourceModal = false)}
-    >
-      <div
-        class="settings-modal ews-card bordered-red !w-11/12 !max-w-4xl"
-        onclick={(e) => e.stopPropagation()}
+  <Modal
+    bind:show={showSourceModal}
+    title="SOURCE DATA CONFIG"
+    variant="large"
+    contentClass="flex flex-col gap-4"
+  >
+    <textarea
+      bind:value={sourceDataInput}
+      class="w-full h-96 bg-black text-green-500 font-mono p-2 border border-gray-700 focus:outline-none focus:border-red-500 custom-scrollbar text-xs"
+    ></textarea>
+    <div class="flex gap-2 justify-end">
+      <button class="ews-btn ews-btn-danger" onclick={resetSourceData}
+        >RESET</button
       >
-        <div class="ews-card-header bordered-red-bottom overflow-hidden">
-          <div class="stripe-wrapper">
-            <div class="stripe-bar loop-stripe-reverse anim-duration-20"></div>
-            <div class="stripe-bar loop-stripe-reverse anim-duration-20"></div>
-          </div>
-          <div
-            class="absolute top-0 bottom-0 left-0 right-0 flex justify-between items-center px-3"
-          >
-            <p class="p-1 bg-black font-bold text-sm ews-title text-3xl">
-              SOURCE DATA CONFIG
-            </p>
-            <button
-              class="bg-black px-2 py-1 cursor-pointer"
-              style="color:#e60003"
-              onclick={() => (showSourceModal = false)}>X</button
-            >
-          </div>
-        </div>
-        <div class="ews-card-content p-4 flex flex-col gap-4">
-          <textarea
-            bind:value={sourceDataInput}
-            class="w-full h-96 bg-black text-green-500 font-mono p-2 border border-gray-700 focus:outline-none focus:border-red-500 custom-scrollbar text-xs"
-          ></textarea>
-          <div class="flex gap-2 justify-end">
-            <button class="ews-btn ews-btn-danger" onclick={resetSourceData}
-              >RESET</button
-            >
-            <button class="ews-btn ews-btn-primary" onclick={saveSourceData}
-              >SAVE & RELOAD</button
-            >
-          </div>
-        </div>
-      </div>
+      <button class="ews-btn ews-btn-primary" onclick={saveSourceData}
+        >SAVE & RELOAD</button
+      >
     </div>
-  {/if}
+  </Modal>
 
   <!-- EARTHQUAKE ALERT SECTION -->
   <div
