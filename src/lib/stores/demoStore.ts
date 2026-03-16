@@ -20,7 +20,7 @@ function createDemoStore() {
     if (browser) {
         channel = new BroadcastChannel('ews-demo-events');
         channel.onmessage = (event) => {
-            if (event.data.type === 'TRIGGER_GEMPA') {
+            if (event.data.type === 'TRIGGER_EARTHQUAKE') {
                 update(s => ({ ...s, gempaAlert: event.data.payload }));
             } else if (event.data.type === 'TRIGGER_TSUNAMI') {
                 update(s => ({ ...s, tsunamiAlert: event.data.payload }));
@@ -34,7 +34,7 @@ function createDemoStore() {
         subscribe,
         triggerGempa: (data: InfoGempa) => {
             update(s => ({ ...s, gempaAlert: data }));
-            channel?.postMessage({ type: 'TRIGGER_GEMPA', payload: data });
+            channel?.postMessage({ type: 'TRIGGER_EARTHQUAKE', payload: data });
         },
         triggerTsunami: (data: InfoTsunami) => {
             update(s => ({ ...s, tsunamiAlert: data }));

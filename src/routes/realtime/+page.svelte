@@ -1180,9 +1180,7 @@
         <Card className=" w-full max-w-lg shadow-2xl">
             {#snippet title()}
                 <div class="flex justify-between items-center w-full">
-                    <p class="p-1 text-xl ews-title text-3xl">
-                        PENGATURAN CHART
-                    </p>
+                    <p class="p-1 text-xl ews-title text-3xl">SETTING CHART</p>
                     <button
                         class="text-orange-500 hover:text-orange-300 font-bold text-2xl px-2"
                         on:click={() => (isSettingsOpen = false)}
@@ -1198,7 +1196,7 @@
                         <p
                             class="text-orange-500 font-bold uppercase tracking-widest text-sm mb-1"
                         >
-                            Pilih Zona Waktu (X-Axis):
+                            Select Time Zone (X-Axis):
                         </p>
                         <div class="grid grid-cols-2 md:grid-cols-4 gap-2">
                             {#each [{ label: "UTC", value: 0 }, { label: "WIB", value: 7 }, { label: "WITA", value: 8 }, { label: "WIT", value: 9 }] as tz}
@@ -1223,7 +1221,7 @@
                         <p
                             class="text-orange-500 font-bold uppercase tracking-widest text-sm mb-1"
                         >
-                            Pengujian Tampilan (Demo):
+                            Chart Testing (Demo):
                         </p>
                         <button
                             class="cursor-pointer p-0 b-0 overflow-hidden flex items-center justify-center bordered p-1"
@@ -1279,6 +1277,6 @@
 >
     <span class="loader"></span>
     <p class="my-2 red-color p-2">
-        INI MERUPAKAN DESAIN KONSEP - DATA STASIUN DARI GEOFON
+        THIS IS A CONCEPT DESIGN - DATA STASIUN DARI GEOFON
     </p>
 </div>

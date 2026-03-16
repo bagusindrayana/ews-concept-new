@@ -9,7 +9,7 @@ export const SOUNDS = {
 };
 
 export const VOICES = {
-  GEMPABUMI: "/voice/gempabumi.wav",
+  EARTHQUAKE: "/voice/gempabumi.wav",
   TERDETEKSI: "/voice/terdeteksi.wav",
   POTENSI: "/voice/potensi.wav",
   EVAKUASI: "/voice/evakuasi.wav",
@@ -30,14 +30,14 @@ export class AudioService {
       if (audioDangerElement) {
         audioDangerElement.play();
       } else {
-         const danger = new Audio(SOUNDS.DANGER);
-         danger.play();
+        const danger = new Audio(SOUNDS.DANGER);
+        danger.play();
       }
-      
+
       setTimeout(() => {
-        new Audio(VOICES.GEMPABUMI).play();
+        new Audio(VOICES.EARTHQUAKE).play();
       }, 2000);
-      
+
       setTimeout(() => fadeOutAudio(bgNotif, 2000), 6000);
     }, 2000);
   }

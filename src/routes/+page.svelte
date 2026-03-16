@@ -478,7 +478,7 @@
         geoJsonTitikGempa = geoJson;
 
         let ntg: TitikGempa[] = infoList.map(
-          (info) => new TitikGempa(info.id, info),
+          (info: any) => new TitikGempa(info.id, info),
         );
         tgs = ntg;
         events = [...tgs];
@@ -853,7 +853,7 @@
             class="absolute top-0 bottom-0 left-0 right-0 flex justify-between items-center px-3"
           >
             <p class="p-1 bg-black font-bold text-sm ews-title text-3xl">
-              PENGATURAN
+              SETTING
             </p>
             <button
               class="bg-black px-2 py-1 cursor-pointer"
@@ -875,14 +875,14 @@
             </label>
           </div>
           <div class="settings-item">
-            <span class=" text-sm">Gempa Dirasakan Terakhir</span>
+            <span class=" text-sm">Last Earthquake Felt</span>
             <label class="toggle-switch">
               <input type="checkbox" bind:checked={showGempaDirasakan} />
               <span class="toggle-slider"></span>
             </label>
           </div>
           <div class="settings-item">
-            <span class=" text-sm">Gempa Terdeteksi Terakhir</span>
+            <span class=" text-sm">Last Detected Earthquake</span>
             <label class="toggle-switch">
               <input type="checkbox" bind:checked={showGempaTerdeteksi} />
               <span class="toggle-slider"></span>
@@ -909,7 +909,7 @@
             style="border-top: 1px solid rgba(var(--danger-glow-rgb), 0.3)"
           >
             <p class=" text-xs font-bold mb-3" style="color:var(--orange)">
-              SIMULASI
+              SIMULATION
             </p>
             <div class="flex gap-2">
               <button
@@ -996,7 +996,7 @@
     </div>
   {/if}
 
-  <!-- GEMPA BUMI ALERT SECTION -->
+  <!-- EARTHQUAKE ALERT SECTION -->
   <div
     id="gempa-bumi-alert"
     class="fixed top-6 md:top-3 left-6 md:left-3 right-0 flex gap-2 justify-start items-start pointer-events-none"
@@ -1010,7 +1010,7 @@
             <div
               class="absolute top-0 bottom-0 left-0 right-0 flex justify-center items-center"
             >
-              <p class="p-1 bg-black font-bold text-xs">GEMPA BUMI</p>
+              <p class="p-1 bg-black font-bold text-xs">EARTHQUAKE</p>
             </div>
           </StripeBar>
         {/snippet}
@@ -1190,7 +1190,7 @@
       </Card>
     {/if}
 
-    <!-- ALERT GEMPA BUMIS LIST -->
+    <!-- ALERT EARTHQUAKES LIST -->
     {#if !loadingScreen}
       {#each alertGempaBumis as agi, i (agi.id)}
         <Card
@@ -1201,7 +1201,7 @@
               <div
                 class="absolute top-0 bottom-0 left-0 right-0 flex justify-center items-center"
               >
-                <p class="p-1 bg-black font-bold text-xs">GEMPA BUMI</p>
+                <p class="p-1 bg-black font-bold text-xs">EARTHQUAKE</p>
               </div>
               <div
                 class="absolute top-2 right-1 flex justify-center items-center"
@@ -1364,7 +1364,7 @@
     </Card>
   {/if}
 
-  <!-- GEMPA BUMI DIRASAKAN SECTION -->
+  <!-- EARTHQUAKE DIRASAKAN SECTION -->
   <div
     id="gempa-bumi-dirasakan"
     class="fixed bottom-6 left-6 md:right-0 md:left-3 flex flex-col-reverse lg:flex-row gap-2 justify-start lg:items-end items-start pointer-events-none"
@@ -1382,7 +1382,7 @@
                 class="absolute top-0 bottom-0 left-0 right-0 flex justify-center items-center"
               >
                 <p class="text-lg bg-black font-bold p-1 ews-title text-3xl">
-                  GEMPA DIRASAKAN TERAKHIR
+                  LAST EARTHQUAKE FELT
                 </p>
               </div>
             </div>
@@ -1487,7 +1487,7 @@
       </Card>
     {/if}
 
-    <!-- GEMPA TERDETEKSI TERAKHIR -->
+    <!-- LAST DETECTED EARTHQUAKE -->
     {#if !loadingScreen && GempaTerakhir != undefined && GempaTerakhir != null && showGempaTerdeteksi}
       <Card
         className="hidden md:block show-pop-up md:w-1/4 lg:w-1/6 pointer-events-auto"
@@ -1499,7 +1499,7 @@
               class="absolute top-0 bottom-0 left-0 right-0 flex justify-center items-center"
             >
               <p class="bg-black font-bold p-1 ews-title">
-                GEMPA TERDETEKSI TERAKHIR
+                LAST DETECTED EARTHQUAKE
               </p>
             </div>
           </div>
@@ -1714,7 +1714,7 @@
             <div
               class="absolute top-0 bottom-0 left-0 right-0 flex justify-center items-center"
             >
-              <p class="p-1 bg-black font-bold text-xs">GEMPA BUMI</p>
+              <p class="p-1 bg-black font-bold text-xs">EARTHQUAKE</p>
             </div>
           </StripeBar>
         {/snippet}
@@ -1856,7 +1856,7 @@
   >
     <span class="loader"></span>
     <p class="my-2 red-color p-2">
-      INI MERUPAKAN DESAIN KONSEP - DATA GEMPA DARI BMKG
+      THIS IS A CONCEPT DESIGN - EARTHQUAKE DATA FROM BMKG
     </p>
   </div>
 </div>

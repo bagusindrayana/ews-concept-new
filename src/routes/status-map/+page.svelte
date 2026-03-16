@@ -269,7 +269,7 @@
 >
     <span class="loader"></span>
     <p class="my-2 red-color p-2">
-        INI MERUPAKAN DESAIN KONSEP - DATA STATION DARI GEOFON
+        THIS IS A CONCEPT DESIGN - DATA STATION DARI GEOFON
     </p>
 </div>
 
