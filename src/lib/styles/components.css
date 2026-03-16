@@ -394,6 +394,22 @@
         0 0 0 1px var(--border-glow-color); */
 }
 
+.bordered-bottom {
+    color: var(--text-color);
+    --border-glow-color: rgba(var(--glow-rgb));
+    border-color: unset;
+    border-bottom: 3px solid rgb(var(--glow-rgb));
+
+
+}
+
+.bordered-top {
+    color: var(--text-color);
+    --border-glow-color: rgba(var(--glow-rgb));
+    border-color: unset;
+    border-top: 3px solid rgb(var(--glow-rgb));
+}
+
 .bordered-red {
     color: var(--danger-text-color);
     --border-glow-color: rgba(var(--danger-glow-rgb));

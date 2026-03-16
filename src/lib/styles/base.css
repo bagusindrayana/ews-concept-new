@@ -1,7 +1,8 @@
 :root {
     --orange: #fa0;
-    --red: red;
-    --glow-rgb: 255, 102, 0;
+    --red: #f23;
+    --glow-rgb: 255, 170, 0;
+    --fill-color: #fa0;
     --text-color: #fa0;
     --danger-fill-color: #f23;
     --danger-glow-rgb: 255, 0, 0;

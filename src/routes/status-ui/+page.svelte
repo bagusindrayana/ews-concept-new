@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onMount, onDestroy } from "svelte";
   import { xmlToJson, type JsonNode } from "$lib/xmlUtils";
+  import StripeBar from "$lib/components/StripeBar.svelte";
 
   // Dummy data for the status list
   let statuses = $state<
@@ -85,6 +86,7 @@
             : [stationsList];
 
           stations.forEach((stationNode) => {
+            // console.log(stationNode);
             const staCode =
               (stationNode["@attributes"] as any)?.code || "UNKNOWN";
             const startDate = (stationNode["@attributes"] as any)?.startDate;
@@ -129,41 +131,23 @@
 <div
   class="min-h-screen py-1 md:py-4 flex flex-col items-center overflow-x-hidden overflow-y-auto font-mono"
 >
-  {#if chunkedStatuses.length > 0}
-    <div
-      class="mb-2 text-center p-2 z-10 w-full bordered flex justify-center items-center relative show-pop-up"
-    >
-      <div class="overflow-hidden">
-        <div class="stripe-wrapper h-12">
-          <div
-            class="stripe-bar-red loop-stripe anim-duration-10"
-            style="height: 100%;"
-          ></div>
-          <div
-            class="stripe-bar-red loop-stripe anim-duration-10"
-            style="height: 100%;"
-          ></div>
-        </div>
-        <div
-          class="absolute top-0 bottom-0 left-0 right-0 flex justify-center items-center"
+  <div
+    class="mb-2 text-center p-2 z-10 w-full bordered flex justify-center items-center relative show-pop-up"
+  >
+    <div class="overflow-hidden">
+      <StripeBar loop={true} duration={20} color="red"></StripeBar>
+      <div
+        class="absolute top-0 bottom-0 left-0 right-0 flex justify-center items-center"
+      >
+        <h1
+          class="text-xl p-1 font-bold ews-title text-3xl danger uppercase bg-black"
         >
-          <h1
-            class="text-xl p-1 font-bold ews-title text-3xl danger uppercase bg-black"
-          >
-            Station Status
-          </h1>
-        </div>
+          Station Status
+        </h1>
       </div>
     </div>
-    <div
-      class="mb-2 w-full bordered text-center p-1 hidden md:block show-pop-up"
-    >
-      <p class="text-black font-bold text-sm bg-primary p-4 uppercase">
-        GEOFON STATION - FDSN (International Federation of Digital Seismograph
-        Networks)
-      </p>
-    </div>
-  {/if}
+  </div>
+
   <div class="w-full h-1 bg-primary"></div>
   <div
     class="inline-flex h-auto justify-center gap-4 w-full px-4 overflow-none relative"
