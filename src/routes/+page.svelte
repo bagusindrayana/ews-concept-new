@@ -1333,7 +1333,7 @@
       className="fixed right-0 left-0 w-full md:right-0 md:left-auto lg:right-3 top-1 md:top-3 md:w-1/3 lg:w-1/5 show-pop-up ews-card bordered-red fixed right-0 md:right-3 top-1 md:top-3 ews-card-float md:w-1/3 lg:w-1/5 show-pop-up ews-card-float"
     >
       {#snippet title()}
-        <StripeBar color="red" loop={true} duration={20}
+        <StripeBar color="red"
           ><div
             class="absolute top-0 bottom-0 left-0 right-0 flex justify-center items-center"
           >
@@ -1346,15 +1346,17 @@
       {#snippet children()}
         <ul>
           {#each events as v, i (v.id)}
-            <li
-              onclick={() => selectEvent(v.infoGempa)}
-              class="flex flex-col mb-2 list-event cursor-pointer slide-in-left"
-              style="animation-delay:{i * 0.01}s"
-            >
-              <span style="font-size:11px">{v.infoGempa.time} WIB</span>
-              <div class="bordered p-2" style="font-size:12px">
-                {v.readableMag} M - {v.infoGempa.place || "uknown"}
-              </div>
+            <li class="w-full">
+              <button
+                onclick={() => selectEvent(v.infoGempa)}
+                class="flex flex-col mb-2 list-event cursor-pointer slide-in-left w-full text-start"
+                style="animation-delay:{i * 0.01}s"
+              >
+                <span style="font-size:11px">{v.infoGempa.time} WIB</span>
+                <div class="bordered p-2" style="font-size:12px">
+                  {v.readableMag} M - {v.infoGempa.place || "uknown"}
+                </div>
+              </button>
             </li>
           {/each}
         </ul>
@@ -1372,7 +1374,7 @@
         className="hidden md:block show-pop-up md:w-1/2 lg:w-2/5 xl:w-1/5 pointer-events-auto"
       >
         {#snippet title()}
-          <StripeBar loop={true}>
+          <StripeBar>
             <div
               class="absolute top-0 bottom-0 left-0 right-0 flex justify-center items-center"
             >
@@ -1492,10 +1494,7 @@
       >
         {#snippet title()}
           <div class="overflow-hidden">
-            <div class="stripe-wrapper">
-              <div class="stripe-bar loop-stripe"></div>
-              <div class="stripe-bar loop-stripe"></div>
-            </div>
+            <StripeBar></StripeBar>
             <div
               class="absolute top-0 bottom-0 left-0 right-0 flex justify-center items-center"
             >

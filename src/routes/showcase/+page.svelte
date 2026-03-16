@@ -12,6 +12,7 @@
   import vbscriptHtml from "svelte-highlight/languages/vbscript-html";
   import StripeBar from "$lib/components/StripeBar.svelte";
   import HexShape from "$lib/components/HexShape.svelte";
+  import MentalToxicityLevel from "$lib/components/MentalToxicityLevel.svelte";
 
   let showGempaBumiAlert = $state(false);
   let showTsunamiAlert = $state(false);
@@ -67,23 +68,32 @@
         <div class="max-w-24">
           <p>Default</p>
 
-          <StripeBar className="my-2"></StripeBar>
+          <div class="h-[30px]">
+            <StripeBar className="my-2 "></StripeBar>
+          </div>
 
           <p>Animated</p>
-          <StripeBar loop={true}></StripeBar>
+          <div class="h=[30px]">
+            <StripeBar loop={true}></StripeBar>
+          </div>
 
           <p>Red</p>
-          <StripeBar color="red" loop={true} duration={20}></StripeBar>
+          <div class="h-[30px]">
+            <StripeBar color="red" loop={true} duration={20}></StripeBar>
+          </div>
 
           <p>Reverse</p>
-          <StripeBar color="red" loop={true} reverse={true} duration={20}
-          ></StripeBar>
+          <div class="h-[30px]">
+            <StripeBar color="red" loop={true} reverse={true} duration={20}
+            ></StripeBar>
+          </div>
         </div>
 
         <div class="w-full">
           <p>Vertical</p>
           <div class="h-[100px] flex gap-2">
-            <StripeBar orientation="vertical"></StripeBar>
+            <StripeBar orientation="vertical" className="w-[30px] h-full"
+            ></StripeBar>
 
             <StripeBar orientation="vertical" color="red"></StripeBar>
           </div>
@@ -653,6 +663,14 @@
           </div>
         </div>
       </div>
+    </section>
+
+    <!-- MENTAL TOXICITY LEVEL -->
+    <section class="col-span-1 md:col-span-2 lg:col-span-3">
+      <h2 class="text-xl font-semibold mb-4 border-b border-gray-700 pb-2">
+        Mental Toxicity Level
+      </h2>
+      <MentalToxicityLevel />
     </section>
   </div>
 </div>

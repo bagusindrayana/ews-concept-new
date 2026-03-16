@@ -13,7 +13,7 @@
 }
 
 .loop-stripe-vertical.reverse {
-    animation: loopStripVertical 15s infinite linear reverse;
+    animation: stripeAnimationVertical 15s infinite linear reverse;
 }
 
 .loop-stripe-vertical-reverse {
@@ -30,33 +30,31 @@
 
 @keyframes loopStripVertical {
     from {
-        transform: translateY(0);
+        background-position: 0px 0px;
     }
 
     to {
-        transform: translateY(calc(-42.4264px * 47));
-        /* ≈ -2000px, but exact multiple of repeating unit */
+        background-position: 0px calc(-42.4264px * 47);
     }
 }
 
 @keyframes stripeAnimationVertical {
     from {
-        transform: translateY(0);
+        background-position: 0px 0px;
     }
 
     to {
-        transform: translateY(calc(-42.4264px * 47));
-        /* ≈ -2000px, but exact multiple of repeating unit */
+        background-position: 0px calc(-42.4264px * 47);
     }
 }
 
 @keyframes stripeAnimation {
     from {
-        transform: translateX(0);
+        background-position: 0px 0px;
     }
 
     to {
-        transform: translateX(calc(-42.4264px * 47));
+        background-position: calc(-42.4264px * 47) 0px;
     }
 }
 
@@ -88,12 +86,11 @@
 
 @keyframes loopStrip {
     from {
-        transform: translateX(0);
+        background-position: 0px 0px;
     }
 
     to {
-        transform: translateX(calc(-42.4264px * 47));
-        /* exact loop point */
+        background-position: calc(-42.4264px * 47) 0px;
     }
 }
 

@@ -9,6 +9,7 @@
         loop?: boolean;
         reverse?: boolean;
         duration?: number;
+        size?: string;
     }
 
     let {
@@ -19,11 +20,15 @@
         loop = false,
         reverse = false,
         duration = 10,
+        size = "30px",
     }: Props = $props();
 </script>
 
 <div class="overflow-hidden {className}">
-    <div class="stripe-wrapper {orientation}">
+    <div
+        class="stripe-wrapper {orientation}"
+        style="{orientation == 'vertical' ? 'width' : 'height'}: {size};"
+    >
         <div
             class="stripe-bar {color} {orientation} {loop
                 ? 'loop-stripe'
