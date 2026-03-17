@@ -2,6 +2,7 @@
   import { onMount, onDestroy } from "svelte";
   import { xmlToJson, type JsonNode } from "$lib/xmlUtils";
   import StripeBar from "$lib/components/StripeBar.svelte";
+  import RibCageLayout from "$lib/components/RibCageLayout.svelte";
 
   // Dummy data for the status list
   let statuses = $state<
@@ -15,43 +16,7 @@
     }[]
   >([]);
 
-  // Jumlah branch responsive berdasarkan screen size
-  let branchCount = $state(5);
-  let windowWidth = $state(0);
-
-  // Function untuk menentukan branch count berdasarkan screen width
-  function getBranchCount(width: number): number {
-    if (width < 768) return 1;
-    if (width < 1024) return 2; // Mobile
-    if (width < 1300) return 4; // Medium
-    return 5; // Large
-  }
-
-  // Function untuk update branch count saat resize
-  function handleResize() {
-    windowWidth = typeof window !== "undefined" ? window.innerWidth : 0;
-    branchCount = getBranchCount(windowWidth);
-  }
-
-  // Membagi data ke dalam beberapa branch
-  let chunkedStatuses = $derived.by(() => {
-    if (statuses.length === 0) return [];
-    // Batasi minimal 1 branch
-    const count = Math.max(1, branchCount);
-
-    const result = [];
-    const itemsPerBranch = Math.ceil(statuses.length / count);
-
-    for (let i = 0; i < statuses.length; i += itemsPerBranch) {
-      result.push(statuses.slice(i, i + itemsPerBranch));
-    }
-    return result;
-  });
-
   onMount(() => {
-    // Inisialisasi branch count berdasarkan screen width saat mount
-    handleResize();
-
     // https://geof.bmkg.go.id/fdsnws/station/1/
     // URL GEOFON (tanpa format=text agar mengembalikan XML)
     const url =
@@ -110,16 +75,9 @@
           if (el) el.style.display = "none";
         }, 1000);
       });
-
-    // Tambahkan event listener untuk resize
-    window.addEventListener("resize", handleResize);
   });
 
   onDestroy(() => {
-    // Hapus event listener saat component destroyed
-    if (typeof window !== "undefined") {
-      window.removeEventListener("resize", handleResize);
-    }
     console.log("Component destroyed");
   });
 </script>
@@ -149,97 +107,29 @@
   </div>
 
   <div class="w-full h-1 bg-primary"></div>
-  <div
-    class="inline-flex h-auto justify-center gap-4 w-full px-4 overflow-none relative"
+
+  <RibCageLayout
+    items={statuses}
+    getHref={(item) =>
+      `/realtime?networkCode=${item.networkCode}&stationCode=${item.stationCode}`}
   >
-    {#each chunkedStatuses as branchStatuses, branchIndex}
-      <div class="relative py-4 lg:py-10 flex flex-col gap-4">
-        <!-- Central Spine -->
-        <div
-          class="absolute h-auto left-1/2 top-0 bottom-0 w-1 bg-primary transform -translate-x-1/2 z-0 line-central"
-          style="animation-delay: {branchIndex * 200}ms;"
-        ></div>
+    {#snippet nodeContent(item, { side, delay })}
+      <div
+        class="slide-fade-in {side === 'left' ? 'status-node' : 'status-node-flip'} {item.type ===
+        'danger'
+          ? 'danger'
+          : ''} w-24 h-6 flex flex-glow flex-col items-center justify-center relative mt-6 {side ===
+        'left'
+          ? '-mr-2'
+          : '-ml-2'} z-5 text-black text-xs font-bold"
+        style="animation-delay: {delay}ms;"
+      ></div>
+    {/snippet}
 
-        <!-- Iterate in pairs essentially by grouping them two by two -->
-        <div class="grid grid-cols-2 relative z-10">
-          {#each branchStatuses as item, index}
-            {#if index % 2 === 0}
-              <!-- Left Item (Even index) -->
-              <a
-                href="/realtime?networkCode={item.networkCode}&stationCode={item.stationCode}"
-                class="flex flex-grow justify-end items-center relative pr-0 col-start-1 node"
-              >
-                <div class="relative flex parent-node">
-                  <!-- node -->
-                  <div
-                    class="status-node slide-fade-in {item.type === 'danger'
-                      ? 'danger '
-                      : ''} w-24 h-6 flex flex-grow flex-col items-center justify-center relative mt-6 -mr-2 z-5 text-black text-xs font-bold"
-                    style="animation-delay: {(branchIndex + 1) *
-                      (index + 1) *
-                      10}ms;"
-                  >
-                    <!-- {item.type === "danger" ? item.status : ""} -->
-                  </div>
-                </div>
-                <!-- Connecting Line to center -->
-                <div class="w-24 flex justify-end relative line">
-                  <div
-                    class="h-[2px] w-24 bg-primary z-0 line-node"
-                    style="animation-delay: {(branchIndex + 1) *
-                      (index + 1) *
-                      10}ms;"
-                  ></div>
-
-                  <span
-                    class="font-bold text-xs uppercase absolute left-2 z-10 text-left top-1 fade-in animation-delay-5 text-primary"
-                  >
-                    {item.title}
-                  </span>
-                </div>
-              </a>
-            {:else}
-              <!-- Right Item (Odd index) -->
-              <a
-                href="/realtime?networkCode={item.networkCode}&stationCode={item.stationCode}"
-                class="flex justify-start items-center relative pl-0 col-start-2 w-auto node-flip"
-              >
-                <!-- Connecting Line from center -->
-                <div class="w-24 flex justify-start relative">
-                  <div
-                    class="h-[2px] w-24 bg-primary z-0 line-node"
-                    style="animation-delay: {(branchIndex + 1) *
-                      (index + 1) *
-                      10}ms;"
-                  ></div>
-
-                  <span
-                    class="font-bold text-xs uppercase absolute z-10 right-2 text-right top-1 fade-in animation-delay-5 text-primary"
-                  >
-                    {item.title}
-                  </span>
-                </div>
-                <div class="relative flex parent-node flip">
-                  <!-- node -->
-                  <div
-                    class="status-node-flip slide-fade-in {item.type ===
-                    'danger'
-                      ? 'danger '
-                      : ''} w-24 h-6 flex flex-col items-center justify-center relative mt-6 -ml-2 z-5 text-black text-xs font-bold"
-                    style="animation-delay: {(branchIndex + 1) *
-                      (index + 1) *
-                      10}ms;"
-                  >
-                    <!-- {item.type === "danger" ? item.status : ""} -->
-                  </div>
-                </div>
-              </a>
-            {/if}
-          {/each}
-        </div>
-      </div>
-    {/each}
-  </div>
+    {#snippet connectorContent(item)}
+      {item.title}
+    {/snippet}
+  </RibCageLayout>
 </div>
 
 <!-- LOADING SCREEN -->
