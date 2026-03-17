@@ -1073,7 +1073,7 @@
     <!-- INFO TSUNAMI CARD -->
     {#if !loadingScreen && infoTsunami != undefined && infoTsunami != null}
       <Card
-        className="hidden md:block show-pop-up md:w-1/3 lg:w-1/4 xl:w-1/5 2xl:w-1/6 pointer-events-auto"
+        className="hidden md:block show-pop-up md:w-1/3 lg:w-1/4 xl:w-1/5 2xl:w-1/6 pointer-events-auto bordered-red"
       >
         {#snippet title()}
           <div class="overflow-hidden">
@@ -1088,7 +1088,7 @@
             <div
               class="absolute top-0 bottom-0 left-0 right-0 flex justify-center items-center"
             >
-              <p class="p-1 bg-black font-bold text-xs">PERINGATAN TSUNAMI</p>
+              <p class="p-1 bg-black font-bold text-xs">TSUNAMI WARNING</p>
             </div>
           </div>
         {/snippet}
@@ -1313,7 +1313,7 @@
   >
     {#if !loadingScreen && GempaDirasakan != undefined && GempaDirasakan != null && showGempaDirasakan}
       <Card
-        className="hidden md:block show-pop-up md:w-1/2 lg:w-2/5 xl:w-1/5 pointer-events-auto"
+        className="hidden md:block show-pop-up md:w-1/2 lg:w-2/5 xl:w-1/5 pointer-events-auto bordered-red"
       >
         {#snippet title()}
           <StripeBar>

@@ -7,31 +7,71 @@
         "single_data": true,
         "attribute": "",
         "data_mapping": {
-            "id": { "attribute": "identifier" },
+            "id": {
+                "attribute": "identifier"
+            },
             "lng": {
                 "attribute": "info.point.coordinates",
                 "func": [
-                    { "split": { "separator": ",", "index": 0 } },
-                    { "toFloat": {} }
+                    {
+                        "split": {
+                            "separator": ",",
+                            "index": 0
+                        }
+                    },
+                    {
+                        "toFloat": {}
+                    }
                 ]
             },
             "lat": {
                 "attribute": "info.point.coordinates",
                 "func": [
-                    { "split": { "separator": ",", "index": 1 } },
-                    { "toFloat": {} }
+                    {
+                        "split": {
+                            "separator": ",",
+                            "index": 1
+                        }
+                    },
+                    {
+                        "toFloat": {}
+                    }
                 ]
             },
-            "mag": { "attribute": "info.magnitude", "func": [{ "toFloat": {} }] },
-            "depth": { "attribute": "info.depth" },
-            "place": { "attribute": "info.felt" },
-            "message": { "attribute": "info.description" },
+            "mag": {
+                "attribute": "info.magnitude",
+                "func": [
+                    {
+                        "toFloat": {}
+                    }
+                ]
+            },
+            "depth": {
+                "attribute": "info.depth"
+            },
+            "place": {
+                "attribute": "info.felt"
+            },
+            "message": {
+                "attribute": "info.description"
+            },
             "time": {
                 "attribute": "sent",
                 "func": [
-                    { "replace": { "from": "WIB", "to": "" } },
-                    { "fromISO": { "zone": "Asia/Jakarta" } },
-                    { "formatReadable": {} }
+                    {
+                        "replace": {
+                            "from": "WIB",
+                            "to": ""
+                        }
+                    },
+                    {
+                        "fromISO": {
+                            "zone": "Asia/Jakarta"
+                        }
+                    },
+                    {
+                        "formatReadable": {}
+                    }
                 ]
             }
         }
@@ -44,17 +84,50 @@
         "single_data": false,
         "attribute": "features",
         "data_mapping": {
-            "id": { "attribute": "properties.id" },
-            "lng": { "attribute": "geometry.coordinates", "index": 0, "func": [{ "toFloat": {} }] },
-            "lat": { "attribute": "geometry.coordinates", "index": 1, "func": [{ "toFloat": {} }] },
-            "mag": { "attribute": "properties.mag", "func": [{ "toFloat": {} }] },
-            "depth": { "attribute": "properties.depth" },
-            "place": { "attribute": "properties.place" },
+            "id": {
+                "attribute": "properties.id"
+            },
+            "lng": {
+                "attribute": "geometry.coordinates",
+                "index": 0,
+                "func": [
+                    {
+                        "toFloat": {}
+                    }
+                ]
+            },
+            "lat": {
+                "attribute": "geometry.coordinates",
+                "index": 1,
+                "func": [
+                    {
+                        "toFloat": {}
+                    }
+                ]
+            },
+            "mag": {
+                "attribute": "properties.mag",
+                "func": [
+                    {
+                        "toFloat": {}
+                    }
+                ]
+            },
+            "depth": {
+                "attribute": "properties.depth"
+            },
+            "place": {
+                "attribute": "properties.place"
+            },
             "time": {
                 "attribute": "properties.time",
                 "func": [
-                    { "utcSqlToJakarta": {} },
-                    { "formatReadable": {} }
+                    {
+                        "utcSqlToJakarta": {}
+                    },
+                    {
+                        "formatReadable": {}
+                    }
                 ]
             }
         }
@@ -67,17 +140,50 @@
         "single_data": false,
         "attribute": "features",
         "data_mapping": {
-            "id": { "attribute": "properties.id" },
-            "lng": { "attribute": "geometry.coordinates", "index": 0, "func": [{ "toFloat": {} }] },
-            "lat": { "attribute": "geometry.coordinates", "index": 1, "func": [{ "toFloat": {} }] },
-            "mag": { "attribute": "properties.mag", "func": [{ "toFloat": {} }] },
-            "depth": { "attribute": "properties.depth" },
-            "place": { "attribute": "properties.place" },
+            "id": {
+                "attribute": "properties.id"
+            },
+            "lng": {
+                "attribute": "geometry.coordinates",
+                "index": 0,
+                "func": [
+                    {
+                        "toFloat": {}
+                    }
+                ]
+            },
+            "lat": {
+                "attribute": "geometry.coordinates",
+                "index": 1,
+                "func": [
+                    {
+                        "toFloat": {}
+                    }
+                ]
+            },
+            "mag": {
+                "attribute": "properties.mag",
+                "func": [
+                    {
+                        "toFloat": {}
+                    }
+                ]
+            },
+            "depth": {
+                "attribute": "properties.depth"
+            },
+            "place": {
+                "attribute": "properties.place"
+            },
             "time": {
                 "attribute": "properties.time",
                 "func": [
-                    { "utcSqlToJakarta": {} },
-                    { "formatReadable": {} }
+                    {
+                        "utcSqlToJakarta": {}
+                    },
+                    {
+                        "formatReadable": {}
+                    }
                 ]
             }
         }
@@ -90,17 +196,45 @@
         "single_data": false,
         "attribute": "Infogempa.gempa",
         "data_mapping": {
-            "id": { "attribute": "eventid" },
-            "lng": { "attribute": "bujur", "func": [{ "toFloat": {} }] },
-            "lat": { "attribute": "lintang", "func": [{ "toFloat": {} }] },
-            "mag": { "attribute": "mag", "func": [{ "toFloat": {} }] },
-            "depth": { "attribute": "dalam" },
-            "place": { "attribute": "area" },
+            "id": {
+                "attribute": "eventid"
+            },
+            "lng": {
+                "attribute": "bujur",
+                "func": [
+                    {
+                        "toFloat": {}
+                    }
+                ]
+            },
+            "lat": {
+                "attribute": "lintang",
+                "func": [
+                    {
+                        "toFloat": {}
+                    }
+                ]
+            },
+            "mag": {
+                "attribute": "mag",
+                "func": [
+                    {
+                        "toFloat": {}
+                    }
+                ]
+            },
+            "depth": {
+                "attribute": "dalam"
+            },
+            "place": {
+                "attribute": "area"
+            },
             "time": {
                 "attribute": "waktu",
                 "func": [
-                    { "utcSqlToJakarta": {} },
-                    { "formatReadable": {} }
+                    {
+                        "formatReadable": {}
+                    }
                 ]
             }
         }
@@ -113,22 +247,69 @@
         "single_data": false,
         "attribute": "",
         "data_mapping": {
-            "id": { 
-                "attribute": "", 
-                "func": [{ "template": { "format": "${6}-${0}-${1}" } }] 
-            },
-            "lng": { "attribute": "", "index": 3, "func": [{ "toFloat": {} }] },
-            "lat": { "attribute": "", "index": 2, "func": [{ "toFloat": {} }] },
-            "mag": { "attribute": "", "index": 5, "func": [{ "toFloat": {} }] },
-            "depth": { "attribute": "", "index": 4 },
-            "place": { "attribute": "", "index": 6 },
-            "time": { 
-                "attribute": "", 
+            "id": {
+                "attribute": "",
                 "func": [
-                    { "template": { "format": "${0} ${1}" } },
-                    { "fromFormat": { "format": "yyyy-MM-dd HH:mm:ss", "zone": "UTC" } },
-                    { "formatReadable": {} }
-                ] 
+                    {
+                        "template": {
+                            "format": "${6}-${0}-${1}"
+                        }
+                    }
+                ]
+            },
+            "lng": {
+                "attribute": "",
+                "index": 3,
+                "func": [
+                    {
+                        "toFloat": {}
+                    }
+                ]
+            },
+            "lat": {
+                "attribute": "",
+                "index": 2,
+                "func": [
+                    {
+                        "toFloat": {}
+                    }
+                ]
+            },
+            "mag": {
+                "attribute": "",
+                "index": 5,
+                "func": [
+                    {
+                        "toFloat": {}
+                    }
+                ]
+            },
+            "depth": {
+                "attribute": "",
+                "index": 4
+            },
+            "place": {
+                "attribute": "",
+                "index": 6
+            },
+            "time": {
+                "attribute": "",
+                "func": [
+                    {
+                        "template": {
+                            "format": "${0} ${1}"
+                        }
+                    },
+                    {
+                        "fromFormat": {
+                            "format": "yyyy-MM-dd HH:mm:ss",
+                            "zone": "UTC"
+                        }
+                    },
+                    {
+                        "formatReadable": {}
+                    }
+                ]
             }
         }
     }

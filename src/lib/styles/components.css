@@ -383,57 +383,65 @@
 
 
 .bordered {
+    --text-color: var(--orange);
     color: var(--text-color);
-    --border-glow-color: rgba(var(--glow-rgb));
+    --border-color: rgba(var(--glow-rgb));
     border-radius: var(--gutter-size);
     border-style: solid;
     border-width: 3px;
-    border-color: var(--orange);
+    border-color: var(--border-color);
     /* box-shadow:
         inset 0 0 0 1px var(--border-glow-color),
         0 0 0 1px var(--border-glow-color); */
 }
 
 .bordered-bottom {
-    color: var(--text-color);
-    --border-glow-color: rgba(var(--glow-rgb));
+    /* color: var(--text-color); */
+    /* --border-glow-color: rgba(var(--glow-rgb)); */
     border-color: unset;
-    border-bottom: 3px solid rgb(var(--glow-rgb));
+    border-bottom: 3px solid var(--border-color);
 
 
 }
 
 .bordered-top {
-    color: var(--text-color);
-    --border-glow-color: rgba(var(--glow-rgb));
+    /* color: var(--text-color); */
+    /* --border-glow-color: rgba(var(--glow-rgb)); */
     border-color: unset;
-    border-top: 3px solid rgb(var(--glow-rgb));
+    border-top: 3px solid var(--border-color);
 }
 
 .bordered-red {
-    color: var(--danger-text-color);
+    --text-color: var(--red);
+    color: var(--text-color);
+    /* color: var(--danger-text-color);
     --border-glow-color: rgba(var(--danger-glow-rgb));
     border-radius: var(--gutter-size);
     border-style: solid;
     border-width: 3px;
-    border-color: var(--red);
+    border-color: var(--red); */
+    --border-color: rgba(var(--danger-glow-rgb));
+    border-radius: var(--gutter-size);
+    border-style: solid;
+    border-width: 3px;
+    border-color: var(--border-color);
 
 }
 
 .bordered-red-bottom {
-    color: var(--danger-text-color);
-    --border-glow-color: rgba(var(--danger-glow-rgb));
+    /* color: var(--danger-text-color); */
+    /* --border-glow-color: rgba(var(--danger-glow-rgb)); */
     border-color: unset;
-    border-bottom: 3px solid rgb(var(--danger-glow-rgb));
+    border-bottom: 3px solid var(--border-color);
 
 
 }
 
 .bordered-red-top {
-    color: var(--danger-text-color);
-    --border-glow-color: rgba(var(--danger-glow-rgb));
+    /* color: var(--danger-text-color); */
+    /* --border-glow-color: rgba(var(--danger-glow-rgb)); */
     border-color: unset;
-    border-top: 3px solid rgb(var(--danger-glow-rgb));
+    border-top: 3px solid var(--border-color);
 }
 
 .ews-card {
