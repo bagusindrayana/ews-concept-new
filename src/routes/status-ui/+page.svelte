@@ -3,6 +3,7 @@
   import { xmlToJson, type JsonNode } from "$lib/xmlUtils";
   import StripeBar from "$lib/components/StripeBar.svelte";
   import RibCageLayout from "$lib/components/RibCageLayout.svelte";
+  import { mapStore } from "$lib/stores/mapStore.svelte";
 
   // Dummy data for the status list
   let statuses = $state<
@@ -17,10 +18,10 @@
   >([]);
 
   onMount(() => {
-    // https://geof.bmkg.go.id/fdsnws/station/1/
+    // https://geofon.bmkg.go.id/fdsnws/station/1/
     // URL GEOFON (tanpa format=text agar mengembalikan XML)
     const url =
-      "https://geofon.gfz-potsdam.de/fdsnws/station/1/query?minlatitude=-11&maxlatitude=6&minlongitude=95&maxlongitude=141&level=station";
+      `https://geofon.gfz-potsdam.de/fdsnws/station/1/query?${mapStore.urlParams}&level=station`;
 
     fetch(url)
       .then((response) => {
@@ -110,10 +111,10 @@
 
   <RibCageLayout
     items={statuses}
-    getHref={(item) =>
+    getHref={(item: any) =>
       `/realtime?networkCode=${item.networkCode}&stationCode=${item.stationCode}`}
   >
-    {#snippet nodeContent(item, { side, delay })}
+    {#snippet nodeContent(item: any, { side, delay }: { side: string; delay: number })}
       <div
         class="slide-fade-in {side === 'left' ? 'status-node' : 'status-node-flip'} {item.type ===
         'danger'
@@ -126,7 +127,7 @@
       ></div>
     {/snippet}
 
-    {#snippet connectorContent(item)}
+    {#snippet connectorContent(item: any)}
       {item.title}
     {/snippet}
   </RibCageLayout>

@@ -642,6 +642,14 @@
             .then((xmlString) => {
                 stationData = xmlToJson(xmlString).FDSNStationXML;
                 console.log(stationData);
+                if (Array.isArray(stationData.Network.Station)) {
+                    //find sation that dont have endDate
+                    stationData.Network.Station =
+                        stationData.Network.Station.find(
+                            (item: any) =>
+                                item["@attributes"].endDate == undefined,
+                        );
+                }
                 const el = document.getElementById("loading-screen");
                 if (el) el.style.display = "none";
 
@@ -885,7 +893,7 @@
     class="min-h-screen px-1 lg:px-0 py-1 lg:py-8 flex flex-col justify-center overflow-hidden font-mono relative gap-2"
 >
     <div class="w-full flex flex-col-reverse lg:flex-row gap-2 justify-center">
-        {#if stationData != null}
+        {#if stationData != null && stationData.Network.Station != undefined && !Array.isArray(stationData.Network.Station)}
             <div class="flex flex-col gap-4 w-auto h-full items-stretch">
                 <Card className=" w-full lg:w-md ">
                     {#snippet title()}
@@ -1100,7 +1108,9 @@
                             <div
                                 class="font-bold text-2xl md:text-4xl tracking-widest leading-none text-right ews-title"
                             >
-                                {stationData != null
+                                {stationData != null &&
+                                stationData.Network.Station != undefined &&
+                                !Array.isArray(stationData.Network.Station)
                                     ? `${stationData.Network["@attributes"]["code"]} ${stationData.Network.Station["@attributes"]["code"]}`
                                     : "LOADING..."}
                             </div>
