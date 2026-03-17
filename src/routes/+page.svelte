@@ -434,7 +434,7 @@
   async function loadGeoJsonData() {
     try {
       geoJsonData = await mapLayerService.loadTerritoryLayer(map);
-      initializeMapData();
+      // initializeMapData();
       timezoneInterval = mapLayerService.addTimezoneLayer(map, mapboxgl);
       mapLayerService.addFaultLinesLayer(map);
       initWorker();
@@ -491,8 +491,15 @@
           loadingScreen = false;
         }, 1000);
 
-        // Add map layers and socket listeners ONLY once
-        if (map && !map.getLayer("earthquakes-layer")) {
+        // Add map layers and socket listeners (Clean existing first for reload)
+        if (map) {
+          if (map.getLayer("earthquakes-layer")) {
+            map.removeLayer("earthquakes-layer");
+          }
+          if (map.getSource("earthquakes")) {
+            map.removeSource("earthquakes");
+          }
+
           map.addSource("earthquakes", { type: "geojson", data: geoJson });
           map.addLayer({
             id: "earthquakes-layer",
@@ -795,6 +802,7 @@
           sourceDataInput = customData;
           initializeMapData(JSON.parse(customData));
         } catch (e) {
+          console.log(e);
           initializeMapData();
         }
       } else {
