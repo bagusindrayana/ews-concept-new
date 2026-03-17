@@ -1,0 +1,76 @@
+[
+    {
+        "id": "ssn_mexico",
+        "category": "all",
+        "source_url": "http://www.ssn.unam.mx/j/656823557",
+        "type": "json",
+        "single_data": false,
+        "attribute": "",
+        "data_mapping": {
+            "id": {
+                "attribute": "",
+                "func": [
+                    {
+                        "template": {
+                            "format": "${6}-${0}-${1}"
+                        }
+                    }
+                ]
+            },
+            "lng": {
+                "attribute": "",
+                "index": 3,
+                "func": [
+                    {
+                        "toFloat": {}
+                    }
+                ]
+            },
+            "lat": {
+                "attribute": "",
+                "index": 2,
+                "func": [
+                    {
+                        "toFloat": {}
+                    }
+                ]
+            },
+            "mag": {
+                "attribute": "",
+                "index": 5,
+                "func": [
+                    {
+                        "toFloat": {}
+                    }
+                ]
+            },
+            "depth": {
+                "attribute": "",
+                "index": 4
+            },
+            "place": {
+                "attribute": "",
+                "index": 6
+            },
+            "time": {
+                "attribute": "",
+                "func": [
+                    {
+                        "template": {
+                            "format": "${0} ${1}"
+                        }
+                    },
+                    {
+                        "fromFormat": {
+                            "format": "yyyy-MM-dd HH:mm:ss",
+                            "zone": "UTC"
+                        }
+                    },
+                    {
+                        "formatReadable": {}
+                    }
+                ]
+            }
+        }
+    }
+]
