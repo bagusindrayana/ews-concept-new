@@ -32,7 +32,7 @@
 		"@sveltejs/adapter-node": "^5.5.4",
 		"@tailwindcss/vite": "^4.2.1",
 		"@turf/turf": "^6.5",
-		"fast-xml-parser": ">=5.5.6",
+		"fast-xml-parser": ">=5.5.7",
 		"luxon": "^3.4.4",
 		"mapbox-gl": "^3.2.0",
 		"mapbox-gl-animated-popup": "^0.4.0",
