@@ -37,7 +37,7 @@
 		"mapbox-gl": "^3.2.0",
 		"mapbox-gl-animated-popup": "^0.4.0",
 		"seisplotjs": "^3.2.1",
-		"socket.io-client": "^4.7.5",
+		"socket.io-client": "^4.8.1",
 		"svelte-highlight": "^7.9.0",
 		"tailwindcss": "^4.2.1",
 		"ws": "^8.19.0"
