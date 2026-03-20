@@ -76,13 +76,17 @@ def main():
             _, thresh = cv2.threshold(gray, 127, 255, cv2.THRESH_BINARY)
             
             # 3. Cari garis tepi (Contours)
-            contours, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+            # Menggunakan RETR_LIST agar lubang (seperti apel hitam di background putih) ikut terbaca
+            contours, _ = cv2.findContours(thresh, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
             
             frame_points = []
+            screen_area = width * height
             for contour in contours:
-                for point in contour:
-                    x, y = point[0]
-                    frame_points.append((x, y))
+                # Abaikan batas kotak frame layar penuh saat warnanya terbalik
+                if cv2.contourArea(contour) < screen_area * 0.95:
+                    for point in contour:
+                        x, y = point[0]
+                        frame_points.append((x, y))
                     
             # 4. Batasi jumlah titik agar web tidak hang (Downsampling)
             if len(frame_points) > args.max_points:

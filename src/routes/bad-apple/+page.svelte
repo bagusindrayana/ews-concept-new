@@ -13,12 +13,12 @@
     let psychoPoints: { nx: number; ny: number }[] = [];
 
     // Target FPS used during extraction
-    const TARGET_FPS = 24;
+    const TARGET_FPS = 15;
     const MS_PER_FRAME = 1000 / TARGET_FPS;
 
     onMount(async () => {
         try {
-            const response = await fetch("/bad_apple_frames_v3.json");
+            const response = await fetch("/bad_apple_frames_v4.json");
             if (response.ok) {
                 frames = await response.json();
                 isLoading = false;
