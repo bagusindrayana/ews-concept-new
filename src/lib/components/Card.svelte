@@ -1,4 +1,5 @@
 <script lang="ts">
+  import "../styles/components/Card.css";
   import type { Snippet } from "svelte";
 
   interface Props {

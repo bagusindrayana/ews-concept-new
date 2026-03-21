@@ -1,0 +1,99 @@
+.ews-card {
+    background-color: black;
+    transition: 0.3s;
+}
+
+.ews-card-header {
+    padding: 6px;
+    color: var(--orange);
+    position: relative;
+    border-radius: 10px 10px 0px 0px;
+}
+
+.ews-card-header .ews-card-text {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.ews-card-header button {
+    cursor: pointer;
+}
+
+.ews-card-footer {
+    padding: 6px;
+    /* border-top: 3px var(--red) solid; */
+    color: var(--orange);
+    position: relative;
+    border-radius: 0px 0px 10px 10px;
+}
+
+.ews-card-footer .ews-card-text {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* .ews-card-content {
+    padding: unset;
+} */
+
+.ews-card-content tbody {
+    font-size: 10px !important;
+}
+
+.ews-card-float {
+    transition: all 0.3s ease-in-out;
+}
+
+.ews-card-float .ews-card-content {
+    display: block;
+    max-height: 45vh;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+.ews-card-close-button {
+    font-size: 24px;
+    color: #e60003;
+    padding: 2px 4px;
+    background-color: black !important;
+    right: 10px !important;
+    top: 10px !important;
+}
+
+@media (max-width: 768px) {
+    .ews-card-float .ews-card-content {
+        height: 0px;
+        padding: 0px;
+    }
+
+    .ews-card-float.open .ews-card-content {
+        height: unset;
+        padding: 6px;
+    }
+
+    /* .ews-card-float {
+        margin: auto;
+        right: 0.25rem;
+        left: 0.25rem;
+    } */
+
+    .ews-card-float .ews-card-header {
+        border-bottom: unset;
+    }
+
+    .ews-card-header {
+        cursor: pointer;
+    }
+}
