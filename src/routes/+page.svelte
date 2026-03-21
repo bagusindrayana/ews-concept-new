@@ -1326,7 +1326,7 @@
         className="hidden md:block show-pop-up md:w-1/2 lg:w-2/5 xl:w-1/5 pointer-events-auto bordered-red"
       >
         {#snippet title()}
-          <StripeBar>
+          <StripeBar color="red">
             <div
               class="absolute top-0 bottom-0 left-0 right-0 flex justify-center items-center"
             >
