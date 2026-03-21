@@ -28,6 +28,13 @@
   import { generateRandomGempaData } from "$lib/utils/geoUtils";
   import { demoStore } from "$lib/stores/demoStore";
   import sourceDataConfig from "$lib/config/source-data.json";
+  import * as htmlToImage from "html-to-image";
+  import {
+    saveSnapshot,
+    getSnapshots,
+    deleteSnapshot,
+    type Snapshot,
+  } from "$lib/utils/db";
 
   let mapContainer: HTMLDivElement;
   let map: mapboxgl.Map;
@@ -72,6 +79,10 @@
   let sourceDataInput = $state(JSON.stringify(sourceDataConfig, null, 4));
   let historyRecords = $state<string[][]>([]);
 
+  // Snapshot Modal state
+  let showSnapshotModal = $state(false);
+  let snapshotsList: Snapshot[] = $state([]);
+
   // Missing earthquake tracking states
   let GempaDirasakan: TitikGempa | null = $state(null);
   let GempaTerakhir: TitikGempa | null = $state(null);
@@ -81,6 +92,37 @@
   let timezoneInterval: any = null;
 
   mapboxgl.accessToken = PUBLIC_MAPBOX_ACCESS_TOKEN;
+
+  async function takeSnapshot(
+    eventId: string,
+    place: string,
+    mag: number | string,
+    time: string,
+  ) {
+    try {
+      console.log("Taking snapshot for", eventId);
+      // Ignore modals and loading screen so the final image looks clean
+      const filter = (node: HTMLElement) => {
+        return node.id !== "loading-screen" && !node.classList?.contains("modal");
+      };
+      const imageBase64 = await htmlToImage.toJpeg(document.body, {
+        quality: 0.6,
+        filter: filter,
+      });
+      const snapshot: Snapshot = {
+        id: eventId + "-" + Date.now(),
+        timestamp: Date.now(),
+        time,
+        place,
+        mag,
+        imageBase64,
+      };
+      await saveSnapshot(snapshot);
+      console.log("Snapshot saved to IndexedDB");
+    } catch (err) {
+      console.error("Failed to take snapshot:", err);
+    }
+  }
 
   async function warningHandler(data: any) {
     const time = new Date().toLocaleTimeString();
@@ -127,6 +169,16 @@
 
     await new Promise((r) => setTimeout(r, 6000));
     events = [...tgs];
+
+    // Take snapshot automatically after 4 seconds (allow UI to settle)
+    setTimeout(() => {
+      takeSnapshot(
+        id,
+        data.place || "Unknown",
+        data.mag || 0,
+        data.time || new Date().toLocaleString(),
+      );
+    }, 3000);
     if (worker != null) sendWave();
   }
 
@@ -659,6 +711,16 @@
       );
       events = [...tgs];
       GempaTerakhir = new TitikGempa(nig.id, nig);
+
+      // Snapshot small earthquakes too
+      setTimeout(() => {
+        takeSnapshot(
+          nig.id,
+          nig.place || "Unknown",
+          nig.mag || 0,
+          nig.time || new Date().toLocaleString(),
+        );
+      }, 3000);
     }
   }
 
@@ -794,6 +856,7 @@
       center: [lng, lat],
       zoom: 5,
       maxZoom: 22,
+      preserveDrawingBuffer: true,
     });
     map.on("load", () => {
       const customData = localStorage.getItem("custom_source_data");
@@ -839,6 +902,13 @@
     <button
       class="ews-btn ews-btn-primary"
       onclick={() => (showSourceModal = true)}>SOURCE</button
+    >
+    <button
+      class="ews-btn ews-btn-primary"
+      onclick={async () => {
+        snapshotsList = await getSnapshots();
+        showSnapshotModal = true;
+      }}>SNAPSHOTS</button
     >
     <a class="ews-btn ews-btn-primary" href="/status-ui">STATION</a>
   </div>
@@ -944,6 +1014,55 @@
         >SAVE & RELOAD</button
       >
     </div>
+  </Modal>
+
+  <!-- SNAPSHOT MODAL -->
+  <Modal
+    bind:show={showSnapshotModal}
+    title="SNAPSHOT LIST"
+    variant="large"
+    contentClass="flex flex-col gap-4 overflow-y-auto max-h-[70vh] custom-scrollbar"
+  >
+    {#if snapshotsList.length === 0}
+      <p class="text-center text-gray-400 my-8">No snapshots available.</p>
+    {:else}
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pb-4">
+        {#each snapshotsList as snap (snap.id)}
+          <div
+            class="border border-gray-700 p-2 rounded bg-black flex flex-col items-center"
+          >
+            <p class="text-xs text-orange-500 font-bold mb-1">{snap.time}</p>
+            <p
+              class="text-xs text-gray-300 mb-2 truncate max-w-full"
+              title={snap.place}
+            >
+              {snap.mag} M - {snap.place}
+            </p>
+            <img
+              src={snap.imageBase64}
+              alt="Snapshot"
+              class="w-full h-auto mb-2 border border-gray-800"
+            />
+            <div class="flex gap-2 w-full mt-auto">
+              <!-- Using standard download mechanism -->
+              <a
+                href={snap.imageBase64}
+                download={`snapshot-${snap.time.replace(/[\/: ]/g, "-")}.jpg`}
+                class="ews-btn ews-btn-primary flex-1 text-center decoration-none border-t border-red"
+                >DOWNLOAD</a
+              >
+              <button
+                class="ews-btn ews-btn-danger flex-1 text-center"
+                onclick={async () => {
+                  await deleteSnapshot(snap.id);
+                  snapshotsList = await getSnapshots();
+                }}>DELETE</button
+              >
+            </div>
+          </div>
+        {/each}
+      </div>
+    {/if}
   </Modal>
 
   <!-- EARTHQUAKE ALERT SECTION -->
