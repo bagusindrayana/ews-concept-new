@@ -15,10 +15,10 @@
   let open = $state(false);
 </script>
 
-<div class="ews-card bordered {className}" class:open>
+<div class="ews-card {className}" class:open>
   {#if title}
     <div
-      class="ews-card-header bordered-bottom"
+      class="ews-card-header"
       onclick={() => {
         open = !open;
         onToggle?.();
@@ -27,11 +27,11 @@
       {@render title()}
     </div>
   {/if}
-  <div class="ews-card-content p-1 lg:p-2 custom-scrollbar">
+  <div class="ews-card-content">
     {@render children()}
   </div>
   {#if footer}
-    <div class="ews-card-footer bordered-top">
+    <div class="ews-card-footer">
       {@render footer()}
     </div>
   {/if}

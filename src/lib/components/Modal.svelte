@@ -23,7 +23,9 @@
 {#if show}
   <div class="settings-modal-overlay" onclick={close} role="presentation">
     <div
-      class="settings-modal ews-card bordered-red {variant === 'large' ? '!w-11/12 !max-w-4xl' : ''}"
+      class="settings-modal ews-card ews-card-red {variant === 'large'
+        ? '!w-11/12 !max-w-4xl'
+        : ''}"
       onclick={(e) => e.stopPropagation()}
       role="presentation"
     >
@@ -45,7 +47,11 @@
           >
         </div>
       </div>
-      <div class="ews-card-content {variant === 'large' ? 'p-4' : 'p-1 lg:p-2 p-4'} {contentClass}">
+      <div
+        class="ews-card-content {variant === 'large'
+          ? 'p-4'
+          : 'p-1 lg:p-2 p-4'} {contentClass}"
+      >
         {@render children()}
       </div>
     </div>

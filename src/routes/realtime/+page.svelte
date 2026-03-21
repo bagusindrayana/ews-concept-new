@@ -306,7 +306,7 @@
                         </p>
                     {/snippet}
                     {#snippet children()}
-                        <div class="w-full flex flex-row gap-2">
+                        <div class="w-full flex flex-row gap-2 p-1 lg:p-2">
                             <div
                                 class="badge ews-title text-3xl bordered flex justify-between mb-2 w-full"
                             >
@@ -391,58 +391,67 @@
                         </p>
                     {/snippet}
                     {#snippet children()}
-                        <HexGrid variant="flat">
-                            {#each listChannel as channel, channelIndex (channel["@attributes"]["code"])}
-                                <div
-                                    class="w-full h-full {channel['@attributes']
-                                        .endDate == ''
-                                        ? 'yellow glow-orange-small'
-                                        : 'glow-red-small'}"
-                                >
-                                    <button
-                                        class="w-full h-full cursor-pointer hex-hive bg-hex-flat opacity-0 show-pop-up {selectedChannel !=
-                                            undefined &&
-                                        selectedChannel != null &&
-                                        selectedChannel['@attributes'].code ==
-                                            channel['@attributes']['code']
-                                            ? 'blink blink-fast'
-                                            : ''} {channel['@attributes']
-                                            .endDate == undefined ||
-                                        channel['@attributes'].endDate == ''
-                                            ? 'yellow '
-                                            : ' '}"
-                                        style="animation-delay: {Math.min(
-                                            channelIndex * 50,
-                                            1000,
-                                        )}ms; width: 83px; height: 72px;"
-                                        on:click={() => {
-                                            selectedChannel = channel;
-                                            const request = {
-                                                net: data.networkCode ?? "GE",
-                                                sta: data.stationCode ?? "GSI",
-                                                cha: selectedChannel[
-                                                    "@attributes"
-                                                ].code,
-                                            };
-                                            if (
-                                                ws &&
-                                                ws.readyState === WebSocket.OPEN
-                                            ) {
-                                                ws.send(
-                                                    JSON.stringify(request),
-                                                );
-                                            }
-                                        }}
+                        <div class="p-1 lg:p-2 w-full">
+                            <HexGrid variant="flat">
+                                {#each listChannel as channel, channelIndex (channel["@attributes"]["code"])}
+                                    <div
+                                        class="w-full h-full {channel[
+                                            '@attributes'
+                                        ].endDate == ''
+                                            ? 'yellow glow-orange-small'
+                                            : 'glow-red-small'}"
                                     >
-                                        <div
-                                            class="w-full h-full flex justify-center items-center text-black text-center"
+                                        <button
+                                            class="w-full h-full cursor-pointer hex-hive bg-hex-flat opacity-0 show-pop-up {selectedChannel !=
+                                                undefined &&
+                                            selectedChannel != null &&
+                                            selectedChannel['@attributes']
+                                                .code ==
+                                                channel['@attributes']['code']
+                                                ? 'blink blink-fast'
+                                                : ''} {channel['@attributes']
+                                                .endDate == undefined ||
+                                            channel['@attributes'].endDate == ''
+                                                ? 'yellow '
+                                                : ' '}"
+                                            style="animation-delay: {Math.min(
+                                                channelIndex * 50,
+                                                1000,
+                                            )}ms; width: 83px; height: 72px;"
+                                            on:click={() => {
+                                                selectedChannel = channel;
+                                                const request = {
+                                                    net:
+                                                        data.networkCode ??
+                                                        "GE",
+                                                    sta:
+                                                        data.stationCode ??
+                                                        "GSI",
+                                                    cha: selectedChannel[
+                                                        "@attributes"
+                                                    ].code,
+                                                };
+                                                if (
+                                                    ws &&
+                                                    ws.readyState ===
+                                                        WebSocket.OPEN
+                                                ) {
+                                                    ws.send(
+                                                        JSON.stringify(request),
+                                                    );
+                                                }
+                                            }}
                                         >
-                                            {channel["@attributes"]["code"]}
-                                        </div>
-                                    </button>
-                                </div>
-                            {/each}
-                        </HexGrid>
+                                            <div
+                                                class="w-full h-full flex justify-center items-center text-black text-center"
+                                            >
+                                                {channel["@attributes"]["code"]}
+                                            </div>
+                                        </button>
+                                    </div>
+                                {/each}
+                            </HexGrid>
+                        </div>
                     {/snippet}
 
                     {#snippet footer()}
@@ -608,7 +617,7 @@
             {/snippet}
 
             {#snippet children()}
-                <div class="flex flex-col gap-6 w-full p-2">
+                <div class="flex flex-col gap-6 w-full p-1 lg:p-2">
                     <!-- Timezone Settings -->
                     <div class="flex flex-col gap-2">
                         <p

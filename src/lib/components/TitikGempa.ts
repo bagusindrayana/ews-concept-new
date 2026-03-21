@@ -153,7 +153,7 @@ export class TitikGempa {
     renderPopup() {
         const placeholder = document.createElement('div');
         placeholder.innerHTML = `
-            <div class="ews-card bordered-red min-h-48 min-w-48 whitespace-pre-wrap">
+            <div class="ews-card ews-card-red min-h-48 min-w-48 whitespace-pre-wrap">
                 <div class="ews-card-header bordered-red-bottom">
                     <div class="overflow-hidden">
                         <div class="stripe-wrapper"><div class="stripe-bar loop-stripe-reverse anim-duration-20"></div><div class="stripe-bar loop-stripe-reverse anim-duration-20"></div></div>

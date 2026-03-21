@@ -698,7 +698,7 @@
 {#if showTsunamiAlert}
   <!-- Tsunami Alert takes up the full screen and has animations -->
   <div class="fixed inset-0 z-50 pointer-events-auto">
-    <TsunamiAlert alertTsunami={dummyTsunami} />
+    <TsunamiAlert infoTsunami={dummyTsunami.infoTsunami} />
     <button
       class="absolute top-4 right-4 z-[60] bg-black text-white px-4 py-2"
       onclick={() => (showTsunamiAlert = false)}

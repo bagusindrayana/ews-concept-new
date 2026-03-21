@@ -966,7 +966,7 @@
         {/snippet}
         {#snippet children()}
           <div
-            class="flex flex-col w-full justify-center items-center text-sm"
+            class="flex flex-col w-full justify-center items-center text-sm p-1 lg:p-2"
             style="font-size:10px"
           >
             <div class="w-full flex gap-2">
@@ -1103,7 +1103,7 @@
 
         {#snippet children()}
           <div
-            class="flex flex-col w-full justify-center items-center text-sm"
+            class="flex flex-col w-full justify-center items-center text-sm p-1 lg:p-2"
             style="font-size:10px"
           >
             <div class="mt-2 bordered w-full">
@@ -1167,7 +1167,7 @@
           {/snippet}
           {#snippet children()}
             <div
-              class="flex flex-col w-full justify-center items-center text-sm"
+              class="flex flex-col w-full justify-center items-center text-sm p-1 lg:p-2"
               style="font-size:10px"
             >
               <div class="w-full flex gap-2">
@@ -1280,7 +1280,7 @@
   <!-- EVENT LOG -->
   {#if !loadingScreen && showEventLog}
     <Card
-      className="fixed right-0 left-0 w-full md:right-0 md:left-auto lg:right-3 top-1 md:top-3 md:w-1/3 lg:w-1/5 show-pop-up ews-card bordered-red fixed right-0 md:right-3 top-1 md:top-3 ews-card-float md:w-1/3 lg:w-1/5 show-pop-up ews-card-float"
+      className="fixed right-0 left-0 w-full md:right-0 md:left-auto lg:right-3 top-1 md:top-3 md:w-1/3 lg:w-1/5 show-pop-up ews-card ews-card-red fixed right-0 md:right-3 top-1 md:top-3 ews-card-float md:w-1/3 lg:w-1/5 show-pop-up ews-card-float"
     >
       {#snippet title()}
         <StripeBar color="red"
@@ -1294,22 +1294,24 @@
         >
       {/snippet}
       {#snippet children()}
-        <ul>
-          {#each events as v, i (v.id)}
-            <li class="w-full">
-              <button
-                onclick={() => selectEvent(v.infoGempa)}
-                class="flex flex-col mb-2 list-event cursor-pointer slide-in-left w-full text-start"
-                style="animation-delay:{i * 0.01}s"
-              >
-                <span style="font-size:11px">{v.infoGempa.time} WIB</span>
-                <div class="bordered p-2" style="font-size:12px">
-                  {v.readableMag} M - {v.infoGempa.place || "uknown"}
-                </div>
-              </button>
-            </li>
-          {/each}
-        </ul>
+        <div class="w-full p-1 lg:p-2">
+          <ul>
+            {#each events as v, i (v.id)}
+              <li class="w-full">
+                <button
+                  onclick={() => selectEvent(v.infoGempa)}
+                  class="flex flex-col mb-2 list-event cursor-pointer slide-in-left w-full text-start"
+                  style="animation-delay:{i * 0.01}s"
+                >
+                  <span style="font-size:11px">{v.infoGempa.time} WIB</span>
+                  <div class="bordered p-2" style="font-size:12px">
+                    {v.readableMag} M - {v.infoGempa.place || "uknown"}
+                  </div>
+                </button>
+              </li>
+            {/each}
+          </ul>
+        </div>
       {/snippet}
     </Card>
   {/if}
@@ -1363,7 +1365,7 @@
         {/snippet}
         {#snippet children()}
           <div
-            class="flex flex-col w-full justify-center items-center text-sm"
+            class="flex flex-col w-full justify-center items-center text-sm p-1 lg:p-2"
             style="font-size:10px"
           >
             <div class="w-full flex flex-col md:flex-row gap-2">
@@ -1478,7 +1480,7 @@
           </div>
         {/snippet}
         {#snippet children()}
-          <div class=" text-sm w-full" style="font-size:10px">
+          <div class=" text-sm w-full p-1 lg:p-2" style="font-size:10px">
             <table class="w-full">
               <tbody>
                 <tr
@@ -1540,7 +1542,7 @@
         {/snippet}
         {#snippet children()}
           <div
-            class="flex flex-col w-full gap-2 text-sm w-full"
+            class="flex flex-col w-full gap-2 text-sm w-full p-1 lg:p-2"
             style="font-size:10px"
           >
             <div class="bordered p-2">
@@ -1635,19 +1637,21 @@
           </div>
         {/snippet}
         {#snippet children()}
-          <a
-            href={"https://bmkg-content-inatews.storage.googleapis.com/" +
-              shakeMap}
-            target="_blank"
-          >
-            <img
-              src={"https://bmkg-content-inatews.storage.googleapis.com/" +
+          <div class="p-1 lg:p-2 w-full">
+            <a
+              href={"https://bmkg-content-inatews.storage.googleapis.com/" +
                 shakeMap}
-              alt=""
-              width="300"
-              style="filter: invert(1)"
-            />
-          </a>
+              target="_blank"
+            >
+              <img
+                src={"https://bmkg-content-inatews.storage.googleapis.com/" +
+                  shakeMap}
+                alt=""
+                width="300"
+                style="filter: invert(1)"
+              />
+            </a>
+          </div>
         {/snippet}
       </Card>
     {/if}
@@ -1670,7 +1674,7 @@
         {/snippet}
         {#snippet children()}
           <div
-            class="flex flex-col w-full justify-center items-center text-sm"
+            class="flex flex-col w-full justify-center items-center text-sm p-1 lg:p-2"
             style="font-size:10px"
           >
             <div class="w-full flex gap-2">

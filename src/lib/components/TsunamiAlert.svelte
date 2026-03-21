@@ -180,7 +180,7 @@
                 </div>
               </div>
             </div>
-            <div class="ews-card bordered-red w-full h-auto">
+            <div class="ews-card ews-card-red w-full h-auto">
               <div class="ews-card-header bordered-red-bottom">
                 <div class="overflow-hidden relative">
                   <div class="stripe-wrapper">

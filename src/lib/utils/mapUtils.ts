@@ -12,7 +12,7 @@ export function createGempaPopupHTML(data: {
   lng: number;
 }): string {
   return `
-    <div class="ews-card bordered-red min-h-48 min-w-48 whitespace-pre-wrap" data-id="${data.id}">
+    <div class="ews-card ews-card-red min-h-48 min-w-48 whitespace-pre-wrap" data-id="${data.id}">
       <div class="ews-card-header bordered-red-bottom overflow-hidden">
         <div class="stripe-wrapper"><div class="stripe-bar-red loop-stripe-reverse anim-duration-20"></div><div class="stripe-bar-red loop-stripe-reverse anim-duration-20"></div></div>
         <div class="absolute top-0 bottom-0 left-0 right-0 flex justify-center items-center">
