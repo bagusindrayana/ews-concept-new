@@ -1,12 +1,13 @@
 .ews-card {
     --ews-card-color: var(--orange, #fa0);
     --ews-card-radius: var(--gutter-size, 8px);
+    --ews-card-border-width: 3px;
     background-color: black;
     transition: 0.3s;
 
     border-radius: var(--ews-card-radius);
     border-style: solid;
-    border-width: 3px;
+    border-width: var(--ews-card-border-width);
     border-color: var(--ews-card-color);
 }
 
@@ -19,7 +20,7 @@
     color: var(--ews-card-color);
     position: relative;
     border-radius: 10px 10px 0px 0px;
-    border-bottom: 3px solid var(--ews-card-color);
+    border-bottom: var(--ews-card-border-width) solid var(--ews-card-color);
 }
 
 .ews-card-header .ews-card-text {
@@ -39,11 +40,10 @@
 
 .ews-card-footer {
     padding: 6px;
-    /* border-top: 3px var(--red) solid; */
     color: var(--ews-card-color);
     position: relative;
     border-radius: 0px 0px 10px 10px;
-    border-top: 3px solid var(--ews-card-color);
+    border-top: var(--ews-card-border-width) solid var(--ews-card-color);
 }
 
 .ews-card-footer .ews-card-text {
@@ -105,13 +105,18 @@
 }
 
 @media (max-width: 768px) {
+
+    .ews-card {
+        --ews-card-border-width: 1px;
+    }
+
     .ews-card-float .ews-card-content {
-        height: 0px;
+        display: none;
         padding: 0px;
     }
 
     .ews-card-float.open .ews-card-content {
-        height: unset;
+        display: block;
         padding: 6px;
     }
 

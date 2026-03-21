@@ -100,10 +100,16 @@
     time: string,
   ) {
     try {
+      //hide earthquake layer
+      map.setLayoutProperty("earthquake-layer", "visibility", "none");
       console.log("Taking snapshot for", eventId);
       // Ignore modals and loading screen so the final image looks clean
       const filter = (node: HTMLElement) => {
-        return node.id !== "loading-screen" && !node.classList?.contains("modal");
+        return (
+          node.id !== "loading-screen" &&
+          !node.classList?.contains("modal") &&
+          !node.classList?.contains("no-snapshoot")
+        );
       };
       const imageBase64 = await htmlToImage.toJpeg(document.body, {
         quality: 0.6,
@@ -119,8 +125,12 @@
       };
       await saveSnapshot(snapshot);
       console.log("Snapshot saved to IndexedDB");
+      //show earthquake layer
+      map.setLayoutProperty("earthquake-layer", "visibility", "visible");
     } catch (err) {
       console.error("Failed to take snapshot:", err);
+      //show earthquake layer
+      map.setLayoutProperty("earthquake-layer", "visibility", "visible");
     }
   }
 
@@ -587,6 +597,7 @@
               time: new Date(d.time).toLocaleString(),
               lat: coords[1],
               lng: coords[0],
+              place: d.place ?? "-",
             });
             new AnimatedPopup({
               openingAnimation: {
@@ -773,7 +784,7 @@
       shakeMap = null;
     }
 
-    map.flyTo({ center: [d.lng, d.lat], zoom: 6, essential: true });
+    map.flyTo({ center: [d.lng, d.lat], zoom: 8, essential: true });
     const placeholder = document.createElement("div");
     placeholder.innerHTML = createGempaPopupHTML({
       id: d.id!,
@@ -892,25 +903,28 @@
 
   <!-- SETTINGS BUTTON -->
   <div
-    class="fixed top-12 md:top-2 left-0 right-0 m-auto flex justify-center items-center z-5 flex gap-2"
+    class="no-snapshoot fixed right-0 md:right-2 top-1/2 -translate-y-1/2 md:translate-y-0 md:top-14 lg:top-2 md:left-0 md:right-0 md:m-auto flex flex-col md:flex-row justify-center items-end lg:items-center z-5 gap-1 md:gap-2 pointer-events-none"
     style="width:fit-content"
   >
     <button
-      class="ews-btn ews-btn-primary"
+      class="ews-btn ews-btn-primary scale-75 md:scale-100 pointer-events-auto"
       onclick={() => (showSettingsModal = true)}>SETTING</button
     >
     <button
-      class="ews-btn ews-btn-primary"
+      class="ews-btn ews-btn-primary scale-75 md:scale-100 pointer-events-auto"
       onclick={() => (showSourceModal = true)}>SOURCE</button
     >
     <button
-      class="ews-btn ews-btn-primary"
+      class="ews-btn ews-btn-primary scale-75 md:scale-100 pointer-events-auto"
       onclick={async () => {
         snapshotsList = await getSnapshots();
         showSnapshotModal = true;
       }}>SNAPSHOTS</button
     >
-    <a class="ews-btn ews-btn-primary" href="/status-ui">STATION</a>
+    <a
+      class="ews-btn ews-btn-primary scale-75 md:scale-100 pointer-events-auto"
+      href="/status-ui">STATION</a
+    >
   </div>
 
   <!-- SETTINGS MODAL -->
@@ -1311,7 +1325,7 @@
                     DEPTH : {agi.readableDepth} KM
                   </p>
                 </div>
-                <div class="bordered p-2 w-full">
+                <div class="bordered p-1 lg:p-2 w-full">
                   <table class="w-full">
                     <tbody>
                       <tr
@@ -1399,7 +1413,7 @@
   <!-- EVENT LOG -->
   {#if !loadingScreen && showEventLog}
     <Card
-      className="fixed right-0 left-0 w-full md:right-0 md:left-auto lg:right-3 top-1 md:top-3 md:w-1/3 lg:w-1/5 show-pop-up ews-card ews-card-red fixed right-0 md:right-3 top-1 md:top-3 ews-card-float md:w-1/3 lg:w-1/5 show-pop-up ews-card-float"
+      className="no-snapshoot fixed top-1 left-2 right-2 md:left-auto md:right-3 md:top-3 md:w-1/3 lg:w-1/5 show-pop-up ews-card ews-card-red ews-card-float"
     >
       {#snippet title()}
         <StripeBar color="red"
@@ -1438,11 +1452,11 @@
   <!-- EARTHQUAKE DIRASAKAN SECTION -->
   <div
     id="gempa-bumi-dirasakan"
-    class="fixed bottom-6 left-6 md:right-0 md:left-3 flex flex-col-reverse lg:flex-row gap-2 justify-start lg:items-end items-start pointer-events-none"
+    class="no-snapshoot fixed bottom-4 left-2 right-2 md:bottom-6 md:right-3 md:left-3 flex flex-row md:flex-col-reverse lg:flex-row gap-2 justify-center md:justify-start lg:items-end items-end pointer-events-none"
   >
     {#if !loadingScreen && GempaDirasakan != undefined && GempaDirasakan != null && showGempaDirasakan}
       <Card
-        className="hidden md:block show-pop-up md:w-1/2 lg:w-2/5 xl:w-1/5 pointer-events-auto bordered-red"
+        className="block show-pop-up w-1/2 md:w-1/2 lg:w-2/5 xl:w-1/5 pointer-events-auto bordered-red"
       >
         {#snippet title()}
           <StripeBar color="red">
@@ -1452,7 +1466,9 @@
               <div
                 class="absolute top-0 bottom-0 left-0 right-0 flex justify-center items-center"
               >
-                <p class="text-lg bg-black font-bold p-1 ews-title text-3xl">
+                <p
+                  class="text-xs lg:text-lg bg-black font-bold p-1 ews-title text-3xl"
+                >
                   LAST EARTHQUAKE FELT
                 </p>
               </div>
@@ -1511,7 +1527,7 @@
                   DEPTH : {GempaDirasakan?.readableDepth} KM
                 </p>
               </div>
-              <div class="bordered p-2 w-full">
+              <div class="bordered p-1 lg:p-2 w-full">
                 <table class="w-full">
                   <tbody>
                     <tr
@@ -1548,7 +1564,7 @@
                 </table>
               </div>
             </div>
-            <div class="mt-2 bordered">
+            <div class="mt-2 bordered hidden lg:block">
               <p class=" p-2 break-words">
                 {GempaDirasakan?.infoGempa.message}
               </p>
@@ -1561,7 +1577,7 @@
     <!-- LAST DETECTED EARTHQUAKE -->
     {#if !loadingScreen && GempaTerakhir != undefined && GempaTerakhir != null && showGempaTerdeteksi}
       <Card
-        className="hidden md:block show-pop-up md:w-1/4 lg:w-1/6 pointer-events-auto"
+        className="block show-pop-up w-1/2 md:w-1/4 lg:w-1/6 pointer-events-auto"
       >
         {#snippet title()}
           <div class="overflow-hidden">
@@ -1569,7 +1585,7 @@
             <div
               class="absolute top-0 bottom-0 left-0 right-0 flex justify-center items-center"
             >
-              <p class="bg-black font-bold p-1 ews-title">
+              <p class="bg-black font-bold p-1 ews-title text-xs lg:text-lg">
                 LAST DETECTED EARTHQUAKE
               </p>
             </div>
@@ -1641,12 +1657,12 @@
   </div>
 
   <div
-    class="right-0 bottom-0 left-0 md:left-auto md:bottom-6 md:right-3 fixed pointer-events-none flex gap-2 justify-end items-end"
+    class="hidden md:block right-0 bottom-0 left-0 md:left-auto md:bottom-6 md:right-3 fixed pointer-events-none flex gap-2 justify-end items-end"
   >
     <!-- DETAIL INFO GEMPA & SHAKEMAP -->
     {#if !loadingScreen && detailInfoGempa != undefined && detailInfoGempa != null && showDetailEvent}
       <Card
-        className="show-pop-up pointer-events-auto max-w-[100vw] md:max-w-100 "
+        className=" show-pop-up pointer-events-auto max-w-[100vw] md:max-w-100 "
       >
         {#snippet title()}
           <div class="flex justify-between">
@@ -1779,7 +1795,7 @@
   <!-- MOBILE WARNING CARD -->
   {#if !loadingScreen && alertGempaBumi && GempaDirasakan != undefined && GempaDirasakan != null}
     <div
-      class="block md:hidden show-pop-up fixed bottom-10 left-0 card-warning right-0"
+      class="block md:hidden show-pop-up fixed top-14 left-2 right-2 md:w-1/2 z-10"
     >
       <Card>
         {#snippet title()}
@@ -1820,7 +1836,7 @@
                   DEPTH : {GempaDirasakan?.readableDepth} KM
                 </p>
               </div>
-              <div class="bordered p-2 w-full">
+              <div class="bordered p-1 lg:p-2 w-full">
                 <table class="w-full">
                   <tbody>
                     <tr
@@ -1852,11 +1868,11 @@
                 </table>
               </div>
             </div>
-            <div class="mt-2 bordered">
+            <!-- <div class="mt-2 bordered">
               <p class=" p-2 break-words">
                 {GempaDirasakan?.infoGempa.message}
               </p>
-            </div>
+            </div> -->
           </div>
         {/snippet}
 
@@ -1903,16 +1919,18 @@
 
   <!-- FOOTER LINKS -->
   <div
-    class="fixed bottom-2 md:bottom-1 m-auto right-0 md:right-72 left-0 md:left-auto flex justify-center items-center gap-2 w-36 md:w-auto pointer-events-none"
+    class="fixed bottom-1 md:bottom-1 m-auto right-0 md:right-72 left-0 md:left-auto flex justify-center items-center gap-2 w-36 md:w-auto pointer-events-none opacity-50 hover:opacity-100 transition-opacity"
   >
-    <a href="https://inatews.bmkg.go.id" class="flex gap-1 pointer-events-auto"
-      ><div class="bmkg-icon"></div>
+    <a
+      href="https://inatews.bmkg.go.id"
+      class="flex gap-1 pointer-events-auto text-[10px]"
+      ><div class="bmkg-icon scale-75"></div>
       <span>BMKG</span></a
     >
     <a
       href="https://github.com/bagusindrayana/ews-concept-new"
-      class="flex gap-1 pointer-events-auto"
-      ><div class="github-icon"></div>
+      class="flex gap-1 pointer-events-auto text-[10px]"
+      ><div class="github-icon scale-75"></div>
       <span>Github</span></a
     >
   </div>

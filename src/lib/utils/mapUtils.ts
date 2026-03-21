@@ -10,6 +10,7 @@ export function createGempaPopupHTML(data: {
   time: string;
   lat: number;
   lng: number;
+  place?: string;
 }): string {
   return `
     <div class="ews-card ews-card-red min-h-48 min-w-48 whitespace-pre-wrap" data-id="${data.id}">
@@ -23,6 +24,7 @@ export function createGempaPopupHTML(data: {
         <table class="w-full">
           <tbody>
             <tr><td class="flex">Magnitudo</td><td class="text-right break-words pl-2">${Number(data.mag).toFixed(1)}</td></tr>
+            <tr><td class="flex">Place</td><td class="text-right break-words pl-2">${data.place}</td></tr>
             <tr><td class="flex">Kedalaman</td><td class="text-right break-words pl-2">${data.depth}</td></tr>
             <tr><td class="flex">Waktu</td><td class="text-right break-words pl-2">${data.time}</td></tr>
             <tr><td class="flex">Lokasi (Lat,Lng)</td><td class="text-right break-words pl-2">${data.lat} , ${data.lng}</td></tr>

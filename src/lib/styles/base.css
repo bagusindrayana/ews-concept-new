@@ -8,6 +8,7 @@
     --danger-glow-rgb: 255, 0, 0;
     --danger-text-color: #f23;
     --gutter-size: 8px;
+    --border-width: 3px;
 
 }
 
@@ -35,4 +36,10 @@ body {
     border-radius: 10px;
     -webkit-box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.3);
     background-color: var(--red);
+}
+
+@media (max-width: 768px) {
+    :root {
+        --border-width: 1px;
+    }
 }

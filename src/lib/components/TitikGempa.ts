@@ -300,7 +300,7 @@ export class TitikGempa {
         if (this.setting?.map != null) {
             this.setting.map.flyTo({
                 center: [this.infoGempa.lng, this.infoGempa.lat],
-                zoom: 6
+                zoom: 8
             });
         }
     }

@@ -124,7 +124,7 @@ export class TitikTsunami {
         if (this.setting?.map != null) {
             this.setting.map.flyTo({
                 center: [this.infoTsunami.lng, this.infoTsunami.lat],
-                zoom: 6
+                zoom: 8
             });
         }
     }

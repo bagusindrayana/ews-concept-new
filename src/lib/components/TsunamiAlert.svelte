@@ -133,9 +133,9 @@
             ></div>
           </div>
         </div>
-        <div
-          class="w-3/4 overflow-hidden bg-black relative rounded flex justify-center items-center opacity-0 show-pop-up animation-delay-2"
-        >
+      <div
+        class="w-11/12 md:w-3/4 overflow-hidden bg-black relative rounded flex justify-center items-center opacity-0 show-pop-up animation-delay-2"
+      >
           <div
             class="absolute w-full h-2 m-auto top-0 left-0 right-0 overflow-hidden"
           >
