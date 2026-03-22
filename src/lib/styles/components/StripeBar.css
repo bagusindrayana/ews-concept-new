@@ -1,0 +1,128 @@
+/* Strip Bar Styles */
+.ews-stripe-wrapper {
+    width: max(200vw, 2000px);
+    height: 30px;
+    overflow: hidden;
+    white-space: nowrap;
+    margin: 0px !important;
+    padding: 0px !important;
+    display: flex;
+}
+
+.ews-stripe-wrapper.vertical {
+    height: 100%;
+    width: 30px;
+    display: flex;
+    flex-direction: column;
+}
+
+
+.ews-stripe-bar {
+    width: max(200vw, 2000px);
+    height: 100%;
+    display: inline-block;
+    flex-shrink: 0;
+    margin-right: 0px !important;
+    margin-left: 0px !important;
+    /* margin-bottom: -5px; */
+    --ews-ews-stripe-color: var(--orange, #fa0);
+    --ews-ews-stripe-size: 15px;
+    --ews-glow-color: rgba(255, 94, 0, 0.8);
+    --ews-glow-size: 3px;
+    background-image: repeating-linear-gradient(-45deg,
+            var(--ews-glow-color) calc(-1 * var(--ews-glow-size)),
+            var(--ews-ews-stripe-color) 0,
+            var(--ews-ews-stripe-color) calc(var(--ews-ews-stripe-size) - var(--ews-glow-size) / 2),
+            var(--ews-glow-color) calc(var(--ews-ews-stripe-size) + var(--ews-glow-size) / 2),
+            transparent calc(var(--ews-ews-stripe-size) + var(--ews-glow-size) / 2),
+            transparent calc(2 * var(--ews-ews-stripe-size)),
+            var(--ews-glow-color) calc(2 * var(--ews-ews-stripe-size) - var(--ews-glow-size)));
+    /* background-size: var(--background-width) var(--background-height); */
+    background-size: 47px 47px;
+}
+
+.ews-stripe-bar.red {
+    --ews-ews-stripe-color: var(--red, #f23);
+    --ews-ews-stripe-size: 15px;
+    --ews-glow-color: rgba(255, 17, 0, 0.8);
+    --ews-glow-size: 3px;
+}
+
+.ews-stripe-bar.vertical {
+    width: 100%;
+    height: 100%;
+}
+
+
+.ews-stripe-bar-red {
+    width: max(200vw, 2000px);
+    height: 30px;
+    display: inline-block;
+    flex-shrink: 0;
+    /* margin-bottom: -5px; */
+    --ews-ews-stripe-color: var(--red, #f23);
+    --ews-ews-stripe-size: 15px;
+    --ews-glow-color: rgba(255, 17, 0, 0.8);
+    --ews-glow-size: 3px;
+    background-image: repeating-linear-gradient(-45deg,
+            var(--ews-glow-color) calc(-1 * var(--ews-glow-size)),
+            var(--ews-ews-stripe-color) 0,
+            var(--ews-ews-stripe-color) calc(var(--ews-ews-stripe-size) - var(--ews-glow-size) / 2),
+            var(--ews-glow-color) calc(var(--ews-ews-stripe-size) + var(--ews-glow-size) / 2),
+            transparent calc(var(--ews-ews-stripe-size) + var(--ews-glow-size) / 2),
+            transparent calc(2 * var(--ews-ews-stripe-size)),
+            var(--ews-glow-color) calc(2 * var(--ews-ews-stripe-size) - var(--ews-glow-size)));
+}
+
+.ews-stripe-bar-vertical {
+    height: max(2000px, 200vh);
+    transform: translate3d(0, 0, 0);
+    --ews-ews-stripe-color: var(--orange, #fa0);
+    --ews-ews-stripe-size: 15px;
+    --ews-glow-color: rgba(255, 94, 0, 0.8);
+    --ews-glow-size: 3px;
+    background-image: repeating-linear-gradient(45deg,
+            var(--ews-glow-color) calc(-1 * var(--ews-glow-size)),
+            var(--ews-ews-stripe-color) 0,
+            var(--ews-ews-stripe-color) calc(var(--ews-ews-stripe-size) - var(--ews-glow-size) / 2),
+            var(--ews-glow-color) calc(var(--ews-ews-stripe-size) + var(--ews-glow-size) / 2),
+            transparent calc(var(--ews-ews-stripe-size) + var(--ews-glow-size) / 2),
+            transparent calc(2 * var(--ews-ews-stripe-size)),
+            var(--ews-glow-color) calc(2 * var(--ews-ews-stripe-size) - var(--ews-glow-size)));
+}
+
+.ews-stripe-bar-red-vertical {
+    height: max(2000px, 200vh);
+    transform: translate3d(0, 0, 0);
+    --ews-ews-stripe-color: var(--red, #f23);
+    --ews-ews-stripe-size: 15px;
+    --ews-glow-color: rgba(255, 17, 0, 0.8);
+    --ews-glow-size: 3px;
+    background-image: repeating-linear-gradient(45deg,
+            var(--ews-glow-color) calc(-1 * var(--ews-glow-size)),
+            var(--ews-ews-stripe-color) 0,
+            var(--ews-ews-stripe-color) calc(var(--ews-ews-stripe-size) - var(--ews-glow-size) / 2),
+            var(--ews-glow-color) calc(var(--ews-ews-stripe-size) + var(--ews-glow-size) / 2),
+            transparent calc(var(--ews-ews-stripe-size) + var(--ews-glow-size) / 2),
+            transparent calc(2 * var(--ews-ews-stripe-size)),
+            var(--ews-glow-color) calc(2 * var(--ews-ews-stripe-size) - var(--ews-glow-size)));
+}
+
+.ews-stripe-wrapper-vertical {
+    height: max(200vh, 2000px);
+    overflow: hidden;
+    white-space: nowrap;
+    margin: 0px !important;
+    padding: 0px !important;
+    display: flex;
+}
+
+
+
+.ews-stripe {
+    background-color: black;
+    width: 100vw;
+    border-top: 1px solid var(--red, #f23);
+    border-bottom: 1px solid var(--red, #f23);
+    position: fixed;
+}

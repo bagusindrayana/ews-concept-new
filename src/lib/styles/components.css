@@ -541,19 +541,19 @@
     width: 100%;
 }
 
-.-stripeed {
-    --stripee-color: var(--danger-fill-color);
-    --stripee-size: 15px;
+.-striped {
+    --stripe-color: var(--danger-fill-color);
+    --stripe-size: 15px;
     --glow-color: rgba(var(--danger-glow-rgb), 0.8);
     --glow-size: 3px;
     background-image: repeating-linear-gradient(-45deg,
             var(--glow-color) calc(-1 * var(--glow-size)),
-            var(--stripee-color) 0,
-            var(--stripee-color) calc(var(--stripee-size) - var(--glow-size) / 2),
-            var(--glow-color) calc(var(--stripee-size) + var(--glow-size) / 2),
-            transparent calc(var(--stripee-size) + var(--glow-size) / 2),
-            transparent calc(2 * var(--stripee-size)),
-            var(--glow-color) calc(2 * var(--stripee-size) - var(--glow-size)));
+            var(--stripe-color) 0,
+            var(--stripe-color) calc(var(--stripe-size) - var(--glow-size) / 2),
+            var(--glow-color) calc(var(--stripe-size) + var(--glow-size) / 2),
+            transparent calc(var(--stripe-size) + var(--glow-size) / 2),
+            transparent calc(2 * var(--stripe-size)),
+            var(--glow-color) calc(2 * var(--stripe-size) - var(--glow-size)));
 }
 
 .-blink {

@@ -1,4 +1,5 @@
 <script lang="ts">
+    import "../styles/components/HexShape.css";
     import type { Snippet } from "svelte";
 
     interface Props {
@@ -21,11 +22,14 @@
 </script>
 
 <div
-    class="hex-shape {flatTop ? 'flat-top' : ''} {color} {clipContent
+    class="ews-hex-shape {flatTop ? 'flat-top' : ''} {color} {clipContent
         ? 'clip-content'
-        : ''} flex flex-col justify-center items-center {className}"
+        : ''} {className}"
 >
-    <div class="inner-content" style={`--hex-padding: ${paddingContent}px;`}>
+    <div
+        class="inner-content"
+        style={`--ews-hex-padding: ${paddingContent}px;`}
+    >
         {#if children}
             {@render children()}
         {/if}

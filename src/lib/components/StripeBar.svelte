@@ -1,4 +1,5 @@
 <script lang="ts">
+    import "../styles/components/StripeBar.css";
     import type { Snippet } from "svelte";
 
     interface Props {
@@ -24,20 +25,20 @@
     }: Props = $props();
 </script>
 
-<div class="overflow-hidden {className}">
+<div style="overflow: hidden;" class={className}>
     <div
-        class="stripe-wrapper {orientation}"
+        class="ews-stripe-wrapper {orientation}"
         style="{orientation == 'vertical' ? 'width' : 'height'}: {size};"
     >
         <div
-            class="stripe-bar {color} {orientation} {loop
+            class="ews-stripe-bar {color} {orientation} {loop
                 ? 'loop-stripe'
                 : ''}{orientation ? '-' + orientation : ''} {reverse
                 ? 'reverse'
                 : ''} anim-duration-{duration}"
         ></div>
         <div
-            class="stripe-bar {color} {orientation} {loop
+            class="ews-stripe-bar {color} {orientation} {loop
                 ? 'loop-stripe'
                 : ''}{orientation ? '-' + orientation : ''} {reverse
                 ? 'reverse'
