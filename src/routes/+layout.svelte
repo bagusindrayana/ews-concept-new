@@ -27,7 +27,7 @@
 </svelte:head>
 
 <div class="backgroundline absolute inset-0 pointer-events-none z-10"></div>
-<div class="scanline fixed inset-0 pointer-events-none z-10"></div>
+<div class="no-snapshot scanline fixed inset-0 pointer-events-none z-10"></div>
 {@render children()}
 
 {#if $demoStore.gempaAlert}

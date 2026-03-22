@@ -35,6 +35,7 @@
     deleteSnapshot,
     type Snapshot,
   } from "$lib/utils/db";
+  import Icon from "@iconify/svelte";
 
   let mapContainer: HTMLDivElement;
   let map: mapboxgl.Map;
@@ -101,14 +102,14 @@
   ) {
     try {
       //hide earthquake layer
-      map.setLayoutProperty("earthquake-layer", "visibility", "none");
+      map.setLayoutProperty("earthquakes-layer", "visibility", "none");
       console.log("Taking snapshot for", eventId);
       // Ignore modals and loading screen so the final image looks clean
       const filter = (node: HTMLElement) => {
         return (
           node.id !== "loading-screen" &&
           !node.classList?.contains("modal") &&
-          !node.classList?.contains("no-snapshoot")
+          !node.classList?.contains("no-snapshot")
         );
       };
       const imageBase64 = await htmlToImage.toJpeg(document.body, {
@@ -126,11 +127,11 @@
       await saveSnapshot(snapshot);
       console.log("Snapshot saved to IndexedDB");
       //show earthquake layer
-      map.setLayoutProperty("earthquake-layer", "visibility", "visible");
+      map.setLayoutProperty("earthquakes-layer", "visibility", "visible");
     } catch (err) {
       console.error("Failed to take snapshot:", err);
       //show earthquake layer
-      map.setLayoutProperty("earthquake-layer", "visibility", "visible");
+      map.setLayoutProperty("earthquakes-layer", "visibility", "visible");
     }
   }
 
@@ -584,6 +585,9 @@
               ],
               "circle-stroke-color": "white",
             },
+            layout: {
+              visibility: "visible",
+            },
           });
 
           map.on("click", "earthquakes-layer", (e: any) => {
@@ -903,7 +907,7 @@
 
   <!-- SETTINGS BUTTON -->
   <div
-    class="no-snapshoot fixed right-0 md:right-2 top-1/2 -translate-y-1/2 md:translate-y-0 md:top-14 lg:top-2 md:left-0 md:right-0 md:m-auto flex flex-col md:flex-row justify-center items-end lg:items-center z-5 gap-1 md:gap-2 pointer-events-none"
+    class="hidden md:flex no-snapshot fixed right-2 translate-y-0 top-2 left-0 right-0 m-auto flex-row justify-center items-center z-5 gap-2 pointer-events-none"
     style="width:fit-content"
   >
     <button
@@ -925,6 +929,35 @@
       class="ews-btn ews-btn-primary scale-75 md:scale-100 pointer-events-auto"
       href="/status-ui">STATION</a
     >
+  </div>
+
+  <div
+    class="flex flex-col md:hidden justify-center fixed z-5 items-end left-auto right-0 top-0 bottom-0 m-auto"
+  >
+    <button
+      class="ews-btn-primary p-1"
+      onclick={() => (showSettingsModal = true)}
+    >
+      <Icon icon="weui:setting-filled" width="20" height="20" />
+    </button>
+    <button
+      class="ews-btn-primary p-1"
+      onclick={() => (showSourceModal = true)}
+    >
+      <Icon icon="ic:baseline-source" width="20" height="20" />
+    </button>
+    <button
+      class="ews-btn-primary p-1"
+      onclick={async () => {
+        snapshotsList = await getSnapshots();
+        showSnapshotModal = true;
+      }}
+    >
+      <Icon icon="ic:baseline-camera" width="20" height="20" />
+    </button>
+    <a class="ews-btn-primary p-1" href="/status-ui">
+      <Icon icon="zondicons:station" width="20" height="20" />
+    </a>
   </div>
 
   <!-- SETTINGS MODAL -->
@@ -1186,27 +1219,13 @@
           {/if}
         {/snippet}
         {#snippet footer()}
-          <div
+          <button
             class="flex justify-center w-full cursor-pointer"
             onclick={() =>
               alertGempaBumi && selectEvent(alertGempaBumi.infoGempa)}
           >
-            <span>
-              <svg
-                width="18"
-                height="18"
-                viewBox="0 0 25 25"
-                stroke="currentColor"
-                fill="currentColor"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M5.03125 10.392C5.03125 6.26528 8.3766 2.91992 12.5033 2.91992C16.63 2.91992 19.9754 6.26528 19.9754 10.392C19.9754 13.194 18.9108 15.7454 17.6454 17.7938C16.3778 19.8458 14.8791 21.441 13.9389 22.3454C13.139 23.1148 11.9045 23.1163 11.1026 22.3493C10.1581 21.4458 8.65084 19.8507 7.37569 17.7982C6.1028 15.7493 5.03125 13.1963 5.03125 10.392ZM9.50391 10.3906C9.50391 12.0475 10.8471 13.3906 12.5039 13.3906C14.1608 13.3906 15.5039 12.0475 15.5039 10.3906C15.5039 8.73377 14.1608 7.39062 12.5039 7.39062C10.8471 7.39062 9.50391 8.73377 9.50391 10.3906Z"
-                  fill="#323544"
-                />
-              </svg>
-            </span>
-          </div>
+            <Icon icon="ri:map-pin-fill" width="24" height="24" />
+          </button>
         {/snippet}
       </Card>
     {/if}
@@ -1384,26 +1403,12 @@
           {/snippet}
 
           {#snippet footer()}
-            <div
+            <button
               class="flex justify-center w-full cursor-pointer"
               onclick={() => agi && selectEvent(agi.infoGempa)}
             >
-              <span>
-                <svg
-                  width="18"
-                  height="18"
-                  viewBox="0 0 25 25"
-                  stroke="currentColor"
-                  fill="currentColor"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    d="M5.03125 10.392C5.03125 6.26528 8.3766 2.91992 12.5033 2.91992C16.63 2.91992 19.9754 6.26528 19.9754 10.392C19.9754 13.194 18.9108 15.7454 17.6454 17.7938C16.3778 19.8458 14.8791 21.441 13.9389 22.3454C13.139 23.1148 11.9045 23.1163 11.1026 22.3493C10.1581 21.4458 8.65084 19.8507 7.37569 17.7982C6.1028 15.7493 5.03125 13.1963 5.03125 10.392ZM9.50391 10.3906C9.50391 12.0475 10.8471 13.3906 12.5039 13.3906C14.1608 13.3906 15.5039 12.0475 15.5039 10.3906C15.5039 8.73377 14.1608 7.39062 12.5039 7.39062C10.8471 7.39062 9.50391 8.73377 9.50391 10.3906Z"
-                    fill="#323544"
-                  />
-                </svg>
-              </span>
-            </div>
+              <Icon icon="ri:map-pin-fill" width="20" height="20" />
+            </button>
           {/snippet}
         </Card>
       {/each}
@@ -1413,7 +1418,7 @@
   <!-- EVENT LOG -->
   {#if !loadingScreen && showEventLog}
     <Card
-      className="no-snapshoot fixed top-1 left-2 right-2 md:left-auto md:right-3 md:top-3 md:w-1/3 lg:w-1/5 show-pop-up ews-card ews-card-red ews-card-float"
+      className="no-snapshot fixed top-1 left-2 right-2 md:left-auto md:right-3 md:top-3 md:w-1/3 lg:w-1/5 show-pop-up ews-card ews-card-red ews-card-float"
     >
       {#snippet title()}
         <StripeBar color="red"
@@ -1452,11 +1457,11 @@
   <!-- EARTHQUAKE DIRASAKAN SECTION -->
   <div
     id="gempa-bumi-dirasakan"
-    class="no-snapshoot fixed bottom-4 left-2 right-2 md:bottom-6 md:right-3 md:left-3 flex flex-row md:flex-col-reverse lg:flex-row gap-2 justify-center md:justify-start lg:items-end items-end pointer-events-none"
+    class="fixed bottom-4 left-2 right-2 md:bottom-6 md:right-3 md:left-3 flex flex-row md:flex-col-reverse lg:flex-row gap-2 justify-center md:justify-start lg:items-end items-end pointer-events-none"
   >
     {#if !loadingScreen && GempaDirasakan != undefined && GempaDirasakan != null && showGempaDirasakan}
       <Card
-        className="block show-pop-up w-1/2 md:w-1/2 lg:w-2/5 xl:w-1/5 pointer-events-auto bordered-red"
+        className="no-snapshot block show-pop-up w-1/2 md:w-1/2 lg:w-2/5 xl:w-1/5 pointer-events-auto bordered-red"
       >
         {#snippet title()}
           <StripeBar color="red">
@@ -1476,27 +1481,13 @@
           </StripeBar>
         {/snippet}
         {#snippet footer()}
-          <div
+          <button
             class="flex justify-center w-full cursor-pointer"
             onclick={() =>
               GempaDirasakan && selectEvent(GempaDirasakan.infoGempa)}
           >
-            <span>
-              <svg
-                width="18"
-                height="18"
-                viewBox="0 0 25 25"
-                stroke="currentColor"
-                fill="currentColor"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M5.03125 10.392C5.03125 6.26528 8.3766 2.91992 12.5033 2.91992C16.63 2.91992 19.9754 6.26528 19.9754 10.392C19.9754 13.194 18.9108 15.7454 17.6454 17.7938C16.3778 19.8458 14.8791 21.441 13.9389 22.3454C13.139 23.1148 11.9045 23.1163 11.1026 22.3493C10.1581 21.4458 8.65084 19.8507 7.37569 17.7982C6.1028 15.7493 5.03125 13.1963 5.03125 10.392ZM9.50391 10.3906C9.50391 12.0475 10.8471 13.3906 12.5039 13.3906C14.1608 13.3906 15.5039 12.0475 15.5039 10.3906C15.5039 8.73377 14.1608 7.39062 12.5039 7.39062C10.8471 7.39062 9.50391 8.73377 9.50391 10.3906Z"
-                  fill="#323544"
-                />
-              </svg>
-            </span>
-          </div>
+            <Icon icon="ri:map-pin-fill" width="20" height="20" />
+          </button>
         {/snippet}
         {#snippet children()}
           <div
@@ -1592,27 +1583,13 @@
           </div>
         {/snippet}
         {#snippet footer()}
-          <div
+          <button
             class="flex justify-center w-full cursor-pointer"
             onclick={() =>
               GempaTerakhir && selectEvent(GempaTerakhir.infoGempa)}
           >
-            <span>
-              <svg
-                width="18"
-                height="18"
-                viewBox="0 0 25 25"
-                stroke="currentColor"
-                fill="currentColor"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M5.03125 10.392C5.03125 6.26528 8.3766 2.91992 12.5033 2.91992C16.63 2.91992 19.9754 6.26528 19.9754 10.392C19.9754 13.194 18.9108 15.7454 17.6454 17.7938C16.3778 19.8458 14.8791 21.441 13.9389 22.3454C13.139 23.1148 11.9045 23.1163 11.1026 22.3493C10.1581 21.4458 8.65084 19.8507 7.37569 17.7982C6.1028 15.7493 5.03125 13.1963 5.03125 10.392ZM9.50391 10.3906C9.50391 12.0475 10.8471 13.3906 12.5039 13.3906C14.1608 13.3906 15.5039 12.0475 15.5039 10.3906C15.5039 8.73377 14.1608 7.39062 12.5039 7.39062C10.8471 7.39062 9.50391 8.73377 9.50391 10.3906Z"
-                  fill="#323544"
-                />
-              </svg>
-            </span>
-          </div>
+            <Icon icon="ri:map-pin-fill" width="20" height="20" />
+          </button>
         {/snippet}
         {#snippet children()}
           <div class=" text-sm w-full p-1 lg:p-2" style="font-size:10px">
