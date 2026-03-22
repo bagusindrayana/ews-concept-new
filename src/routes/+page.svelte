@@ -1432,13 +1432,13 @@
         >
       {/snippet}
       {#snippet children()}
-        <div class="w-full p-1 lg:p-2">
+        <div class="w-full p-0 lg:p-2">
           <ul>
             {#each events as v, i (v.id)}
               <li class="w-full">
                 <button
                   onclick={() => selectEvent(v.infoGempa)}
-                  class="flex flex-col mb-2 list-event cursor-pointer slide-in-left w-full text-start"
+                  class="flex flex-col mb-1 md:mb-2 list-event cursor-pointer slide-in-left w-full text-start"
                   style="animation-delay:{i * 0.01}s"
                 >
                   <span style="font-size:11px">{v.infoGempa.time} WIB</span>
@@ -1457,7 +1457,7 @@
   <!-- EARTHQUAKE DIRASAKAN SECTION -->
   <div
     id="gempa-bumi-dirasakan"
-    class="fixed bottom-4 left-2 right-2 md:bottom-6 md:right-3 md:left-3 flex flex-row md:flex-col-reverse lg:flex-row gap-2 justify-center md:justify-start lg:items-end items-end pointer-events-none"
+    class="fixed bottom-6 left-2 right-2 md:right-3 md:left-3 flex flex-row md:flex-col-reverse lg:flex-row gap-2 justify-center md:justify-start lg:items-end items-end pointer-events-none"
   >
     {#if !loadingScreen && GempaDirasakan != undefined && GempaDirasakan != null && showGempaDirasakan}
       <Card
@@ -1657,31 +1657,31 @@
             class="flex flex-col w-full gap-2 text-sm w-full p-1 lg:p-2"
             style="font-size:10px"
           >
-            <div class="bordered p-2">
+            <div class="bordered p-1 md:p-2">
               <table class="w-full">
                 <tbody>
                   <tr
                     ><td class="text-left flex">PLACE</td><td
-                      class="text-right break-words pl-2"
+                      class="text-right break-words pl-1 md:pl-2"
                       >{detailInfoGempa?.place}</td
                     ></tr
                   >
                   <tr
                     ><td class="text-left flex">TIME</td><td
-                      class="text-right break-words pl-2"
+                      class="text-right break-words pl-1 md:pl-2"
                       data-time={detailInfoGempa?.time}
                       >{detailInfoGempa?.time} WIB</td
                     ></tr
                   >
                   <tr
                     ><td class="text-left flex">MAG</td><td
-                      class="text-right break-words pl-2"
+                      class="text-right break-words pl-1 md:pl-2"
                       >{Number(detailInfoGempa?.mag).toFixed(1)}</td
                     ></tr
                   >
                   <tr
                     ><td class="text-left flex">DEPTH</td><td
-                      class="text-right break-words pl-2"
+                      class="text-right break-words pl-1 md:pl-2"
                       >{parseFloat(
                         String(detailInfoGempa?.depth).replace("Km", ""),
                       ).toFixed(2)} KM</td
@@ -1689,20 +1689,22 @@
                   >
                   <tr
                     ><td class="text-left flex">LAT</td><td
-                      class="text-right break-words pl-2"
+                      class="text-right break-words pl-1 md:pl-2"
                       >{detailInfoGempa?.lat}</td
                     ></tr
                   >
                   <tr
                     ><td class="text-left flex">LNG</td><td
-                      class="text-right break-words pl-2"
+                      class="text-right break-words pl-1 md:pl-2"
                       >{detailInfoGempa?.lng}</td
                     ></tr
                   >
                 </tbody>
               </table>
             </div>
-            <div class="bordered p-2 overflow-auto max-h-60 custom-scrollbar">
+            <div
+              class="bordered pl-1 md:p-2 overflow-auto max-h-60 custom-scrollbar"
+            >
               <table
                 id="histori_tabel"
                 style="font-size:10px"
@@ -1771,9 +1773,7 @@
 
   <!-- MOBILE WARNING CARD -->
   {#if !loadingScreen && alertGempaBumi && GempaDirasakan != undefined && GempaDirasakan != null}
-    <div
-      class="block md:hidden show-pop-up fixed top-14 left-2 right-2 md:w-1/2 z-10"
-    >
+    <div class="hidden show-pop-up fixed top-14 left-2 right-2 md:w-1/2 z-10">
       <Card>
         {#snippet title()}
           <StripeBar reverse={true} loop={true} duration={20}>
