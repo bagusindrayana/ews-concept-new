@@ -1421,7 +1421,7 @@
       className="no-snapshot fixed top-1 left-2 right-2 md:left-auto md:right-3 md:top-3 md:w-1/3 lg:w-1/5 show-pop-up ews-card ews-card-red ews-card-float"
     >
       {#snippet title()}
-        <StripeBar color="red"
+        <StripeBar loop={true} color="red"
           ><div
             class="absolute top-0 bottom-0 left-0 right-0 flex justify-center items-center"
           >
@@ -1464,7 +1464,7 @@
         className="no-snapshot block show-pop-up w-1/2 md:w-1/2 lg:w-2/5 xl:w-1/5 pointer-events-auto bordered-red"
       >
         {#snippet title()}
-          <StripeBar color="red">
+          <StripeBar loop={true} color="red">
             <div
               class="absolute top-0 bottom-0 left-0 right-0 flex justify-center items-center"
             >
@@ -1572,7 +1572,7 @@
       >
         {#snippet title()}
           <div class="overflow-hidden">
-            <StripeBar></StripeBar>
+            <StripeBar loop={true} reverse={true}></StripeBar>
             <div
               class="absolute top-0 bottom-0 left-0 right-0 flex justify-center items-center"
             >
