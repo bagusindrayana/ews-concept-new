@@ -249,14 +249,14 @@
             {#snippet title()}
                 <h1>NETWORK CHANNEL STATUS</h1>
             {/snippet}
-            <div class="overflow-y-auto max-h-[700px]">
+            <div class="overflow-y-auto h-[80vh]">
                 <MentalToxicityLevel networks={networkStats} />
             </div>
         </Card>
 
         <div class="w-full lg:w-2/3 bordered relative overflow-hidden">
             <div
-                class="w-full h-[700px] bg-black rounded"
+                class="w-full h-[80vh] bg-black rounded"
                 bind:this={mapContainer}
             ></div>
 
