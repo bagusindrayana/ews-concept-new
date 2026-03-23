@@ -1,4 +1,5 @@
 <script lang="ts">
+    import "../styles/components/HexGrid.css";
     import type { Snippet } from "svelte";
 
     let {
@@ -7,7 +8,7 @@
         variant = "pointy",
         hexWidth,
         hexHeight,
-        gap = 4
+        gap = 4,
     }: {
         children: Snippet;
         className?: string;
@@ -41,7 +42,9 @@
                 const rowOffsetTop = -14;
                 const itemFullWidth = w + gap;
 
-                let maxCols = Math.floor((containerWidth + gap) / itemFullWidth);
+                let maxCols = Math.floor(
+                    (containerWidth + gap) / itemFullWidth,
+                );
                 if (maxCols < 1) maxCols = 1;
 
                 let isOffset = false;
@@ -78,21 +81,18 @@
 
                 let totalHeight = 0;
                 if (currentCol > 0) {
-                    totalHeight =
-                        currentRow * (h + rowOffsetTop) + h;
+                    totalHeight = currentRow * (h + rowOffsetTop) + h;
                 } else {
-                    totalHeight =
-                        (currentRow - 1) * (h + rowOffsetTop) +
-                        h;
+                    totalHeight = (currentRow - 1) * (h + rowOffsetTop) + h;
                 }
                 node.style.height = `${totalHeight}px`;
-
             } else {
                 // Flat (Variant 2)
                 const colAdvanceX = w * 0.75 + gap;
                 const rowAdvanceY = h + gap;
 
-                let maxCols = Math.floor((containerWidth - w) / colAdvanceX) + 1;
+                let maxCols =
+                    Math.floor((containerWidth - w) / colAdvanceX) + 1;
                 if (containerWidth < w) maxCols = 1;
 
                 let currentCol = 0;
@@ -149,6 +149,6 @@
     }
 </script>
 
-<div class="hex-honeycomb {className}" use:honeycombLayout>
+<div class="ews-hex-honeycomb {className}" use:honeycombLayout>
     {@render children()}
 </div>

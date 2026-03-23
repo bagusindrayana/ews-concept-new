@@ -10,6 +10,7 @@
     import { PUBLIC_WEBSOCKET_URL } from "$env/static/public";
     import { WaveformService } from "$lib/services/WaveformService";
     import HexGrid from "$lib/components/HexGrid.svelte";
+    import HexShape from "$lib/components/HexShape.svelte";
 
     export let data: PageData;
     let waveformChart: any;
@@ -308,7 +309,7 @@
                     {#snippet children()}
                         <div class="w-full flex flex-row gap-2 p-1 lg:p-2">
                             <div
-                                class="badge ews-title text-3xl bordered flex justify-between mb-2 w-full"
+                                class="badge ews-title text-3xl bordered flex justify-between w-full"
                             >
                                 <div
                                     class="flex flex-col items-center justify-between p-1"
@@ -395,59 +396,66 @@
                             <HexGrid variant="flat">
                                 {#each listChannel as channel, channelIndex (channel["@attributes"]["code"])}
                                     <div
-                                        class="w-full h-full {channel[
-                                            '@attributes'
-                                        ].endDate == ''
-                                            ? 'yellow glow-orange-small'
-                                            : 'glow-red-small'}"
+                                        class="ews-hex-hive flat opacity-0 show-pop-up"
+                                        style="animation-delay: {Math.min(
+                                            channelIndex * 50,
+                                            1000,
+                                        )}ms; width: 83px; height: 72px;"
                                     >
-                                        <button
-                                            class="w-full h-full cursor-pointer hex-hive bg-hex-flat opacity-0 show-pop-up {selectedChannel !=
+                                        <HexShape
+                                            clipContent={true}
+                                            color={channel["@attributes"]
+                                                .endDate == "" ||
+                                            channel["@attributes"].endDate ==
+                                                undefined
+                                                ? "orange"
+                                                : "red"}
+                                            className={selectedChannel !=
                                                 undefined &&
                                             selectedChannel != null &&
-                                            selectedChannel['@attributes']
+                                            selectedChannel["@attributes"]
                                                 .code ==
-                                                channel['@attributes']['code']
-                                                ? 'blink blink-fast'
-                                                : ''} {channel['@attributes']
-                                                .endDate == undefined ||
-                                            channel['@attributes'].endDate == ''
-                                                ? 'yellow '
-                                                : ' '}"
-                                            style="animation-delay: {Math.min(
-                                                channelIndex * 50,
-                                                1000,
-                                            )}ms; width: 83px; height: 72px;"
-                                            on:click={() => {
-                                                selectedChannel = channel;
-                                                const request = {
-                                                    net:
-                                                        data.networkCode ??
-                                                        "GE",
-                                                    sta:
-                                                        data.stationCode ??
-                                                        "GSI",
-                                                    cha: selectedChannel[
-                                                        "@attributes"
-                                                    ].code,
-                                                };
-                                                if (
-                                                    ws &&
-                                                    ws.readyState ===
-                                                        WebSocket.OPEN
-                                                ) {
-                                                    ws.send(
-                                                        JSON.stringify(request),
-                                                    );
-                                                }
-                                            }}
+                                                channel["@attributes"]["code"]
+                                                ? "blink blink-fast"
+                                                : ""}
                                         >
-                                            <div
-                                                class="w-full h-full flex justify-center items-center text-black text-center"
+                                            <button
+                                                class="w-full h-full cursor-pointer"
+                                                on:click={() => {
+                                                    selectedChannel = channel;
+                                                    const request = {
+                                                        net:
+                                                            data.networkCode ??
+                                                            "GE",
+                                                        sta:
+                                                            data.stationCode ??
+                                                            "GSI",
+                                                        cha: selectedChannel[
+                                                            "@attributes"
+                                                        ].code,
+                                                    };
+                                                    if (
+                                                        ws &&
+                                                        ws.readyState ===
+                                                            WebSocket.OPEN
+                                                    ) {
+                                                        ws.send(
+                                                            JSON.stringify(
+                                                                request,
+                                                            ),
+                                                        );
+                                                    }
+                                                }}
                                             >
-                                                {channel["@attributes"]["code"]}
-                                            </div>
-                                        </button>
+                                                <div
+                                                    class="w-full h-full flex justify-center items-center text-black text-center"
+                                                >
+                                                    {channel["@attributes"][
+                                                        "code"
+                                                    ]}
+                                                </div>
+                                            </button>
+                                        </HexShape>
                                     </div>
                                 {/each}
                             </HexGrid>

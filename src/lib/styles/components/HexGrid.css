@@ -1,0 +1,304 @@
+/* =============================================
+   HEXAGONAL GRID STYLES
+   ============================================= */
+
+/* --- Shared hex clip-path (flat-top orientation) --- */
+.ews-hex-clip {
+    clip-path: polygon(24.96% 100%,
+            0% 50%,
+            24.96% 0%,
+            74.87% 0%,
+            99.84% 50%,
+            74.87% 100%);
+}
+
+/* --- Shared hex clip-path (pointy-top / rotated 90°) --- */
+.ews-hex-clip-pointy {
+    clip-path: polygon(0% 25.13%,
+            50% 0%,
+            100% 25.13%,
+            100% 74.87%,
+            50% 100%,
+            0% 74.87%);
+}
+
+/* ---- 1. Basic Flat Hex Grid ---- */
+.ews-hex-grid-flat {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-items: center;
+}
+
+.ews-hex-cell-flat {
+    position: relative;
+    width: 80px;
+    height: 70px;
+    aspect-ratio: 584 / 507;
+    clip-path: polygon(24.96% 100%, 0% 50%, 24.96% 0%, 74.87% 0%, 99.84% 50%, 74.87% 100%);
+    background-color: rgba(255, 170, 0, 0.08);
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.25s ease, transform 0.2s ease;
+    cursor: default;
+}
+
+.ews-hex-cell-flat::before {
+    content: '';
+    position: absolute;
+    inset: 2px;
+    clip-path: polygon(24.96% 100%, 0% 50%, 24.96% 0%, 74.87% 0%, 99.84% 50%, 74.87% 100%);
+    background-color: rgba(255, 170, 0, 0.04);
+    z-index: 0;
+}
+
+.ews-hex-cell-flat:hover {
+    background-color: rgba(255, 170, 0, 0.18);
+    transform: scale(1.06);
+}
+
+.ews-hex-cell-flat.ews-hex-danger {
+    background-color: rgba(255, 34, 51, 0.15);
+    box-shadow: 0 0 12px 2px rgba(255, 34, 51, 0.3);
+}
+
+.ews-hex-cell-flat.ews-hex-danger::before {
+    background-color: rgba(255, 34, 51, 0.06);
+}
+
+.ews-hex-cell-flat.ews-hex-warn {
+    background-color: rgba(255, 170, 0, 0.15);
+    box-shadow: 0 0 10px 2px rgba(255, 170, 0, 0.25);
+}
+
+.ews-hex-cell-flat.ews-hex-safe {
+    background-color: rgba(0, 200, 80, 0.12);
+    box-shadow: 0 0 8px 1px rgba(0, 200, 80, 0.2);
+}
+
+.ews-hex-content {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    color: var(--orange);
+    text-align: center;
+}
+
+/* ---- 2. Honeycomb Offset Grid ---- */
+.ews-hex-honeycomb {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+}
+
+.ews-hex-row {
+    display: flex;
+    flex-direction: row;
+    gap: 4px;
+}
+
+.ews-hex-row-offset {
+    margin-left: calc(72px / 2 + 2px);
+    margin-top: -14px;
+}
+
+.ews-hex-hive {
+    position: relative;
+    width: 72px;
+    height: 83px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.2s ease, background-color 0.2s ease;
+}
+
+.ews-hex-hive.bg-hex {
+    clip-path: polygon(0% 25.13%, 50% 0%, 100% 25.13%, 100% 74.87%, 50% 100%, 0% 74.87%);
+    display: unset;
+    transition: unset;
+    background-color: transparent;
+    /* height: unset; */
+
+    background-image: url('data:image/svg+xml,<svg width="115" height="133" viewBox="0 0 115 133" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M115 99.1859L57.5 132.25L7.62939e-06 99.1859L7.62939e-06 33.0641L57.5 3.05176e-05L115 33.0641L115 99.1859Z" fill="%23E60003"/><path d="M113.69 98.4426L57.6307 130.678L1.57149 98.4426L1.57149 33.9776L57.6307 1.74199L113.69 33.9776L113.69 98.4426Z" fill="black"/><path d="M111.071 97.0671L57.6309 127.796L4.1913 97.0671L4.1913 35.6145L57.6309 4.88519L111.071 35.6145L111.071 97.0671Z" fill="%23E60003"/></svg>');
+    background-size: contain;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+.bg-hex.yellow {
+    background-image: url('data:image/svg+xml,<svg width="115" height="133" viewBox="0 0 115 133" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M115 99.1859L57.5 132.25L7.62939e-06 99.1859L7.62939e-06 33.0641L57.5 3.05176e-05L115 33.0641L115 99.1859Z" fill="%23fa0"/><path d="M113.69 98.4426L57.6307 130.678L1.57149 98.4426L1.57149 33.9776L57.6307 1.74199L113.69 33.9776L113.69 98.4426Z" fill="black"/><path d="M111.071 97.0671L57.6309 127.796L4.1913 97.0671L4.1913 35.6145L57.6309 4.88519L111.071 35.6145L111.071 97.0671Z" fill="%23fa0"/></svg>');
+}
+
+.ews-hex-hive.bg-hex-flat {
+    clip-path: polygon(24.96% 100%, 0% 50%, 24.96% 0%, 74.87% 0%, 99.84% 50%, 74.87% 100%);
+    display: unset;
+    transition: unset;
+    background-color: transparent;
+
+    background-image: url('data:image/svg+xml,<svg width="584" height="507" viewBox="0 0 584 507" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M145.77 507L0 253.5L145.77 -3.05176e-05H437.28L583.05 253.5L437.28 507H145.77Z" fill="%23E60003"/><path d="M149.046 500.648L6.92932 253.5L149.046 6.35181H433.253L575.37 253.5L433.253 500.648H149.046Z" fill="black"/><path d="M155.007 492L18 253.5L155.007 15H428.993L566 253.5L428.993 492H155.007Z" fill="%23E60003"/></svg>');
+    background-size: contain;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+.ews-hex-hive.flat {
+    clip-path: polygon(24.96% 100%, 0% 50%, 24.96% 0%, 74.87% 0%, 99.84% 50%, 74.87% 100%);
+    display: unset;
+    transition: unset;
+    background-color: transparent;
+}
+
+
+.bg-hex-flat.yellow {
+    background-image: url('data:image/svg+xml,<svg width="584" height="507" viewBox="0 0 584 507" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M145.77 507L0 253.5L145.77 -3.05176e-05H437.28L583.05 253.5L437.28 507H145.77Z" fill="%23fa0"/><path d="M149.046 500.648L6.92932 253.5L149.046 6.35181H433.253L575.37 253.5L433.253 500.648H149.046Z" fill="black"/><path d="M155.007 492L18 253.5L155.007 15H428.993L566 253.5L428.993 492H155.007Z" fill="%23fa0"/></svg>');
+}
+
+.ews-hex-hive.ews-hex-danger {
+    background-color: rgba(255, 34, 51, 0.18);
+    filter: drop-shadow(0 0 8px rgba(255, 34, 51, 0.5));
+}
+
+.ews-hex-hive.ews-hex-warn {
+    background-color: rgba(255, 170, 0, 0.18);
+    filter: drop-shadow(0 0 6px rgba(255, 170, 0, 0.4));
+}
+
+.ews-hex-hive-inner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1px;
+    text-align: center;
+    color: var(--orange);
+}
+
+/* ---- 3. Animated Status Hex Cells ---- */
+.ews-hex-status-cell {
+    position: relative;
+    width: 90px;
+    height: 104px;
+    clip-path: polygon(0% 25.13%, 50% 0%, 100% 25.13%, 100% 74.87%, 50% 100%, 0% 74.87%);
+    background-color: rgba(255, 170, 0, 0.06);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.25s ease;
+}
+
+.ews-hex-status-cell::after {
+    content: '';
+    position: absolute;
+    inset: 3px;
+    clip-path: polygon(0% 25.13%, 50% 0%, 100% 25.13%, 100% 74.87%, 50% 100%, 0% 74.87%);
+    background: transparent;
+    border: none;
+    z-index: 0;
+}
+
+.ews-hex-status-cell:hover {
+    transform: scale(1.08);
+}
+
+.ews-hex-status-cell.ews-hex-danger {
+    background-color: rgba(255, 34, 51, 0.12);
+    filter: drop-shadow(0 0 10px rgba(255, 34, 51, 0.45));
+}
+
+.ews-hex-status-cell.ews-hex-warn {
+    background-color: rgba(255, 170, 0, 0.12);
+    filter: drop-shadow(0 0 8px rgba(255, 170, 0, 0.4));
+}
+
+.ews-hex-status-cell.ews-hex-caution {
+    background-color: rgba(255, 255, 0, 0.08);
+    filter: drop-shadow(0 0 6px rgba(255, 255, 0, 0.25));
+}
+
+.ews-hex-status-cell.ews-hex-safe {
+    background-color: rgba(0, 200, 80, 0.08);
+    filter: drop-shadow(0 0 6px rgba(0, 200, 80, 0.2));
+}
+
+.ews-hex-status-cell.ews-hex-pulse {
+    animation: hexPulse 1.4s ease-in-out infinite;
+}
+
+@keyframes hexPulse {
+
+    0%,
+    100% {
+        filter: drop-shadow(0 0 8px rgba(255, 34, 51, 0.3));
+    }
+
+    50% {
+        filter: drop-shadow(0 0 22px rgba(255, 34, 51, 0.85));
+    }
+}
+
+.ews-hex-status-inner {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    gap: 2px;
+    color: var(--orange);
+}
+
+/* ---- 4. Hex with Strip Decoration ---- */
+.ews-hex-stripe-cell {
+    position: relative;
+    width: 110px;
+    height: 127px;
+    clip-path: polygon(0% 25.13%, 50% 0%, 100% 25.13%, 100% 74.87%, 50% 100%, 0% 74.87%);
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(255, 170, 0, 0.05);
+    transition: transform 0.2s ease;
+}
+
+.ews-hex-stripe-cell:hover {
+    transform: scale(1.06);
+}
+
+.ews-hex-stripe-cell.ews-hex-danger {
+    background-color: rgba(255, 34, 51, 0.08);
+}
+
+.ews-hex-stripe-bg {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.ews-hex-stripe-content {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    gap: 1px;
+    color: var(--orange);
+    background-color: rgba(0, 0, 0, 0.55);
+    padding: 6px 10px;
+    clip-path: polygon(0% 25.13%, 50% 0%, 100% 25.13%, 100% 74.87%, 50% 100%, 0% 74.87%);
+    width: 88%;
+    height: 88%;
+}
