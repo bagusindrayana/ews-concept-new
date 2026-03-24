@@ -13,6 +13,7 @@
   import StripeBar from "$lib/components/StripeBar.svelte";
   import HexShape from "$lib/components/HexShape.svelte";
   import MentalToxicityLevel from "$lib/components/MentalToxicityLevel.svelte";
+  import ThreadedComments from "$lib/components/ThreadedComments.svelte";
 
   let showGempaBumiAlert = $state(false);
   let showTsunamiAlert = $state(false);
@@ -47,6 +48,23 @@
     { label: "ZONA E", val: "3.3" },
     { label: "ZONA F", val: "5.9", warn: true },
     { label: "ZONA G", val: "8.1", danger: true },
+  ];
+
+  const threadedSpineItems = [
+    { id: "spine-1", label: "MAIN THREAD TOPIC", level: 1, tone: "danger" },
+    { id: "spine-2", label: "FOLLOW-UP COMMENT", level: 2, tone: "normal" },
+    { id: "spine-3", label: "NESTED DETAIL NOTE", level: 3, tone: "normal" },
+  ];
+
+  const threadedNestedItems = [
+    { id: "threaded-1", label: "MAIN THREAD TOPIC", level: 1, tone: "danger" },
+    { id: "threaded-2", label: "SECOND COMMENT", level: 1, tone: "normal" },
+    {
+      id: "threaded-3",
+      label: "REPLY TO SECOND COMMENT",
+      level: 2,
+      tone: "normal",
+    },
   ];
 </script>
 
@@ -661,6 +679,23 @@
               </button>
             </div>
           </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- THREADED COMMENTS / NESTED LIST -->
+    <section class="col-span-1 md:col-span-2 lg:col-span-3">
+      <h2 class="text-xl font-semibold mb-4 border-b border-gray-700 pb-2">
+        Threaded Comments / Nested List
+      </h2>
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div class=" p-3">
+          <p class="text-gray-500 text-xs mb-3">Variation 1 — Spine</p>
+          <ThreadedComments variant="spine" items={threadedSpineItems} />
+        </div>
+        <div class=" p-3">
+          <p class="text-gray-500 text-xs mb-3">Variation 2 — Threaded</p>
+          <ThreadedComments variant="threaded" items={threadedNestedItems} />
         </div>
       </div>
     </section>
