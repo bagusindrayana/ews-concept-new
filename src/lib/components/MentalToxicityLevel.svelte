@@ -23,21 +23,21 @@
         networks = [
             {
                 id: "network-1",
-                name: "Network 1",
+                name: "NET 1",
                 active_channel: 2,
                 inactive_channel: 14,
                 total_channel: 16,
             },
             {
                 id: "network-2",
-                name: "Network 2",
+                name: "NET 2",
                 active_channel: 22,
                 inactive_channel: 7,
                 total_channel: 29,
             },
             {
                 id: "network-3",
-                name: "Network 3",
+                name: "NET 3",
                 active_channel: 12,
                 inactive_channel: 5,
                 total_channel: 17,
