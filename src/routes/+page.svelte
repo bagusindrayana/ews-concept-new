@@ -36,6 +36,7 @@
     type Snapshot,
   } from "$lib/utils/db";
   import Icon from "@iconify/svelte";
+  import SerialStatus from "$lib/components/SerialStatus.svelte";
 
   let mapContainer: HTMLDivElement;
   let map: mapboxgl.Map;
@@ -1000,6 +1001,21 @@
         <input type="checkbox" bind:checked={showShakeMap} />
         <span class="toggle-slider"></span>
       </label>
+    </div>
+
+    <!-- Web Serial Connection -->
+    <div class="mt-4 pt-3" style="border-top: 1px solid rgba(255, 165, 0, 0.3)">
+      <p class=" text-xs font-bold mb-3" style="color:var(--orange)">
+        HARDWARE LINK (WEB SERIAL)
+      </p>
+      <div class="flex-col justify-start items-start gap-3">
+        <p class="text-[10px] opacity-70 leading-relaxed uppercase mb-2">
+          Connect to ESP32 for external alerts (Buzzer/LED).
+        </p>
+        <div class="origin-left">
+          <SerialStatus />
+        </div>
+      </div>
     </div>
 
     <!-- Test Buttons -->
