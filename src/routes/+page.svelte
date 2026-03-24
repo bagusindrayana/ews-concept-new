@@ -506,7 +506,7 @@
     }
   }
 
-  // GET DATA GEMPA (Unified Initialization via Server-Side Proxy)
+  // GET DATA EARTHQUAKE (Unified Initialization via Server-Side Proxy)
   function initializeMapData(customConfig?: any) {
     const fetchOptions = customConfig
       ? {
@@ -1019,7 +1019,7 @@
             <div class="stripe-bar loop-stripe-reverse anim-duration-20"></div>
           </div>
           <span class="absolute bg-black ews-label px-2 py-1"
-            >⚠ TEST GEMPA</span
+            >⚠ TEST EARTHQUAKE</span
           ></button
         >
 
@@ -1636,7 +1636,7 @@
   <div
     class="hidden md:block right-0 bottom-0 left-0 md:left-auto md:bottom-6 md:right-3 fixed pointer-events-none flex gap-2 justify-end items-end"
   >
-    <!-- DETAIL INFO GEMPA & SHAKEMAP -->
+    <!-- DETAIL INFO EARTHQUAKE & SHAKEMAP -->
     {#if !loadingScreen && detailInfoGempa != undefined && detailInfoGempa != null && showDetailEvent}
       <Card
         className=" show-pop-up pointer-events-auto max-w-[100vw] md:max-w-100 "
@@ -1880,7 +1880,7 @@
     </div>
   {/if}
 
-  <!-- GEMPA ALERT -->
+  <!-- EARTHQUAKE ALERT -->
   {#if !loadingScreen}
     {#each alertGempaBumis as v, i (v.id)}
       <div>

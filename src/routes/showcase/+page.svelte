@@ -395,7 +395,7 @@
         </div>
         <div>
           <p class="text-gray-500 text-xs mb-1">ews-text danger</p>
-          <p class="ews-text danger text-lg">PERINGATAN DINI</p>
+          <p class="ews-text danger text-lg">EARLY WARNING</p>
         </div>
         <div>
           <p class="text-gray-500 text-xs mb-1">ews-text</p>
@@ -491,7 +491,7 @@
         <div>
           <p class="text-gray-500 text-xs mb-1">ews-select danger</p>
           <select class="ews-select danger">
-            <option>LEVEL PERINGATAN</option>
+            <option>LEVEL WARNING</option>
             <option>SIAGA</option>
             <option>WASPADA</option>
             <option>AWAS</option>

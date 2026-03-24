@@ -52,7 +52,7 @@
             class="warning-black opacity-0 blink animation-fast animation-delay-2"
           ></div>
           <div class="flex flex-col font-bold text-center text-black">
-            <span class="text-xl">PERINGATAN</span>
+            <span class="text-xl">WARNING</span>
             <span class="text-xs">Gempa Bumi Terdeteksi</span>
           </div>
           <div
