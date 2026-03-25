@@ -39,7 +39,7 @@
 
             if (!isFlat) {
                 // Pointy (Variant 1)
-                const rowOffsetTop = -14;
+                const rowOffsetTop = gap + -20;
                 const itemFullWidth = w + gap;
 
                 let maxCols = Math.floor(

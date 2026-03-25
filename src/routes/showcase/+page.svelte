@@ -275,7 +275,7 @@
           <!-- Honeycomb Offset Grid -->
           <div class="basis-0 flex-1">
             <p class="text-gray-500 text-xs mb-3">Honeycomb Offset Grid</p>
-            <HexGrid>
+            <HexGrid  gap={0}>
               {#each { length: 30 } as _, i}
                 <div class="ews-hex-hive">
                   <HexShape clipContent={true} flatTop={false}>
