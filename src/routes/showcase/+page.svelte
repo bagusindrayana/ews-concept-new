@@ -769,19 +769,18 @@
           <ThreadedComments variant="spine" items={threadedSpineItems} />
         </div>
         <div class="p-3">
-          <p class="text-gray-500 text-xs mb-3">
-            Variation 2 — Threaded
-          </p>
+          <p class="text-gray-500 text-xs mb-3">Variation 2 — Threaded</p>
           <ThreadedComments variant="threaded" items={threadedSpineItems} />
         </div>
         <div class="p-3">
           <p class="text-gray-500 text-xs mb-3">
-            Variation 3 — Spine (Expandable + Danger Tone)
+            Variation 3 — Spine (Expandable)
           </p>
           <ThreadedComments
             variant="spine"
             items={threadedNestedItems}
             tone="danger"
+            expandable={true}
           />
         </div>
         <div class="p-3">

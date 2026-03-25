@@ -1,6 +1,11 @@
-<script lang="ts">
-  type ThreadVariant = "spine" | "threaded";
+<script module lang="ts">
   export type ThreadTone = "normal" | "danger" | "muted";
+</script>
+
+<script lang="ts">
+  // import { fade } from "svelte/transition";
+
+  type ThreadVariant = "spine" | "threaded";
 
   interface ThreadItem {
     id: string;
@@ -177,7 +182,7 @@
   });
 
   const maxLevel = $derived.by(() =>
-    normalizedItems.reduce((acc, item) => Math.max(acc, item.level), 1),
+    normalizedItems.reduce((acc, item) => Math.max(acc, item.level ?? 1), 1),
   );
 
   const canvasHeight = $derived.by(() => {
@@ -212,13 +217,46 @@
   }
 
   function getParentIndex(index: number) {
-    const currentLevel = normalizedItems[index].level;
+    const currentLevel = normalizedItems[index].level ?? 0;
     for (let i = index - 1; i >= 0; i--) {
-      if (normalizedItems[i].level < currentLevel) {
+      if ((normalizedItems[i].level ?? 0) < currentLevel) {
         return i;
       }
     }
     return -1;
+  }
+
+  function animateLine(
+    node: SVGLineElement,
+    params = { duration: 350, delay: 0 },
+  ) {
+    const length = Math.hypot(
+      (node.x2?.baseVal?.value ?? 0) - (node.x1?.baseVal?.value ?? 0),
+      (node.y2?.baseVal?.value ?? 0) - (node.y1?.baseVal?.value ?? 0),
+    );
+
+    node.style.strokeDasharray = String(length);
+    node.style.strokeDashoffset = String(length);
+    node.style.opacity = "0";
+
+    const anim = node.animate(
+      [
+        { strokeDashoffset: length, opacity: 0 },
+        { strokeDashoffset: 0, opacity: 1 },
+      ],
+      {
+        duration: params.duration,
+        delay: params.delay,
+        easing: "cubic-bezier(0.4, 0, 0.2, 1)",
+        fill: "forwards",
+      },
+    );
+
+    return {
+      destroy() {
+        anim.cancel();
+      },
+    };
   }
 </script>
 
@@ -235,156 +273,94 @@
         role="presentation"
         aria-hidden="true"
       >
+        <!-- <line
+          class="connector-line vertical-main"
+          x1={2}
+          y1={getRowCenter(0)}
+          x2={2}
+          y2={getRowCenter(normalizedItems.length - 1) + rowHeight / 2 - 2}
+          use:animateLine={{ duration: 400, delay: 0 }}
+        ></line> -->
         {#if normalizedItems.length > 1 && variant === "spine"}
-          <line
-            class="connector-line"
-            x1={rootX / 2}
-            y1={getRowCenter(0)}
-            x2={rootX / 2}
-            y2={getRowCenter(normalizedItems.length - 1) + rowHeight / 2 - 2}
-          ></line>
-
-          {#each normalizedItems as item, index (`${item.id}-horizontal`)}
+          {#each normalizedItems as item, index (`${item.id}-${index}-horizontal`)}
+            {#if index < normalizedItems.length - 1}
+              <line
+                class="connector-line vertical-main"
+                data-index={index}
+                data-length={normalizedItems.length}
+                x1={2}
+                y1={getRowCenter(index)}
+                x2={2}
+                y2={getRowCenter(index + 1)}
+                use:animateLine={{ duration: 400, delay: 100 * index }}
+              ></line>
+            {/if}
             <line
               class="connector-line horizontal"
-              x1={rootX / 2}
+              x1={2}
               y1={getRowCenter(index)}
-              x2={getNodeX(item.level)}
+              x2={getNodeX(item.level ?? 1)}
               y2={getRowCenter(index)}
+              use:animateLine={{ duration: 400, delay: 100 * index }}
             ></line>
           {/each}
         {/if}
 
         {#if variant === "threaded"}
-          {#each normalizedItems as item, index (item.id)}
+          {#each normalizedItems as item, index (`${item.id}-${index}`)}
             {#if index < normalizedItems.length - 1}
               {@const nextItem = normalizedItems[index + 1]}
-              {@const isParent = nextItem.level >= item.level}
-              <!-- <line
-                class="connector-line vertical"
-                x1={index === 0
-                  ? rootX / 2
-                  : getThreadedVerticalX(item.level, nextItem.level) / 2}
-                y1={getRowCenter(index)}
-                x2={index === 0
-                  ? rootX / 2
-                  : getThreadedVerticalX(item.level, nextItem.level) / 2}
-                y2={getRowCenter(index + 1)}
-              ></line> -->
-
-              <!-- <line
-                class="connector-line vertical-1"
-                x1={rootX / 2}
-                y1={getRowCenter(index)}
-                x2={rootX / 2}
-                y2={getRowCenter(index + 1)}
-              ></line>
-
-              {#if index > 0}
-                {#if isParent}
-                  <line
-                    class="connector-line vertical-2"
-                    data-index={index}
-                    data-length={normalizedItems.length}
-                    x1={rootX}
-                    y1={getRowCenter(index)}
-                    x2={rootX}
-                    y2={getRowCenter(index + 1)}
-                  ></line>
-                {/if}
-              {/if} -->
+              {@const isParent = (nextItem.level ?? 1) >= (item.level ?? 1)}
 
               <line
-                  class="connector-line vertical-1"
-                  data-index={index}
-                  data-length={normalizedItems.length}
-                  x1={2}
-                  y1={getRowCenter(index)}
-                  x2={2}
-                  y2={getRowCenter(index + 1)}
-                ></line>
-              {#if !isParent && item.children?.length > 0 && item.collapsed}
+                class="connector-line vertical-main"
+                data-index={index}
+                data-length={normalizedItems.length}
+                x1={2}
+                y1={getRowCenter(index)}
+                x2={2}
+                y2={getRowCenter(index + 1)}
+                use:animateLine={{ duration: 400, delay: 100 * index }}
+              ></line>
+              {#if !isParent && item.children != undefined && item.children?.length > 0 && item.collapsed}
                 <line
                   class="connector-line horizontal-1"
                   x1={2}
                   y1={getRowCenter(index)}
-                  x2={getNodeX(item.level) + 2}
+                  x2={getNodeX(item.level ?? 1) + 2}
                   y2={getRowCenter(index)}
                   data-level={item.level}
+                  use:animateLine={{ duration: 400, delay: 100 * index }}
                 ></line>
               {/if}
-              <!-- <line
-                    class="connector-line vertical-2"
-                    data-index={index}
-                    data-length={normalizedItems.length}
-                    x1={index > 0 ? rootX : rootX / 2}
-                    y1={getRowCenter(index)}
-                    x2={index > 0 ? rootX : rootX / 2}
-                    y2={getRowCenter(index + 1)}
-                  ></line> -->
             {/if}
           {/each}
 
-          {#each normalizedItems as item, index (`${item.id}-horizontal`)}
-            <!-- {#if index < normalizedItems.length - 1}
-              {@const nextItem = normalizedItems[index + 1]}
-              {@const isParent = nextItem.level > item.level}
-              {@const isChild = index > 0 && normalizedItems[index - 1].level < item.level}
-              
-              {#if isParent}
-                <line
-                  class="connector-line horizontal-1"
-                  x1={rootX / 2}
-                  y1={getRowCenter(index)}
-                  x2={getNodeX(item.level)}
-                  y2={getRowCenter(index)}
-                  data-level={item.level}
-                ></line>
-              {:else}
-                <line
-                  class="connector-line horizontal-2"
-                  x1={isChild ? rootX : rootX / 2}
-                  y1={getRowCenter(index)}
-                  x2={getNodeX(item.level)}
-                  y2={getRowCenter(index)}
-                  data-level={item.level}
-                  data-next-level={nextItem.level}
-                  data-is-child={isChild}
-                ></line>
-              {/if}
-            {:else}
-              <line
-                class="connector-line horizontal-3"
-                x1={rootX / 2}
-                y1={getRowCenter(index)}
-                x2={getNodeX(item.level)}
-                y2={getRowCenter(index)}
-                data-level={item.level}
-              ></line>
-            {/if} -->
-
+          {#each normalizedItems as item, index (`${item.id}-${index}-horizontal`)}
             {#if index > 0 && getParentIndex(index) >= 0}
-            <line
-              class="connector-line vertical-2"
-              data-index={index}
-              data-index-parent={getParentIndex(index)}
-              data-length={normalizedItems.length}
-              data-offset-y={rowStep * index}
-              x1={(item.level - 1) * rootX + 2}
-              y1={getRowCenter(index) -
-                rowStep * (index - getParentIndex(index))}
-              x2={(item.level - 1) * rootX + 2}
-              y2={getRowCenter(index + 1) - rowStep}
-            ></line>
+              <line
+                class="connector-line vertical-2"
+                data-index={index}
+                data-index-parent={getParentIndex(index)}
+                data-length={normalizedItems.length}
+                data-offset-y={rowStep * index}
+                x1={((item.level ?? 1) - 1) * rootX + 2}
+                y1={getRowCenter(index) -
+                  rowStep * (index - getParentIndex(index))}
+                x2={((item.level ?? 1) - 1) * rootX + 2}
+                y2={getRowCenter(index + 1) - rowStep}
+                use:animateLine={{ duration: 400, delay: 100 * index }}
+              ></line>
             {/if}
 
             <line
               class="connector-line horizontal-2"
-              x1={(item.level - 1) * rootX + 2}
+              x1={((item.level ?? 1) - 1) * rootX + 2}
               y1={getRowCenter(index)}
-              x2={getNodeX(item.level) + 2}
+              x2={getNodeX(item.level ?? 1) + 2}
               y2={getRowCenter(index)}
               data-level={item.level}
+              use:animateLine={{ duration: 400, delay: 100 * index }}
             ></line>
           {/each}
         {/if}
@@ -397,7 +373,7 @@
         <div
           class="threaded-node-wrap"
           style:top={`${index * rowStep}px`}
-          style:left={`${getNodeX(item.level)}px`}
+          style:left={`${getNodeX(item.level ?? 1)}px`}
           style:height={`${rowHeight}px`}
           style:right={"0"}
           class:collapsed={isCollapsed}
@@ -470,6 +446,9 @@
   .threaded-canvas {
     position: relative;
     min-width: 100%;
+    transition:
+      height 0.25s ease,
+      width 0.25s ease;
   }
 
   .threaded-connectors {
@@ -484,6 +463,7 @@
     stroke: var(--line-color);
     stroke-width: 2;
     filter: drop-shadow(0 0 2px var(--line-glow));
+    transition: all 0.25s ease;
   }
 
   .threaded-node-wrap {
@@ -492,7 +472,9 @@
     align-items: center;
     transition:
       opacity 0.25s ease,
-      transform 0.25s ease;
+      transform 0.25s ease,
+      top 0.25s ease,
+      left 0.25s ease;
   }
 
   .threaded-node {
