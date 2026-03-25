@@ -7,13 +7,15 @@
   import type { TitikTsunami } from "$lib/components/TitikTsunami";
   import HexGrid from "$lib/components/HexGrid.svelte";
 
-  import Highlight from "svelte-highlight";
-  import css from "svelte-highlight/languages/css";
-  import vbscriptHtml from "svelte-highlight/languages/vbscript-html";
+  // import Highlight from "svelte-highlight";
+  // import css from "svelte-highlight/languages/css";
+  // import vbscriptHtml from "svelte-highlight/languages/vbscript-html";
   import StripeBar from "$lib/components/StripeBar.svelte";
   import HexShape from "$lib/components/HexShape.svelte";
   import MentalToxicityLevel from "$lib/components/MentalToxicityLevel.svelte";
-  import ThreadedComments from "$lib/components/ThreadedComments.svelte";
+  import ThreadedComments, {
+    type ThreadTone,
+  } from "$lib/components/ThreadedComments.svelte";
 
   let showGempaBumiAlert = $state(false);
   let showTsunamiAlert = $state(false);
@@ -50,13 +52,23 @@
     { label: "ZONA G", val: "8.1", danger: true },
   ];
 
-  const threadedSpineItems = [
+  const threadedSpineItems: {
+    id: string;
+    label: string;
+    level: number;
+    tone: ThreadTone;
+  }[] = [
     { id: "spine-1", label: "MAIN THREAD TOPIC", level: 1, tone: "danger" },
     { id: "spine-2", label: "FOLLOW-UP COMMENT", level: 2, tone: "normal" },
     { id: "spine-3", label: "NESTED DETAIL NOTE", level: 3, tone: "normal" },
   ];
 
-  const threadedNestedItems = [
+  const threadedNestedItems: {
+    id: string;
+    label: string;
+    level: number;
+    tone: ThreadTone;
+  }[] = [
     { id: "threaded-1", label: "MAIN THREAD TOPIC", level: 1, tone: "danger" },
     { id: "threaded-2", label: "SECOND COMMENT", level: 1, tone: "normal" },
     {

@@ -1,6 +1,6 @@
 <script lang="ts">
   type ThreadVariant = "spine" | "threaded";
-  type ThreadTone = "normal" | "danger" | "muted";
+  export type ThreadTone = "normal" | "danger" | "muted";
 
   interface ThreadItem {
     id: string;
