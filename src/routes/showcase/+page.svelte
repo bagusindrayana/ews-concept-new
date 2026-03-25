@@ -68,16 +68,79 @@
     label: string;
     level: number;
     tone: ThreadTone;
+    children?: typeof threadedNestedItems;
   }[] = [
-    { id: "threaded-1", label: "MAIN THREAD TOPIC", level: 1, tone: "danger" },
-    { id: "threaded-2", label: "SECOND COMMENT", level: 1, tone: "normal" },
+    {
+      id: "threaded-1",
+      label: "MAIN THREAD TOPIC",
+      level: 1,
+      tone: "danger",
+      children: [
+        {
+          id: "threaded-1-1",
+          label: "REPLY CHILD A",
+          level: 2,
+          tone: "normal",
+          children: [
+            {
+              id: "threaded-1-1-1",
+              label: "DEEP NESTED REPLY",
+              level: 3,
+              tone: "normal",
+              children: [
+                {
+                  id: "threaded-1-1-1-1",
+                  label: "DEEP DEEP NESTED REPLY",
+                  level: 4,
+                  tone: "muted",
+                },
+                {
+                  id: "threaded-1-1-1-2",
+                  label: "DEEP DEEP NESTED REPLY",
+                  level: 4,
+                  tone: "muted",
+                },
+              ],
+            },
+          ],
+        },
+        {
+          id: "threaded-1-2",
+          label: "REPLY CHILD B",
+          level: 2,
+          tone: "muted",
+        },
+      ],
+    },
+    {
+      id: "threaded-2",
+      label: "SECOND COMMENT",
+      level: 1,
+      tone: "normal",
+      children: [
+        {
+          id: "threaded-2-1",
+          label: "REPLY TO SECOND",
+          level: 2,
+          tone: "normal",
+        },
+      ],
+    },
     {
       id: "threaded-3",
-      label: "REPLY TO SECOND COMMENT",
-      level: 2,
-      tone: "normal",
+      label: "THIRD COMMENT",
+      level: 1,
+      tone: "muted",
     },
   ];
+
+  let lastToggledId = $state<string | null>(null);
+  let lastToggledState = $state<boolean | null>(null);
+
+  function handleToggle(id: string, collapsed: boolean) {
+    lastToggledId = id;
+    lastToggledState = collapsed;
+  }
 </script>
 
 <svelte:head>
@@ -275,7 +338,7 @@
           <!-- Honeycomb Offset Grid -->
           <div class="basis-0 flex-1">
             <p class="text-gray-500 text-xs mb-3">Honeycomb Offset Grid</p>
-            <HexGrid  gap={0}>
+            <HexGrid gap={0}>
               {#each { length: 30 } as _, i}
                 <div class="ews-hex-hive">
                   <HexShape clipContent={true} flatTop={false}>
@@ -701,13 +764,52 @@
         Threaded Comments / Nested List
       </h2>
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div class=" p-3">
+        <div class="p-3">
           <p class="text-gray-500 text-xs mb-3">Variation 1 — Spine</p>
           <ThreadedComments variant="spine" items={threadedSpineItems} />
         </div>
-        <div class=" p-3">
-          <p class="text-gray-500 text-xs mb-3">Variation 2 — Threaded</p>
-          <ThreadedComments variant="threaded" items={threadedNestedItems} />
+        <div class="p-3">
+          <p class="text-gray-500 text-xs mb-3">
+            Variation 2 — Threaded
+          </p>
+          <ThreadedComments variant="threaded" items={threadedSpineItems} />
+        </div>
+        <div class="p-3">
+          <p class="text-gray-500 text-xs mb-3">
+            Variation 3 — Spine (Expandable + Danger Tone)
+          </p>
+          <ThreadedComments
+            variant="spine"
+            items={threadedNestedItems}
+            tone="danger"
+          />
+        </div>
+        <div class="p-3">
+          <p class="text-gray-500 text-xs mb-3">
+            Variation 4 — Threaded (Expandable)
+          </p>
+          <ThreadedComments
+            variant="threaded"
+            items={threadedNestedItems}
+            expandable={true}
+          />
+        </div>
+        <div class="p-3 col-span-1 lg:col-span-2">
+          <p class="text-gray-500 text-xs mb-3">
+            Variation 5 — Threaded (With Toggle Callback)
+          </p>
+          <div class="mb-2 text-xs text-gray-400">
+            Last toggled: {lastToggledId ?? "none"} — {lastToggledState === null
+              ? ""
+              : lastToggledState
+                ? "collapsed"
+                : "expanded"}
+          </div>
+          <ThreadedComments
+            variant="threaded"
+            items={threadedNestedItems}
+            onToggle={handleToggle}
+          />
         </div>
       </div>
     </section>

@@ -7,6 +7,8 @@
     label: string;
     level?: number;
     tone?: ThreadTone;
+    collapsed?: boolean;
+    children?: ThreadItem[];
   }
 
   interface Props {
@@ -18,6 +20,8 @@
     indent?: number;
     tone?: "neutral" | "primary" | "danger";
     gap?: number;
+    expandable?: boolean;
+    onToggle?: (id: string, collapsed: boolean) => void;
   }
 
   const defaultItemsByVariant: Record<ThreadVariant, ThreadItem[]> = {
@@ -47,17 +51,53 @@
         label: "Primary Alert Message",
         level: 1,
         tone: "normal",
+        children: [
+          {
+            id: "thread-1-1",
+            label: "Operator Verification Note",
+            level: 2,
+            tone: "muted",
+          },
+          {
+            id: "thread-1-2",
+            label: "Follow-up Action Detail",
+            level: 3,
+            tone: "muted",
+          },
+        ],
       },
       {
         id: "thread-2",
-        label: "Operator Verification Note",
+        label: "Secondary Discussion",
         level: 1,
         tone: "muted",
+        children: [
+          {
+            id: "thread-2-1",
+            label: "Nested Reply A",
+            level: 2,
+            tone: "normal",
+          },
+          {
+            id: "thread-2-2",
+            label: "Nested Reply B",
+            level: 2,
+            tone: "muted",
+            children: [
+              {
+                id: "thread-2-2-1",
+                label: "Deep Nested Reply",
+                level: 3,
+                tone: "muted",
+              },
+            ],
+          },
+        ],
       },
       {
         id: "thread-3",
-        label: "Follow-up Action Detail",
-        level: 2,
+        label: "Final Comment",
+        level: 1,
         tone: "muted",
       },
     ],
@@ -72,7 +112,50 @@
     indent = 21,
     tone = "primary",
     gap = 16,
+    expandable = true,
+    onToggle,
   }: Props = $props();
+
+  let collapsedIds = $state(new Set<string>());
+
+  function toggleCollapse(id: string) {
+    const newCollapsed = new Set(collapsedIds);
+    if (newCollapsed.has(id)) {
+      newCollapsed.delete(id);
+    } else {
+      newCollapsed.add(id);
+    }
+    collapsedIds = newCollapsed;
+    onToggle?.(id, collapsedIds.has(id));
+  }
+
+  function flattenItems(
+    itemList: ThreadItem[],
+    parentCollapsed = false,
+  ): (ThreadItem & { parentCollapsed?: boolean })[] {
+    const result: (ThreadItem & { parentCollapsed?: boolean })[] = [];
+    for (const item of itemList) {
+      const isCollapsed = collapsedIds.has(item.id) || parentCollapsed;
+      result.push({ ...item, parentCollapsed });
+      if (item.children && item.children.length > 0 && !isCollapsed) {
+        result.push(...flattenItems(item.children, isCollapsed));
+      }
+    }
+    return result;
+  }
+
+  function hasChildren(item: ThreadItem): boolean {
+    return !!(item.children && item.children.length > 0);
+  }
+
+  function getChildCount(item: ThreadItem): number {
+    if (!item.children || item.children.length === 0) return 0;
+    let count = item.children.length;
+    for (const child of item.children) {
+      count += getChildCount(child);
+    }
+    return count;
+  }
 
   const rowStep = $derived(rowHeight + gap);
   const rootX = $derived(indent);
@@ -81,14 +164,17 @@
     items.length > 0 ? items : defaultItemsByVariant[variant],
   );
 
-  const normalizedItems = $derived.by(() =>
-    resolvedItems.map((item, index) => ({
+  const normalizedItems = $derived.by(() => {
+    const items = resolvedItems.map((item, index) => ({
       id: item.id || `threaded-item-${index + 1}`,
       label: item.label || `Item ${index + 1}`,
       level: Math.max(1, Math.floor(item.level ?? 1)),
       tone: item.tone ?? ("muted" as ThreadTone),
-    })),
-  );
+      collapsed: item.collapsed ?? false,
+      children: item.children,
+    }));
+    return flattenItems(items);
+  });
 
   const maxLevel = $derived.by(() =>
     normalizedItems.reduce((acc, item) => Math.max(acc, item.level), 1),
@@ -124,6 +210,16 @@
     if (nextLevel === currentLevel) return getDepthX(currentLevel - 1);
     return getDepthX(nextLevel - 1);
   }
+
+  function getParentIndex(index: number) {
+    const currentLevel = normalizedItems[index].level;
+    for (let i = index - 1; i >= 0; i--) {
+      if (normalizedItems[i].level < currentLevel) {
+        return i;
+      }
+    }
+    return -1;
+  }
 </script>
 
 <div class="ews-threaded-comments {tone} {className}">
@@ -147,46 +243,194 @@
             x2={rootX / 2}
             y2={getRowCenter(normalizedItems.length - 1) + rowHeight / 2 - 2}
           ></line>
+
+          {#each normalizedItems as item, index (`${item.id}-horizontal`)}
+            <line
+              class="connector-line horizontal"
+              x1={rootX / 2}
+              y1={getRowCenter(index)}
+              x2={getNodeX(item.level)}
+              y2={getRowCenter(index)}
+            ></line>
+          {/each}
         {/if}
 
         {#if variant === "threaded"}
           {#each normalizedItems as item, index (item.id)}
             {#if index < normalizedItems.length - 1}
               {@const nextItem = normalizedItems[index + 1]}
-              <line
-                class="connector-line"
-                x1={getThreadedVerticalX(item.level, nextItem.level) / 2}
+              {@const isParent = nextItem.level >= item.level}
+              <!-- <line
+                class="connector-line vertical"
+                x1={index === 0
+                  ? rootX / 2
+                  : getThreadedVerticalX(item.level, nextItem.level) / 2}
                 y1={getRowCenter(index)}
-                x2={getThreadedVerticalX(item.level, nextItem.level) / 2}
+                x2={index === 0
+                  ? rootX / 2
+                  : getThreadedVerticalX(item.level, nextItem.level) / 2}
+                y2={getRowCenter(index + 1)}
+              ></line> -->
+
+              <!-- <line
+                class="connector-line vertical-1"
+                x1={rootX / 2}
+                y1={getRowCenter(index)}
+                x2={rootX / 2}
                 y2={getRowCenter(index + 1)}
               ></line>
+
+              {#if index > 0}
+                {#if isParent}
+                  <line
+                    class="connector-line vertical-2"
+                    data-index={index}
+                    data-length={normalizedItems.length}
+                    x1={rootX}
+                    y1={getRowCenter(index)}
+                    x2={rootX}
+                    y2={getRowCenter(index + 1)}
+                  ></line>
+                {/if}
+              {/if} -->
+
+              <line
+                  class="connector-line vertical-1"
+                  data-index={index}
+                  data-length={normalizedItems.length}
+                  x1={2}
+                  y1={getRowCenter(index)}
+                  x2={2}
+                  y2={getRowCenter(index + 1)}
+                ></line>
+              {#if !isParent && item.children?.length > 0 && item.collapsed}
+                <line
+                  class="connector-line horizontal-1"
+                  x1={2}
+                  y1={getRowCenter(index)}
+                  x2={getNodeX(item.level) + 2}
+                  y2={getRowCenter(index)}
+                  data-level={item.level}
+                ></line>
+              {/if}
+              <!-- <line
+                    class="connector-line vertical-2"
+                    data-index={index}
+                    data-length={normalizedItems.length}
+                    x1={index > 0 ? rootX : rootX / 2}
+                    y1={getRowCenter(index)}
+                    x2={index > 0 ? rootX : rootX / 2}
+                    y2={getRowCenter(index + 1)}
+                  ></line> -->
             {/if}
           {/each}
-        {/if}
 
-        {#each normalizedItems as item, index (`${item.id}-horizontal`)}
-          <line
-            class="connector-line"
-            x1={getHorizontalStartX(item.level) -
-              getHorizontalStartX(item.level) / 2}
-            y1={getRowCenter(index)}
-            x2={getNodeX(item.level)}
-            y2={getRowCenter(index)}
-          ></line>
-        {/each}
+          {#each normalizedItems as item, index (`${item.id}-horizontal`)}
+            <!-- {#if index < normalizedItems.length - 1}
+              {@const nextItem = normalizedItems[index + 1]}
+              {@const isParent = nextItem.level > item.level}
+              {@const isChild = index > 0 && normalizedItems[index - 1].level < item.level}
+              
+              {#if isParent}
+                <line
+                  class="connector-line horizontal-1"
+                  x1={rootX / 2}
+                  y1={getRowCenter(index)}
+                  x2={getNodeX(item.level)}
+                  y2={getRowCenter(index)}
+                  data-level={item.level}
+                ></line>
+              {:else}
+                <line
+                  class="connector-line horizontal-2"
+                  x1={isChild ? rootX : rootX / 2}
+                  y1={getRowCenter(index)}
+                  x2={getNodeX(item.level)}
+                  y2={getRowCenter(index)}
+                  data-level={item.level}
+                  data-next-level={nextItem.level}
+                  data-is-child={isChild}
+                ></line>
+              {/if}
+            {:else}
+              <line
+                class="connector-line horizontal-3"
+                x1={rootX / 2}
+                y1={getRowCenter(index)}
+                x2={getNodeX(item.level)}
+                y2={getRowCenter(index)}
+                data-level={item.level}
+              ></line>
+            {/if} -->
+
+            {#if index > 0 && getParentIndex(index) >= 0}
+            <line
+              class="connector-line vertical-2"
+              data-index={index}
+              data-index-parent={getParentIndex(index)}
+              data-length={normalizedItems.length}
+              data-offset-y={rowStep * index}
+              x1={(item.level - 1) * rootX + 2}
+              y1={getRowCenter(index) -
+                rowStep * (index - getParentIndex(index))}
+              x2={(item.level - 1) * rootX + 2}
+              y2={getRowCenter(index + 1) - rowStep}
+            ></line>
+            {/if}
+
+            <line
+              class="connector-line horizontal-2"
+              x1={(item.level - 1) * rootX + 2}
+              y1={getRowCenter(index)}
+              x2={getNodeX(item.level) + 2}
+              y2={getRowCenter(index)}
+              data-level={item.level}
+            ></line>
+          {/each}
+        {/if}
       </svg>
 
       {#each normalizedItems as item, index (item.id)}
+        {@const isCollapsed = collapsedIds.has(item.id)}
+        {@const hasKids = hasChildren(item)}
+        {@const childCount = getChildCount(item)}
         <div
           class="threaded-node-wrap"
           style:top={`${index * rowStep}px`}
           style:left={`${getNodeX(item.level)}px`}
-          // style:width={`${nodeWidth}px`}
           style:height={`${rowHeight}px`}
           style:right={"0"}
+          class:collapsed={isCollapsed}
+          class:has-children={hasKids && expandable}
         >
-          <div class="threaded-node {item.tone}">
-            <span>{item.label}</span>
+          <div
+            class="threaded-node {item.tone}"
+            class:is-collapsed={isCollapsed}
+          >
+            {#if expandable && hasKids}
+              <button
+                class="expand-toggle"
+                onclick={() => toggleCollapse(item.id)}
+                aria-label={isCollapsed ? "Expand" : "Collapse"}
+              >
+                <span class="toggle-icon" class:collapsed={isCollapsed}>
+                  <svg viewBox="0 0 16 16" fill="currentColor">
+                    <path
+                      d="M4.5 5.5l3.5 3.5 3.5-3.5"
+                      stroke="currentColor"
+                      stroke-width="1.5"
+                      fill="none"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    />
+                  </svg>
+                </span>
+                {#if isCollapsed}
+                  <span class="child-count">{childCount}</span>
+                {/if}
+              </button>
+            {/if}
+            <span class="node-label">{item.label}</span>
           </div>
         </div>
       {/each}
@@ -246,6 +490,9 @@
     position: absolute;
     display: flex;
     align-items: center;
+    transition:
+      opacity 0.25s ease,
+      transform 0.25s ease;
   }
 
   .threaded-node {
@@ -298,6 +545,78 @@
 
   .threaded-node.muted {
     border-color: rgba(255, 255, 255, 0.2);
+  }
+
+  .expand-toggle {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px;
+    margin-right: 8px;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 4px;
+    cursor: pointer;
+    color: inherit;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+  }
+
+  .expand-toggle:hover {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.25);
+  }
+
+  .toggle-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 16px;
+    transition: transform 0.2s ease;
+  }
+
+  .toggle-icon svg {
+    width: 12px;
+    height: 12px;
+  }
+
+  .toggle-icon.collapsed {
+    transform: rotate(-90deg);
+  }
+
+  .child-count {
+    font-size: 0.6rem;
+    font-weight: 600;
+    padding: 0 4px;
+    background: rgba(var(--glow-rgb), 0.3);
+    border-radius: 8px;
+    letter-spacing: 0;
+  }
+
+  .node-label {
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .threaded-node-wrap.collapsed {
+    opacity: 0.5;
+  }
+
+  .threaded-node.is-collapsed {
+    font-style: italic;
+  }
+
+  .ews-threaded-comments:not(.primary) .expand-toggle {
+    background: rgba(255, 255, 255, 0.05);
+  }
+
+  .ews-threaded-comments.neutral .child-count {
+    background: rgba(226, 231, 236, 0.2);
+  }
+
+  .ews-threaded-comments.danger .child-count {
+    background: rgba(var(--danger-glow-rgb), 0.3);
   }
 
   @media (max-width: 768px) {
