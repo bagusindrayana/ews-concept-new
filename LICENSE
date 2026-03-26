@@ -1,0 +1,26 @@
+MIT License (Modified)
+
+Copyright (c) 2026 Bagus Indrayana
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+1. If the Software (including any part of the code or data) is modified by the 
+   user or deployer, the requirement to include the above copyright notice 
+   and this permission notice is waived.
+2. If the Software is used or deployed in its original form without any 
+   modifications to the code or data, the above copyright notice and this 
+   permission notice MUST be included in all copies, and credit must be given 
+   to the original author or original repository (https://github.com/bagusindrayana/ews-concept-new).
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
