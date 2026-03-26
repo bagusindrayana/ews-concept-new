@@ -27,6 +27,7 @@
     gap?: number;
     expandable?: boolean;
     animated?: boolean;
+    collapseAll?: boolean;
     onToggle?: (id: string, collapsed: boolean) => void;
   }
 
@@ -120,22 +121,32 @@
     gap = 16,
     expandable = true,
     animated = true,
+    collapseAll = false,
     onToggle,
   }: Props = $props();
 
-  let collapsedIds = $state(new Set<string>());
+  let toggledIds = $state(new Set<string>());
   let currentToggleId: string | null = $state(null);
+
+  function isNodeCollapsed(id: string): boolean {
+    if (!expandable) {
+      return false;
+    }
+    const defaultCollapsed = !collapseAll;
+    const toggled = toggledIds.has(id);
+    return defaultCollapsed ? !toggled : toggled;
+  }
 
   function toggleCollapse(id: string) {
     currentToggleId = id;
-    const newCollapsed = new Set(collapsedIds);
-    if (newCollapsed.has(id)) {
-      newCollapsed.delete(id);
+    const newToggled = new Set(toggledIds);
+    if (newToggled.has(id)) {
+      newToggled.delete(id);
     } else {
-      newCollapsed.add(id);
+      newToggled.add(id);
     }
-    collapsedIds = newCollapsed;
-    onToggle?.(id, collapsedIds.has(id));
+    toggledIds = newToggled;
+    onToggle?.(id, isNodeCollapsed(id));
   }
 
   function flattenItems(
@@ -144,7 +155,7 @@
   ): (ThreadItem & { parentCollapsed?: boolean })[] {
     const result: (ThreadItem & { parentCollapsed?: boolean })[] = [];
     for (const item of itemList) {
-      const isCollapsed = collapsedIds.has(item.id) || parentCollapsed;
+      const isCollapsed = isNodeCollapsed(item.id) || parentCollapsed;
       result.push({ ...item, parentCollapsed });
       if (item.children && item.children.length > 0 && !isCollapsed) {
         result.push(...flattenItems(item.children, isCollapsed));
@@ -313,6 +324,7 @@
 
     const timeOut = setTimeout(() => {
       node.classList.add("smooth-line");
+      node.removeAttribute("style");
     }, params.delay + params.duration);
 
     return {
@@ -339,22 +351,9 @@
         role="presentation"
         aria-hidden="true"
       >
-        <!-- <line
-          class="connector-line vertical-main"
-          x1={2}
-          y1={getRowCenter(0)}
-          x2={2}
-          y2={getRowCenter(normalizedItems.length - 1) + rowHeight / 2 - 2}
-          use:animateLine={{ duration: 400, delay: 0 }}
-        ></line> -->
         {#if normalizedItems.length > 1 && variant === "spine"}
-          <!-- <path
-            class="connector-line vertical-main"
-            data-target-d={`M 2,${rowHeight / 2} L 2,${(normalizedItems.length - 1) * rowStep + rowHeight / 2}`}
-            use:animatePath={{ duration: 200, delay: 50 }}
-          /> -->
           <path
-            class="connector-line vertical-main {animated ? 'smooth-line' : ''}"
+            class="connector-line vertical-main smooth-line"
             d={`M 2,${rowHeight / 2} L 2,${(normalizedItems.length - 1) * rowStep + rowHeight / 2}`}
           />
           {#each normalizedItems as item, index (`${item.id}-horizontal`)}
@@ -368,29 +367,10 @@
                 : 0}
             {@const delay =
               50 * Math.max(parentIndex + childIndex - toggleIndex, 1)}
-            <!-- {#if index < normalizedItems.length - 1}
-              <line
-                class="connector-line vertical-main"
-                data-index={index}
-                data-length={normalizedItems.length}
-                x1={2}
-                y1={getRowCenter(index)}
-                x2={2}
-                y2={getRowCenter(index + 1)}
-                use:animateLine={{ duration: 400, delay: 100 * index }}
-              ></line>
-            {/if}
-            <line
-              class="connector-line horizontal"
-              x1={2}
-              y1={getRowCenter(index)}
-              x2={getNodeX(item.level ?? 1)}
-              y2={getRowCenter(index)}
-              use:animateLine={{ duration: 400, delay: 100 * index }}
-            ></line> -->
-
             <path
-              class="connector-line horizontal-1"
+              class="connector-line horizontal-1 {!animated
+                ? 'smooth-line'
+                : ''}"
               d={`M 2 ${getRowCenter(index)} H ${getNodeX(item.level ?? 1) + 2}`}
               data-level={item.level}
               fill="none"
@@ -403,74 +383,8 @@
         {/if}
 
         {#if variant === "threaded"}
-          <!-- {#each normalizedItems as item, index (`${item.id}-${index}`)}
-            {#if index < normalizedItems.length - 1}
-              {@const nextItem = normalizedItems[index + 1]}
-              {@const isParent = (nextItem.level ?? 1) >= (item.level ?? 1)}
-
-              <line
-                class="connector-line vertical-main"
-                data-index={index}
-                data-length={normalizedItems.length}
-                x1={2}
-                y1={getRowCenter(index)}
-                x2={2}
-                y2={getRowCenter(index + 1)}
-                use:animateLine={{ duration: 200, delay: 50 * index }}
-              ></line>
-              {#if !isParent && item.children != undefined && item.children?.length > 0 && item.collapsed}
-                <line
-                  class="connector-line horizontal-1"
-                  x1={2}
-                  y1={getRowCenter(index)}
-                  x2={getNodeX(item.level ?? 1) + 2}
-                  y2={getRowCenter(index)}
-                  data-level={item.level}
-                  use:animateLine={{ duration: 200, delay: 100 * index }}
-                ></line>
-              {/if}
-            {/if}
-          {/each} -->
-
-          <!-- <line
-            class="connector-line vertical-main"
-            x1={2}
-            y1={rowHeight / 2}
-            x2={2}
-            y2={(normalizedItems.length - 1) * rowStep + rowHeight}
-            use:animateLine={{ duration: 200, delay: 50 }}
-          ></line> -->
-
-          <!-- <path
-            class="connector-line"
-            fill="none"
-            stroke="currentColor"
-            d={`
-    M 2 ${rowHeight / 2} 
-    V ${(normalizedItems.length - 1) * rowStep + rowHeight / 2}
-
-    ${normalizedItems
-      .map((item, index) => {
-        let pathChunk = "";
-        const level = item.level ?? 1;
-        const xBase = (level - 1) * rootX + 2;
-        const yCenter = getRowCenter(index);
-        if (index > 0 && getParentIndex(index) >= 0) {
-          const yStart = yCenter - rowStep * (index - getParentIndex(index));
-          const yEnd = getRowCenter(index + 1) - rowStep;
-          pathChunk += `M ${xBase} ${yStart} V ${yEnd} `;
-        }
-        const xNode = getNodeX(level) + 2;
-        pathChunk += `M ${xBase} ${yCenter} H ${xNode}`;
-
-        return pathChunk;
-      })
-      .join(" ")}
-  `}
-          /> -->
-
           <path
-            class="connector-line vertical-main {animated ? 'smooth-line' : ''}"
+            class="connector-line vertical-main smooth-line"
             d={`M 2,${rowHeight / 2} L 2,${(normalizedItems.length - 1) * rowStep + rowHeight / 2}`}
           />
 
@@ -487,22 +401,6 @@
               {@const delay =
                 50 * Math.max(parentIndex + childIndex - toggleIndex, 1)}
               <path
-                // d="M {((item.level ?? 1) - 1) * rootX + 2}, {getRowCenter(
-                //   index,
-                // ) -
-                //   rowStep * (index - getParentIndex(index))} L {((item.level ??
-                //   1) -
-                //   1) *
-                //   rootX +
-                //   2}, {getRowCenter(index) -
-                //   rowStep * (index - getParentIndex(index))}"
-                // data-target-d="M {((item.level ?? 1) - 1) * rootX +
-                //   2}, {getRowCenter(index) -
-                //   rowStep * (index - getParentIndex(index))} L {((item.level ??
-                //   1) -
-                //   1) *
-                //   rootX +
-                //   2}, {getRowCenter(index + 1) - rowStep}"
                 d="M {((item.level ?? 1) - 1) * rootX + 2}, {getRowCenter(
                   index,
                 ) -
@@ -511,35 +409,22 @@
                   1) *
                   rootX +
                   2}, {getRowCenter(index + 1) - rowStep}"
-                // stroke="red"
                 fill="none"
-                class="connector-line vertical-2"
+                class="connector-line vertical-2 {!animated
+                  ? 'smooth-line'
+                  : ''}"
                 use:animatePath={{
                   duration: 200,
                   delay: delay,
                 }}
               />
-              <!-- <line
-                class="connector-line vertical-2"
-                data-index={index}
-                data-index-parent={getParentIndex(index)}
-                data-length={normalizedItems.length}
-                data-offset-y={rowStep * index}
-                x1={((item.level ?? 1) - 1) * rootX + 2}
-                y1={getRowCenter(index) -
-                  rowStep * (index - getParentIndex(index))}
-                x2={((item.level ?? 1) - 1) * rootX + 2}
-                y2={getRowCenter(index + 1) - rowStep}
-                use:animateLine={{ duration: 200, delay: 75 * index }}
-              ></line> -->
             {/if}
           {/each}
           {#each normalizedItems as item, index (`${item.id}-horizontal`)}
             {@const toggleIndex = normalizedItems.findIndex(
               (i) => i.id === currentToggleId,
             )}
-            <!-- {@const nextItem = normalizedItems[index + 1]}
-            {@const isChild = (nextItem.level ?? 1) > (item.level ?? 1)} -->
+
             {@const parentIndex = getParentIndex(index)}
             {@const childIndex =
               getParentIndex(index) > -1
@@ -547,21 +432,11 @@
                 : 0}
             {@const delay =
               100 * Math.max(parentIndex + childIndex - toggleIndex, 1)}
-            <!-- <line
-              class="connector-line horizontal-2"
-              x1={((item.level ?? 1) - 1) * rootX + 2}
-              y1={getRowCenter(index)}
-              x2={getNodeX(item.level ?? 1) + 2}
-              y2={getRowCenter(index)}
-              data-level={item.level}
-            ></line> -->
 
             <path
-              class="connector-line horizontal-2"
-              // d="M {((item.level ?? 1) - 1) * rootX + 2} {getRowCenter(
-              //   index,
-              // )} H {((item.level ?? 1) - 1) * rootX + 2}"
-              // data-target-d={`M ${((item.level ?? 1) - 1) * rootX + 2} ${getRowCenter(index)} H ${getNodeX(item.level ?? 1) + 2}`}
+              class="connector-line horizontal-2 {!animated
+                ? 'smooth-line'
+                : ''}"
               d={`M ${((item.level ?? 1) - 1) * rootX + 2} ${getRowCenter(index)} H ${getNodeX(item.level ?? 1) + 2}`}
               data-level={item.level}
               fill="none"
@@ -571,46 +446,11 @@
               }}
             />
           {/each}
-
-          <!-- <line
-            class="connector-line vertical-main"
-            x1={2}
-            y1={rowHeight / 2}
-            x2={2}
-            y2={(normalizedItems.length - 1) * rowStep + rowHeight / 2}
-            use:animateLine={{ duration: 200, delay: 50 }}
-          ></line>
-
-          {#each normalizedItems as item, index (`${item.id}-line`)}
-            {#if index > 0 && getParentIndex(index) >= 0}
-              <line
-                class="connector-line vertical-2"
-                data-index={index}
-                data-index-parent={getParentIndex(index)}
-                data-length={normalizedItems.length}
-                data-offset-y={rowStep * index}
-                x1={((item.level ?? 1) - 1) * rootX + 2}
-                y1={getRowCenter(index) -
-                  rowStep * (index - getParentIndex(index))}
-                x2={((item.level ?? 1) - 1) * rootX + 2}
-                y2={getRowCenter(index + 1) - rowStep}
-                use:animateLine={{ duration: 200, delay: 75 * index }}
-              ></line>
-            {/if}
-            <line
-              class="connector-line horizontal-2"
-              x1={((item.level ?? 1) - 1) * rootX + 2}
-              y1={getRowCenter(index)}
-              x2={getNodeX(item.level ?? 1) + 2}
-              y2={getRowCenter(index)}
-              data-level={item.level}
-            ></line>
-          {/each} -->
         {/if}
       </svg>
 
       {#each normalizedItems as item, index (item.id)}
-        {@const isCollapsed = collapsedIds.has(item.id)}
+        {@const isCollapsed = isNodeCollapsed(item.id)}
         {@const hasKids = hasChildren(item)}
         {@const childCount = getChildCount(item)}
         <div
@@ -849,9 +689,9 @@
     text-overflow: ellipsis;
   }
 
-  .threaded-node-wrap.collapsed {
+  /* .threaded-node-wrap.collapsed {
     opacity: 0.5;
-  }
+  } */
 
   .threaded-node.is-collapsed {
     font-style: italic;

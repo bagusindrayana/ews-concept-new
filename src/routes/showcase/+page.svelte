@@ -766,11 +766,19 @@
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div class="p-3">
           <p class="text-gray-500 text-xs mb-3">Variation 1 — Spine</p>
-          <ThreadedComments variant="spine" items={threadedSpineItems} />
+          <ThreadedComments
+            variant="spine"
+            items={threadedSpineItems}
+            animated={false}
+          />
         </div>
         <div class="p-3">
           <p class="text-gray-500 text-xs mb-3">Variation 2 — Threaded</p>
-          <ThreadedComments variant="threaded" items={threadedSpineItems} />
+          <ThreadedComments
+            variant="threaded"
+            items={threadedSpineItems}
+            animated={false}
+          />
         </div>
         <div class="p-3">
           <p class="text-gray-500 text-xs mb-3">
@@ -781,21 +789,47 @@
             items={threadedNestedItems}
             tone="danger"
             expandable={true}
+            animated={false}
           />
         </div>
         <div class="p-3">
           <p class="text-gray-500 text-xs mb-3">
-            Variation 4 — Threaded (Expandable)
+            Variation 4 — Spine (Animated)
+          </p>
+          <ThreadedComments
+            variant="spine"
+            items={threadedNestedItems}
+            expandable={true}
+            animated={true}
+          />
+        </div>
+
+        <div class="p-3">
+          <p class="text-gray-500 text-xs mb-3">
+            Variation 5 — Threaded (Expandable)
+          </p>
+          <ThreadedComments
+            variant="threaded"
+            items={threadedNestedItems}
+            tone="danger"
+            expandable={true}
+            animated={false}
+          />
+        </div>
+        <div class="p-3">
+          <p class="text-gray-500 text-xs mb-3">
+            Variation 6 — Threaded (Animated)
           </p>
           <ThreadedComments
             variant="threaded"
             items={threadedNestedItems}
             expandable={true}
+            animated={true}
           />
         </div>
         <div class="p-3 col-span-1 lg:col-span-2">
           <p class="text-gray-500 text-xs mb-3">
-            Variation 5 — Threaded (With Toggle Callback)
+            Variation 7 — Threaded (With Toggle Callback)
           </p>
           <div class="mb-2 text-xs text-gray-400">
             Last toggled: {lastToggledId ?? "none"} — {lastToggledState === null
