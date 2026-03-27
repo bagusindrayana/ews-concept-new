@@ -11,6 +11,7 @@
     import { WaveformService } from "$lib/services/WaveformService";
     import HexGrid from "$lib/components/HexGrid.svelte";
     import HexShape from "$lib/components/HexShape.svelte";
+    import StripeBar from "$lib/components/StripeBar.svelte";
 
     export let data: PageData;
     let waveformChart: any;
@@ -662,18 +663,12 @@
                             class="cursor-pointer p-0 b-0 overflow-hidden flex items-center justify-center bordered p-1"
                             on:click={toggleDemoData}
                         >
-                            <div class="stripe-wrapper">
-                                <div
-                                    class="stripe-bar anim-duration-20 {isDemoMode
-                                        ? 'loop-stripe-reverse'
-                                        : ''}"
-                                ></div>
-                                <div
-                                    class="stripe-bar anim-duration-20 {isDemoMode
-                                        ? 'loop-stripe-reverse'
-                                        : ''}"
-                                ></div>
-                            </div>
+                            <StripeBar
+                                reverse={true}
+                                loop={isDemoMode}
+                                duration={20}
+                            ></StripeBar>
+
                             <span class="absolute bg-black ews-label px-2 py-1"
                                 >⚠ DEMO DATA</span
                             >
@@ -683,18 +678,12 @@
                             class="cursor-pointer p-0 b-0 overflow-hidden flex items-center justify-center bordered p-1 mt-2"
                             on:click={toggleDemoPsycho}
                         >
-                            <div class="stripe-wrapper">
-                                <div
-                                    class="stripe-bar-red anim-duration-20 {isDemoPsychoMode
-                                        ? 'loop-stripe-reverse'
-                                        : ''}"
-                                ></div>
-                                <div
-                                    class="stripe-bar-red anim-duration-20 {isDemoPsychoMode
-                                        ? 'loop-stripe-reverse'
-                                        : ''}"
-                                ></div>
-                            </div>
+                            <StripeBar
+                                reverse={true}
+                                color="red"
+                                loop={isDemoPsychoMode}
+                                duration={20}
+                            ></StripeBar>
                             <span class="absolute bg-black ews-label px-2 py-1"
                                 >⚠ DEMO PSYCHOGRAPHIC DATA</span
                             >
