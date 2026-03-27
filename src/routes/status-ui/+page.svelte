@@ -20,8 +20,7 @@
   onMount(() => {
     // https://geofon.bmkg.go.id/fdsnws/station/1/
     // URL GEOFON (tanpa format=text agar mengembalikan XML)
-    const url =
-      `https://geofon.gfz-potsdam.de/fdsnws/station/1/query?${mapStore.urlParams}&level=station`;
+    const url = `https://geofon.gfz-potsdam.de/fdsnws/station/1/query?${mapStore.urlParams}&level=station`;
 
     fetch(url)
       .then((response) => {
@@ -114,13 +113,14 @@
     getHref={(item: any) =>
       `/realtime?networkCode=${item.networkCode}&stationCode=${item.stationCode}`}
   >
-    {#snippet nodeContent(item: any, { side, delay }: { side: string; delay: number })}
+    {#snippet nodeContent(
+      item: any,
+      { side, delay }: { side: string; delay: number },
+    )}
       <div
-        class="slide-fade-in {side === 'left' ? 'status-node' : 'status-node-flip'} {item.type ===
-        'danger'
-          ? 'danger'
-          : ''} w-24 h-6 flex flex-glow flex-col items-center justify-center relative mt-6 {side ===
-        'left'
+        class="slide-fade-in ews-rib-node {side === 'right'
+          ? 'flip'
+          : ''} {item.type === 'danger' ? 'danger' : ''} {side === 'left'
           ? '-mr-2'
           : '-ml-2'} z-5 text-black text-xs font-bold"
         style="animation-delay: {delay}ms;"

@@ -1,4 +1,5 @@
 <script lang="ts">
+  import "../styles/components/RibLayout.css";
   import { onMount, onDestroy } from "svelte";
   import type { Snippet } from "svelte";
 
@@ -10,10 +11,26 @@
   }: {
     items: any[];
     nodeContent: Snippet<
-      [any, { side: "left" | "right"; branchIndex: number; index: number; delay: number }]
+      [
+        any,
+        {
+          side: "left" | "right";
+          branchIndex: number;
+          index: number;
+          delay: number;
+        },
+      ]
     >;
     connectorContent?: Snippet<
-      [any, { side: "left" | "right"; branchIndex: number; index: number; delay: number }]
+      [
+        any,
+        {
+          side: "left" | "right";
+          branchIndex: number;
+          index: number;
+          delay: number;
+        },
+      ]
     >;
     getHref?: (item: any) => string;
   } = $props();
@@ -57,9 +74,7 @@
   });
 </script>
 
-<div
-  class="ews-rib-layout"
->
+<div class="ews-rib-layout">
   {#each chunkedItems as branchItems, branchIndex}
     <div class="ews-rib-layout__branch">
       <!-- Central Spine -->
@@ -73,7 +88,7 @@
         {#each branchItems as item, index}
           {@const side = index % 2 === 0 ? "left" : "right"}
           {@const delay = (branchIndex + 1) * (index + 1) * 10}
-          
+
           <svelte:element
             this={getHref ? "a" : "div"}
             href={getHref?.(item)}
@@ -85,7 +100,9 @@
               <div class="ews-rib-layout__node-content parent-node">
                 {@render nodeContent(item, { side, branchIndex, index, delay })}
               </div>
-              <div class="ews-rib-layout__connector-wrapper ews-rib-layout__connector-wrapper--left line">
+              <div
+                class="ews-rib-layout__connector-wrapper ews-rib-layout__connector-wrapper--left line"
+              >
                 <div
                   class="ews-rib-layout__connector-line line-node"
                   style="animation-delay: {delay}ms;"
@@ -94,12 +111,19 @@
                   <div
                     class="ews-rib-layout__connector-text ews-rib-layout__connector-text--left fade-in animation-delay-5"
                   >
-                    {@render connectorContent(item, { side, branchIndex, index, delay })}
+                    {@render connectorContent(item, {
+                      side,
+                      branchIndex,
+                      index,
+                      delay,
+                    })}
                   </div>
                 {/if}
               </div>
             {:else}
-              <div class="ews-rib-layout__connector-wrapper ews-rib-layout__connector-wrapper--right">
+              <div
+                class="ews-rib-layout__connector-wrapper ews-rib-layout__connector-wrapper--right"
+              >
                 <div
                   class="ews-rib-layout__connector-line line-node"
                   style="animation-delay: {delay}ms;"
@@ -108,11 +132,18 @@
                   <div
                     class="ews-rib-layout__connector-text ews-rib-layout__connector-text--right fade-in animation-delay-5"
                   >
-                    {@render connectorContent(item, { side, branchIndex, index, delay })}
+                    {@render connectorContent(item, {
+                      side,
+                      branchIndex,
+                      index,
+                      delay,
+                    })}
                   </div>
                 {/if}
               </div>
-              <div class="ews-rib-layout__node-content ews-rib-layout__node-content--right parent-node flip">
+              <div
+                class="ews-rib-layout__node-content ews-rib-layout__node-content--right parent-node flip"
+              >
                 {@render nodeContent(item, { side, branchIndex, index, delay })}
               </div>
             {/if}

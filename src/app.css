@@ -5,8 +5,8 @@
 @import "./lib/styles/animations.css";
 @import "./lib/styles/components.css";
 @import "./lib/styles/variants.css";
-@import "./lib/styles/status.css";
-@import "./lib/styles/hex-grid.css";
+/* @import "./lib/styles/status.css";
+@import "./lib/styles/hex-grid.css"; */
 
 /* refactor code */
 /* @import "./lib/styles/stripe-bar.css";
