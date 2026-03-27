@@ -85,3 +85,7 @@ This application relies on two distinct external data sources for real-time oper
 - **Purpose**: A WebSocket server that broadcasts structured alert data regarding recent earthquakes, parameters (magnitude, depth, location), and potential tsunami warnings.
 - **Usage**: Triggers the UI popups, updates the recent earthquake list, and displays alert banners.
 - **Environment Variable**: `PUBLIC_SOCKET_DATA_URL` (default: `ws://localhost:8081`)
+
+
+## Support Me!
+<script type="text/javascript" src="https://storage.sociabuzz.com/storage/js/main/buttononwebsite/index.min.js"></script><script>sbBoW.draw("bagusindrayana","U3VwcG9ydCBNZSE","position-bottom-right","#76CC11","#FFFFFF")</script>
