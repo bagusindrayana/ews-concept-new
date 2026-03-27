@@ -132,6 +132,8 @@
   justify-content: center;
   position: relative;
   margin-top: 1.5rem;
+
+  margin-right: -0.5rem;
 }
 
 .parent-node {
@@ -160,6 +162,7 @@
 
 
 .ews-rib-node.flip {
+  margin-left: -0.5rem;
   --bg-url: url('data:image/svg+xml,<svg width="500" height="100" viewBox="0 0 500 100" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M0 0H462.459L500 100H37.5415L0 0Z" fill="%2300FF80"/><path d="M0 0H131.338L138 19H6.66178L0 0Z" fill="%23FC8416"/></svg>');
 }
 

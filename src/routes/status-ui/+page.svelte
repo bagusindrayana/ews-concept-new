@@ -120,9 +120,7 @@
       <div
         class="slide-fade-in ews-rib-node {side === 'right'
           ? 'flip'
-          : ''} {item.type === 'danger' ? 'danger' : ''} {side === 'left'
-          ? '-mr-2'
-          : '-ml-2'} z-5 text-black text-xs font-bold"
+          : ''} {item.type === 'danger' ? 'danger' : ''}"
         style="animation-delay: {delay}ms;"
       ></div>
     {/snippet}
