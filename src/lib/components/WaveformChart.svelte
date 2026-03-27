@@ -1,12 +1,15 @@
-<script lang="ts">
-    import { onMount, onDestroy } from "svelte";
-    import { browser } from "$app/environment";
-
+<script context="module" lang="ts">
     // Data point structure
     export interface DataPoint {
         t: number; // timestamp in MS
         v: number; // amplitude value
     }
+</script>
+
+<script lang="ts">
+    import "../styles/components/WaveformChart.css";
+    import { onMount, onDestroy } from "svelte";
+    import { browser } from "$app/environment";
 
     export let waveformData: DataPoint[] = [];
 
@@ -559,12 +562,8 @@
     // although updateLoop is already calling draw() repeatedly.
 </script>
 
-<div bind:this={container} class="w-full h-full relative cursor-crosshair">
+<div bind:this={container} class="ews-waveform-chart-wrapper">
     <!-- Slot for putting overlays on top of canvas if needed -->
     <slot></slot>
-    <canvas
-        bind:this={canvas}
-        class="absolute inset-0 block w-full h-full touch-none"
-        style="z-index: 0;"
-    ></canvas>
+    <canvas bind:this={canvas} class="ews-waveform-chart-canvas"></canvas>
 </div>
