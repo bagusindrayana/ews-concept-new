@@ -8,8 +8,10 @@
     nodeContent,
     connectorContent,
     getHref,
+    maxBranches,
   }: {
     items: any[];
+    maxBranches?: number;
     nodeContent: Snippet<
       [
         any,
@@ -39,10 +41,15 @@
   let windowWidth = $state(0);
 
   function getBranchCount(width: number): number {
-    if (width < 768) return 1;
-    if (width < 1024) return 2;
-    if (width < 1300) return 4;
-    return 5;
+    let count = 5;
+    if (width < 768) count = 1;
+    else if (width < 1024) count = 2;
+    else if (width < 1300) count = 4;
+
+    if (maxBranches !== undefined) {
+      return Math.min(count, maxBranches);
+    }
+    return count;
   }
 
   function handleResize() {
