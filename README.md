@@ -88,4 +88,4 @@ This application relies on two distinct external data sources for real-time oper
 
 
 ## Support Me!
-<script type="text/javascript" src="https://storage.sociabuzz.com/storage/js/main/buttononwebsite/index.min.js"></script><script>sbBoW.draw("bagusindrayana","U3VwcG9ydCBNZSE","position-bottom-right","#76CC11","#FFFFFF")</script>
+[![Support me on Sociabuzz](https://img.shields.io/badge/Support%20Me-Sociabuzz-orange?style=for-the-badge&logo=buymeacoffee&logoColor=white)](https://sociabuzz.com/bagusindrayana/tribe)
