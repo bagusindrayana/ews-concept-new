@@ -42,7 +42,7 @@
 }
 
 .ews-stripe-bar.red {
-    --ews-ews-stripe-color: var(--red, #f23);
+    --ews-ews-stripe-color: var(--red, #e60908);
     --ews-ews-stripe-size: 15px;
     --ews-glow-color: rgba(255, 17, 0, 0.8);
     --ews-glow-size: 3px;
@@ -60,7 +60,7 @@
     display: inline-block;
     flex-shrink: 0;
     /* margin-bottom: -5px; */
-    --ews-ews-stripe-color: var(--red, #f23);
+    --ews-ews-stripe-color: var(--red, #e60908);
     --ews-ews-stripe-size: 15px;
     --ews-glow-color: rgba(255, 17, 0, 0.8);
     --ews-glow-size: 3px;
@@ -94,7 +94,7 @@
 .ews-stripe-bar-red-vertical {
     height: max(2000px, 200vh);
     transform: translate3d(0, 0, 0);
-    --ews-ews-stripe-color: var(--red, #f23);
+    --ews-ews-stripe-color: var(--red, #e60908);
     --ews-ews-stripe-size: 15px;
     --ews-glow-color: rgba(255, 17, 0, 0.8);
     --ews-glow-size: 3px;
@@ -122,7 +122,7 @@
 .ews-stripe {
     background-color: black;
     width: 100vw;
-    border-top: 1px solid var(--red, #f23);
-    border-bottom: 1px solid var(--red, #f23);
+    border-top: 1px solid var(--red, #e60908);
+    border-bottom: 1px solid var(--red, #e60908);
     position: fixed;
 }
