@@ -166,6 +166,7 @@
 /* Textarea variant */
 .ews-textarea {
     background-color: rgba(0, 0, 0, 0.8);
+    color-scheme: dark;
     color: var(--text-color);
     font-family: "Roboto Condensed", Arial, Helvetica, sans-serif;
     font-size: 0.875rem;
@@ -214,6 +215,7 @@
 /* Select variant */
 .ews-select {
     background-color: rgba(0, 0, 0, 0.8);
+    color-scheme: dark;
     color: var(--text-color);
     font-family: "Roboto Condensed", Arial, Helvetica, sans-serif;
     text-transform: uppercase;
