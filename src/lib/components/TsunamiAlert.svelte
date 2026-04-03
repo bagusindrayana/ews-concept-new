@@ -133,46 +133,50 @@
             ></div>
           </div>
         </div>
-      <div
-        class="w-11/12 md:w-3/4 overflow-hidden bg-black relative rounded flex justify-center items-center opacity-0 show-pop-up animation-delay-2"
-      >
+        <div
+          class="w-11/12 md:w-3/4 overflow-hidden bg-black relative rounded flex justify-center items-center opacity-0 show-pop-up animation-delay-2"
+        >
           <div
             class="absolute w-full h-2 m-auto top-0 left-0 right-0 overflow-hidden"
           >
-            <div class="w-2 h-full stripe-bar-red stripe-animation"></div>
+            <StripeBar color="red" loop={true} className="w-full h-2"
+            ></StripeBar>
           </div>
           <div
             class="absolute w-full h-2 m-auto bottom-0 left-0 right-0 overflow-hidden"
           >
-            <div
-              class="w-2 h-full stripe-bar-red stripe-animation-reverse"
-            ></div>
+            <StripeBar
+              color="red"
+              loop={true}
+              reverse={true}
+              className="w-full h-2"
+            ></StripeBar>
           </div>
           <div
             class="absolute w-2 h-full m-auto top-0 bottom-0 left-0 overflow-hidden"
           >
-            <div
-              class="w-2 h-full stripe-bar-red-vertical loop-stripe-vertical-reverse"
-            ></div>
+            <StripeBar
+              color="red"
+              orientation="vertical"
+              reverse={true}
+              loop={true}
+              className="w-2 h-full"
+            ></StripeBar>
           </div>
           <div
             class="absolute w-2 h-full m-auto top-0 bottom-0 right-0 overflow-hidden"
           >
-            <div
-              class="w-2 h-full stripe-bar-red-vertical loop-stripe-vertical"
-            ></div>
+            <StripeBar
+              color="red"
+              orientation="vertical"
+              loop={true}
+              className="w-2 h-full"
+            ></StripeBar>
           </div>
           <div class="w-full h-full p-6">
             <div class="bordered-red p-2 text-center w-full mb-2">
               <div class="overflow-hidden relative">
-                <div class="stripe-wrapper">
-                  <div
-                    class="stripe-bar loop-stripe-reverse anim-duration-20"
-                  ></div>
-                  <div
-                    class="stripe-bar loop-stripe-reverse anim-duration-20"
-                  ></div>
-                </div>
+                <StripeBar loop={true} reverse={true} duration={20}></StripeBar>
                 <div
                   class="absolute top-0 bottom-0 left-0 right-0 flex justify-center items-center"
                 >
@@ -183,14 +187,8 @@
             <div class="ews-card ews-card-red w-full h-auto">
               <div class="ews-card-header bordered-red-bottom">
                 <div class="overflow-hidden relative">
-                  <div class="stripe-wrapper">
-                    <div
-                      class="stripe-bar loop-stripe-reverse anim-duration-20"
-                    ></div>
-                    <div
-                      class="stripe-bar loop-stripe-reverse anim-duration-20"
-                    ></div>
-                  </div>
+                  <StripeBar loop={true} reverse={true} duration={20}
+                  ></StripeBar>
                   <div
                     class="absolute top-0 bottom-0 left-0 right-0 flex justify-center items-center"
                   >

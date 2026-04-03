@@ -1014,10 +1014,8 @@
         <button
           onclick={testDemoGempa}
           class="cursor-pointer p-0 b-0 overflow-hidden flex items-center justify-center bordered p-1"
-          ><div class="stripe-wrapper">
-            <div class="stripe-bar loop-stripe-reverse anim-duration-20"></div>
-            <div class="stripe-bar loop-stripe-reverse anim-duration-20"></div>
-          </div>
+        >
+          <StripeBar loop={true} duration={20}></StripeBar>
           <span class="absolute bg-black ews-label px-2 py-1"
             >⚠ TEST EARTHQUAKE</span
           ></button
@@ -1026,14 +1024,9 @@
         <button
           onclick={testDemoTsunami}
           class="cursor-pointer p-0 b-0 overflow-hidden flex items-center justify-center bordered p-1"
-          ><div class="stripe-wrapper">
-            <div
-              class="stripe-bar-red loop-stripe-reverse anim-duration-20"
-            ></div>
-            <div
-              class="stripe-bar-red loop-stripe-reverse anim-duration-20"
-            ></div>
-          </div>
+        >
+          <StripeBar color="red" loop={true} reverse={true} duration={20}
+          ></StripeBar>
           <span class="absolute bg-black ews-label px-2 py-1"
             >⚠ TEST TSUNAMI</span
           ></button
@@ -1237,14 +1230,8 @@
       >
         {#snippet title()}
           <div class="overflow-hidden">
-            <div class="stripe-wrapper">
-              <div
-                class="stripe-bar loop-stripe-reverse anim-duration-20"
-              ></div>
-              <div
-                class="stripe-bar loop-stripe-reverse anim-duration-20"
-              ></div>
-            </div>
+            <StripeBar color="red" loop={true} reverse={true} duration={20}
+            ></StripeBar>
             <div
               class="absolute top-0 bottom-0 left-0 right-0 flex justify-center items-center"
             >

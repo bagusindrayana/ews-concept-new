@@ -1,5 +1,6 @@
 <script lang="ts">
   import { onMount } from "svelte";
+  import StripeBar from "./StripeBar.svelte";
 
   interface GempaBumiAlertProps {
     magnitudo?: number;
@@ -103,17 +104,11 @@
         ></div>
       </div>
     </div>
-    <div class="stripe top-0">
-      <div class="stripe-wrapper">
-        <div class="stripe-bar loop-stripe-reverse"></div>
-        <div class="stripe-bar loop-stripe-reverse"></div>
-      </div>
+    <div class="absolute top-0">
+      <StripeBar loop={true} reverse={true} duration={20}></StripeBar>
     </div>
-    <div class="stripe bottom-0">
-      <div class="stripe-wrapper">
-        <div class="stripe-bar loop-stripe"></div>
-        <div class="stripe-bar loop-stripe"></div>
-      </div>
+    <div class="absolute bottom-0">
+      <StripeBar loop={true} duration={20}></StripeBar>
     </div>
   </div>
 {/if}
