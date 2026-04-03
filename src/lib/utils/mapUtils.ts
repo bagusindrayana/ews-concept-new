@@ -15,7 +15,7 @@ export function createGempaPopupHTML(data: {
   return `
     <div class="ews-card ews-card-red min-h-48 min-w-48 whitespace-pre-wrap" data-id="${data.id}">
       <div class="ews-card-header bordered-red-bottom overflow-hidden">
-        <div class="stripe-wrapper"><div class="stripe-bar-red loop-stripe-reverse anim-duration-20"></div><div class="stripe-bar-red loop-stripe-reverse anim-duration-20"></div></div>
+        <div class="ews-stripe-wrapper " style="height: 30px;"><div class="ews-stripe-bar red  loop-stripe reverse anim-duration-20"></div> <div class="ews-stripe-bar red  loop-stripe reverse anim-duration-20"></div></div>
         <div class="absolute top-0 bottom-0 left-0 right-0 flex justify-center items-center">
           <p class="p-1 bg-black font-bold text-xs ews-title">EARTHQUAKE</p>
         </div>

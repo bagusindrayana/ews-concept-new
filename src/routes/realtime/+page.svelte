@@ -135,6 +135,108 @@
     let isSettingsOpen = false;
     let selectedTimezone = 0; // 0: UTC, 7: WIB, 8: WITA, 9: WIT
 
+    // Historical Data Mode
+    let startTimeInput: string = ""; // datetime-local format: "2026-04-02T00:00"
+    let endTimeInput: string = "";
+    let isHistoricalMode: boolean = false;
+    let isLoadingHistory: boolean = false;
+    let historyError: string = "";
+    let historicalStartMs: number = 0;
+    let historicalEndMs: number = 0;
+
+    async function loadHistoricalData() {
+        if (!startTimeInput || !endTimeInput) {
+            historyError = "Start Time dan End Time harus diisi.";
+            return;
+        }
+
+        // datetime-local gives "YYYY-MM-DDTHH:MM" or "YYYY-MM-DDTHH:MM:SS" (local time, no Z)
+        // We treat user input as UTC — append 'Z' to force UTC parsing
+        const toUTC = (dt: string) => {
+            const s = dt.length === 16 ? dt + ":00" : dt; // ensure HH:MM:SS
+            return new Date(s + "Z").getTime();
+        };
+
+        const startMs = toUTC(startTimeInput);
+        const endMs = toUTC(endTimeInput);
+
+        if (isNaN(startMs) || isNaN(endMs) || endMs <= startMs) {
+            historyError = "Range waktu tidak valid.";
+            return;
+        }
+
+        historyError = "";
+        isLoadingHistory = true;
+
+        // Format ISO for FDSN API (already UTC since startMs is UTC based)
+        const startISO = new Date(startMs).toISOString();
+        const endISO = new Date(endMs).toISOString();
+
+        const network = data.networkCode ?? "GE";
+        const station = data.stationCode ?? "LUWI";
+        const channel = selectedChannel ? selectedChannel["@attributes"].code : "BHZ";
+
+        const url = `https://geofon.gfz.de/fdsnws/dataselect/1/query?starttime=${encodeURIComponent(startISO)}&endtime=${encodeURIComponent(endISO)}&nodata=404&network=${network}&station=${station}&channel=${channel}`;
+
+        try {
+            const response = await fetch(url);
+            if (!response.ok) {
+                historyError = `Gagal fetch data: HTTP ${response.status}`;
+                isLoadingHistory = false;
+                return;
+            }
+
+            const arrayBuffer = await response.arrayBuffer();
+
+            // Clear buffer and load historical data
+            // Pass startMs as hint for timestamp fallback, skipTrim=true so 1-hour+ data isn't cut
+            waveformService.clearBuffer();
+            waveformService.processMiniseedRaw(arrayBuffer, nominalSampleRateMs, startMs, true);
+            dataBuffer = waveformService.getBuffer();
+
+            if (dataBuffer.length === 0) {
+                historyError = "Data kosong atau tidak ada data pada rentang waktu ini.";
+                isLoadingHistory = false;
+                return;
+            }
+
+            // Use USER's requested range for historicalStartMs/EndMs
+            // (don't use actualEnd — it may be Date.now() if timestamp parsing failed)
+            historicalStartMs = startMs;
+            historicalEndMs = endMs;
+            isHistoricalMode = true;
+            timeOffsetMs = 0; // Start at right edge (endTime)
+
+            // Jump chart to end of historical range
+            if (waveformChart) {
+                waveformChart.jumpToHistoricalEnd();
+            }
+
+            const actualStart = dataBuffer[0].t;
+            const actualEnd = dataBuffer[dataBuffer.length - 1].t;
+            logMessages += `${new Date().toLocaleString()} : Historical data loaded (${dataBuffer.length} pts | actual: ${new Date(actualStart).toISOString()} ~ ${new Date(actualEnd).toISOString()})\n`;
+            isSettingsOpen = false;
+
+        } catch (err: any) {
+            historyError = `Error: ${err.message}`;
+            console.error(err);
+        } finally {
+            isLoadingHistory = false;
+        }
+    }
+
+    function clearHistoricalMode() {
+        waveformService.clearBuffer();
+        dataBuffer = waveformService.getBuffer();
+        historicalStartMs = 0;
+        historicalEndMs = 0;
+        isHistoricalMode = false;
+        timeOffsetMs = 0;
+        historyError = "";
+        if (waveformChart) waveformChart.resumeLive();
+        logMessages += `${new Date().toLocaleString()} : Back to live mode\n`;
+    }
+
     function loadDataStation(network: string, station: string) {
         const url = `https://geofon.gfz-potsdam.de/fdsnws/station/1/query?network=${network}&station=${station}&level=response&format=xml`;
 
@@ -242,9 +344,11 @@
 
         ws.onmessage = (e) => {
             const dataBufferIncoming = e.data;
-            if (isDemoMode || isDemoPsychoMode) {
+            // Jangan proses data live saat historical mode aktif
+            if (isDemoMode || isDemoPsychoMode || isHistoricalMode) {
                 return;
             }
+
 
             const buffer = dataBufferIncoming; // ArrayBuffer
 
@@ -561,6 +665,8 @@
                     {selectedTimezone}
                     {isDemoPsychoMode}
                     {psychoPoints}
+                    {historicalStartMs}
+                    {historicalEndMs}
                     backgroundColor="#000000"
                     gridColor="#33cc55"
                     axesColor="#fa0"
@@ -584,19 +690,28 @@
                     <span class="hidden md:inline">|</span>
                     <span>Zoom: {zoomLevel.toFixed(4)}x</span>
                 </div>
-                <div
-                    class="flex flex-col lg:flex-row items-center gap-0 lg:gap-4 h-4"
-                >
-                    {#if timeOffsetMs > 0}
-                        <button
-                            class="bg-orange-950 border hover:bg-orange-800 text-white text-xs lg:text-md px-1 lg:px-3 py-0 lg:py-1 rounded cursor-pointer transition-colors"
-                            style="border-color: #fa0;"
-                            on:click={() => waveformChart.resumeLive()}
-                        >
-                            Resume Live
-                        </button>
-                    {/if}
-                </div>
+            <div
+                class="flex flex-col lg:flex-row items-center gap-0 lg:gap-4 h-4"
+            >
+                {#if isHistoricalMode}
+                    <span class="text-yellow-400 text-xs font-bold">📼 HISTORICAL MODE</span>
+                    <button
+                        class="bg-orange-950 border hover:bg-orange-800 text-white text-xs lg:text-md px-1 lg:px-3 py-0 lg:py-1 rounded cursor-pointer transition-colors"
+                        style="border-color: #fa0;"
+                        on:click={clearHistoricalMode}
+                    >
+                        Back to Live
+                    </button>
+                {:else if timeOffsetMs > 0}
+                    <button
+                        class="bg-orange-950 border hover:bg-orange-800 text-white text-xs lg:text-md px-1 lg:px-3 py-0 lg:py-1 rounded cursor-pointer transition-colors"
+                        style="border-color: #fa0;"
+                        on:click={() => waveformChart.resumeLive()}
+                    >
+                        Resume Live
+                    </button>
+                {/if}
+            </div>
             </div>
 
             <div
@@ -627,6 +742,63 @@
 
             {#snippet children()}
                 <div class="flex flex-col gap-6 w-full p-1 lg:p-2">
+                    <!-- Historical Data Filter -->
+                    <div class="flex flex-col gap-2">
+                        <p
+                            class="text-orange-500 font-bold uppercase tracking-widest text-sm mb-1"
+                        >
+                            Historical Data (FDSN DataSelect):
+                        </p>
+                        <div class="flex flex-col gap-2">
+                            <div class="flex flex-col gap-1">
+                                <label for="hist-start-time" class="text-orange-400 text-xs uppercase tracking-widest">Start Time (UTC)</label>
+                                <input
+                                    id="hist-start-time"
+                                    type="datetime-local"
+                                    bind:value={startTimeInput}
+                                    class="bg-black border border-orange-700 text-orange-300 px-2 py-1 text-sm w-full focus:outline-none focus:border-orange-400"
+                                    step="1"
+                                />
+                            </div>
+                            <div class="flex flex-col gap-1">
+                                <label for="hist-end-time" class="text-orange-400 text-xs uppercase tracking-widest">End Time (UTC)</label>
+                                <input
+                                    id="hist-end-time"
+                                    type="datetime-local"
+                                    bind:value={endTimeInput}
+                                    class="bg-black border border-orange-700 text-orange-300 px-2 py-1 text-sm w-full focus:outline-none focus:border-orange-400"
+                                    step="1"
+                                />
+                            </div>
+                            {#if historyError}
+                                <p class="text-red-400 text-xs">{historyError}</p>
+                            {/if}
+                            <div class="flex gap-2">
+                                <button
+                                    class="ews-btn ews-btn-primary flex-1 flex items-center justify-center gap-2"
+                                    on:click={loadHistoricalData}
+                                    disabled={isLoadingHistory}
+                                >
+                                    {#if isLoadingHistory}
+                                        <span class="animate-spin">⟳</span> Memuat...
+                                    {:else}
+                                        ⬇ Load Historical Data
+                                    {/if}
+                                </button>
+                                {#if isHistoricalMode}
+                                    <button
+                                        class="border border-orange-700 hover:bg-orange-950 text-orange-400 text-sm px-3 py-1"
+                                        on:click={() => { clearHistoricalMode(); isSettingsOpen = false; }}
+                                    >
+                                        ✕ Clear
+                                    </button>
+                                {/if}
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr class="border-orange-900 my-2" />
+
                     <!-- Timezone Settings -->
                     <div class="flex flex-col gap-2">
                         <p

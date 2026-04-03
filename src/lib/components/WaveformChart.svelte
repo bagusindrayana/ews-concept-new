@@ -30,6 +30,10 @@
     export let timeWindowMs: number = 20000;
     export let timeOffsetMs: number = 0;
 
+    // Horizontal (X-axis / time) zoom limits in milliseconds
+    export const MIN_TIME_WINDOW_MS: number = 2000;   // 2 seconds minimum
+    export const MAX_TIME_WINDOW_MS: number = 300000; // 5 minutes maximum
+
     // Timezone
     export let selectedTimezone: number = 0; // 0: UTC, 7: WIB, 8: WITA, 9: WIT
 
@@ -37,10 +41,22 @@
     export let isDemoPsychoMode: boolean = false;
     export let psychoPoints: { nx: number; ny: number }[] = [];
 
+    // Historical mode: set both to non-zero to activate
+    // When active, live loop pauses and X-axis is fixed to this range
+    export let historicalStartMs: number = 0;
+    export let historicalEndMs: number = 0;
+
     // Method to resume viewing live data
     export function resumeLive() {
         timeOffsetMs = 0;
         frozenLatestTime = 0;
+    }
+
+    // Jump to the end of the historical range (right edge = endTime)
+    export function jumpToHistoricalEnd() {
+        timeOffsetMs = 0;
+        frozenLatestTime = 0;
+        draw();
     }
 
     let canvas: HTMLCanvasElement;
@@ -74,8 +90,66 @@
     function handleWheel(e: WheelEvent) {
         e.preventDefault();
 
-        // Vertical Scroll (Y-Axis Zoom)
-        if (e.deltaY !== 0 && !e.shiftKey) {
+        const isHistoricalMode = historicalStartMs > 0 && historicalEndMs > 0;
+        const isMobile = width < 768;
+        const leftPadding = isMobile ? 40 : 70;
+        const drawWidth = width - leftPadding;
+
+        // CTRL + Scroll → Horizontal Zoom (X-axis / Time Window)
+        if (e.ctrlKey && e.deltaY !== 0) {
+            const oldWindow = timeWindowMs;
+            const zoomFactor = e.deltaY > 0 ? 1.15 : 1 / 1.15; // zoom out / zoom in
+            const newWindow = Math.min(
+                MAX_TIME_WINDOW_MS,
+                Math.max(MIN_TIME_WINDOW_MS, oldWindow * zoomFactor)
+            );
+
+            // Anchor zoom to mouse cursor X position on the time axis
+            const mouseXOnCanvas = e.offsetX - leftPadding;
+            const cursorRatio = Math.max(0, Math.min(1, mouseXOnCanvas / drawWidth));
+
+            // Determine the time under the cursor before zoom
+            let rightEdgeBefore: number;
+            if (isHistoricalMode) {
+                rightEdgeBefore = historicalEndMs - timeOffsetMs;
+            } else {
+                const latestTime =
+                    timeOffsetMs > 0 && frozenLatestTime > 0 ? frozenLatestTime : Date.now();
+                rightEdgeBefore = latestTime - timeOffsetMs;
+            }
+            const leftEdgeBefore = rightEdgeBefore - oldWindow;
+            const timeUnderCursor = leftEdgeBefore + cursorRatio * oldWindow;
+
+            // After zoom, the right edge must remain so that timeUnderCursor stays at cursorRatio
+            // newRightEdge = timeUnderCursor + (1 - cursorRatio) * newWindow
+            const newRightEdge = timeUnderCursor + (1 - cursorRatio) * newWindow;
+
+            timeWindowMs = newWindow;
+
+            if (isHistoricalMode) {
+                timeOffsetMs = historicalEndMs - newRightEdge;
+                const maxOffset = (historicalEndMs - historicalStartMs) - newWindow;
+                if (timeOffsetMs < 0) timeOffsetMs = 0;
+                if (maxOffset > 0 && timeOffsetMs > maxOffset) timeOffsetMs = maxOffset;
+            } else {
+                // Freeze the live clock at the current "right edge" reference point
+                if (frozenLatestTime === 0 && timeOffsetMs === 0) {
+                    frozenLatestTime = Date.now();
+                }
+                const refTime = frozenLatestTime > 0 ? frozenLatestTime : Date.now();
+                timeOffsetMs = refTime - newRightEdge;
+                if (timeOffsetMs <= 0) {
+                    timeOffsetMs = 0;
+                    frozenLatestTime = 0;
+                }
+            }
+
+            draw();
+            return; // Don't run other scroll handlers on CTRL+scroll
+        }
+
+        // Vertical Scroll (Y-Axis Zoom) — no modifier key
+        if (e.deltaY !== 0 && !e.shiftKey && !e.ctrlKey) {
             const zoomStep = zoomLevel * 0.1; // 10% change
             if (e.deltaY < 0) {
                 zoomLevel = Math.min(MAX_ZOOM, zoomLevel + zoomStep);
@@ -87,7 +161,7 @@
         // Horizontal Scroll with Shift key or Trackpad horizontal scroll (Pan Time)
         // Also allow horizontal wheel events (deltaX)
         if (e.deltaX !== 0 || (e.deltaY !== 0 && e.shiftKey)) {
-            if (timeOffsetMs === 0) {
+            if (!isHistoricalMode && timeOffsetMs === 0) {
                 frozenLatestTime = Date.now();
             }
 
@@ -96,10 +170,16 @@
             const msPerPixel = timeWindowMs / width;
             timeOffsetMs += delta * msPerPixel * 2;
 
-            // Prevent panning into the future
-            if (timeOffsetMs <= 0) {
-                timeOffsetMs = 0;
-                frozenLatestTime = 0;
+            // Prevent panning into the future (live) or past the start (historical)
+            if (isHistoricalMode) {
+                const maxOffset = (historicalEndMs - historicalStartMs) - timeWindowMs;
+                if (timeOffsetMs < 0) timeOffsetMs = 0;
+                if (maxOffset > 0 && timeOffsetMs > maxOffset) timeOffsetMs = maxOffset;
+            } else {
+                if (timeOffsetMs <= 0) {
+                    timeOffsetMs = 0;
+                    frozenLatestTime = 0;
+                }
             }
         }
 
@@ -120,16 +200,25 @@
 
         // Map pixel drag to time change
         const msPerPixel = timeWindowMs / width;
+        const isHistoricalMode = historicalStartMs > 0 && historicalEndMs > 0;
+
         // Moving right (dx > 0) means going back in time (increasing timeOffset)
-        if (timeOffsetMs === 0 && dx > 0) {
+        if (!isHistoricalMode && timeOffsetMs === 0 && dx > 0) {
             frozenLatestTime = Date.now();
         }
 
-        timeOffsetMs += dx * msPerPixel;
+        // Drag left = positive dx = go earlier in time (increase offset)
+        timeOffsetMs -= dx * msPerPixel;
 
-        if (timeOffsetMs <= 0) {
-            timeOffsetMs = 0;
-            frozenLatestTime = 0;
+        if (isHistoricalMode) {
+            const maxOffset = (historicalEndMs - historicalStartMs) - timeWindowMs;
+            if (timeOffsetMs < 0) timeOffsetMs = 0;
+            if (maxOffset > 0 && timeOffsetMs > maxOffset) timeOffsetMs = maxOffset;
+        } else {
+            if (timeOffsetMs <= 0) {
+                timeOffsetMs = 0;
+                frozenLatestTime = 0;
+            }
         }
 
         draw();
@@ -164,16 +253,24 @@
             lastMouseX = e.touches[0].clientX;
 
             const msPerPixel = timeWindowMs / width;
+            const isHistoricalMode = historicalStartMs > 0 && historicalEndMs > 0;
 
-            if (timeOffsetMs === 0 && dx > 0) {
+            if (!isHistoricalMode && timeOffsetMs === 0 && dx > 0) {
                 frozenLatestTime = Date.now();
             }
 
-            timeOffsetMs += dx * msPerPixel;
+            // Drag right (dx > 0) = scroll into the past (increase offset)
+            timeOffsetMs -= dx * msPerPixel;
 
-            if (timeOffsetMs <= 0) {
-                timeOffsetMs = 0;
-                frozenLatestTime = 0;
+            if (isHistoricalMode) {
+                const maxOffset = (historicalEndMs - historicalStartMs) - timeWindowMs;
+                if (timeOffsetMs < 0) timeOffsetMs = 0;
+                if (maxOffset > 0 && timeOffsetMs > maxOffset) timeOffsetMs = maxOffset;
+            } else {
+                if (timeOffsetMs <= 0) {
+                    timeOffsetMs = 0;
+                    frozenLatestTime = 0;
+                }
             }
 
             draw();
@@ -234,15 +331,25 @@
             return;
         }
 
-        // Use real-time clock for smooth sliding instead of snapping to data points
-        const latestTime =
-            timeOffsetMs > 0 && frozenLatestTime > 0
-                ? frozenLatestTime
-                : Date.now();
+        // Determine right/left edge: historical mode uses fixed range, live mode uses Date.now()
+        const isHistoricalMode = historicalStartMs > 0 && historicalEndMs > 0;
 
-        // The right edge of the screen represents (latestTime - timeOffsetMs)
-        const rightEdgeTime = latestTime - timeOffsetMs;
-        const leftEdgeTime = rightEdgeTime - timeWindowMs;
+        let rightEdgeTime: number;
+        let leftEdgeTime: number;
+
+        if (isHistoricalMode) {
+            // In historical mode, the right edge starts at endTime and user scrolls left
+            rightEdgeTime = historicalEndMs - timeOffsetMs;
+            leftEdgeTime = rightEdgeTime - timeWindowMs;
+        } else {
+            // Live mode: smooth sliding clock
+            const latestTime =
+                timeOffsetMs > 0 && frozenLatestTime > 0
+                    ? frozenLatestTime
+                    : Date.now();
+            rightEdgeTime = latestTime - timeOffsetMs;
+            leftEdgeTime = rightEdgeTime - timeWindowMs;
+        }
 
         const isMobile = width < 768;
         const leftPadding = isMobile ? 40 : 70;
@@ -315,7 +422,7 @@
         }
         ctx.stroke();
 
-        // Bottom Ruler (Time/Ticks)
+        // Bottom Ruler (Time/Ticks) — Adaptive intervals
         ctx.strokeStyle = axesColor;
         ctx.lineWidth = 2;
         ctx.beginPath();
@@ -336,40 +443,71 @@
 
         const pixelsPerMs = drawWidth / timeWindowMs;
 
-        // Find the first integer second within our visible window
-        const startSecond = Math.floor(leftEdgeTime / 1000);
-        const endSecond = Math.ceil(rightEdgeTime / 1000);
+        // ── Adaptive tick intervals ──────────────────────────────────────────
+        // Each entry: [windowThreshold_ms, majorInterval_ms, minorInterval_ms, labelFormat]
+        // labelFormat: 'hms' = HH:MM:SS, 'hm' = HH:MM, 'hmd' = HH:MM + date
+        type LabelFmt = 'hms' | 'hm';
+        const tickTable: [number, number, number, LabelFmt][] = [
+            [      3_000,    500,     100, 'hms'], // < 3 s   → major 0.5s, minor 0.1s
+            [      8_000,  1_000,     250, 'hms'], // < 8 s   → major 1s,   minor 0.25s
+            [     20_000,  2_000,     500, 'hms'], // < 20 s  → major 2s,   minor 0.5s
+            [     45_000,  5_000,   1_000, 'hms'], // < 45 s  → major 5s,   minor 1s
+            [     90_000, 10_000,   2_000, 'hms'], // < 90 s  → major 10s,  minor 2s
+            [    180_000, 20_000,   5_000, 'hms'], // < 3 min → major 20s,  minor 5s
+            [    360_000, 60_000,  15_000, 'hms'], // < 6 min → major 1min, minor 15s
+            [    900_000, 120_000, 30_000, 'hms'], // < 15 min→ major 2min, minor 30s
+            [  1_800_000, 300_000, 60_000, 'hm' ], // < 30 min→ major 5min, minor 1min
+            [  3_600_000, 600_000,120_000, 'hm' ], // < 1 hr  → major 10min,minor 2min
+            [  7_200_000,1_200_000,300_000,'hm' ], // < 2 hr  → major 20min,minor 5min
+            [ 18_000_000,3_600_000,900_000,'hm' ], // < 5 hr  → major 1hr,  minor 15min
+        ];
 
-        for (let sec = startSecond; sec <= endSecond; sec++) {
-            const timeAtTick = sec * 1000;
-            const x = leftPadding + (timeAtTick - leftEdgeTime) * pixelsPerMs;
+        let majorMs = 3_600_000;   // default ≥ 5 hr
+        let minorMs = 900_000;
+        let labelFmt: LabelFmt = 'hm';
 
-            if (x >= leftPadding && x <= width) {
-                let tickLen = 6;
-                // Every 10 seconds is a major tick
-                if (sec % 10 === 0) {
-                    tickLen = 20;
-                    let timeLabel = formatTimeStr(timeAtTick);
-                    ctx.fillText(timeLabel, x, drawHeight + 22);
-                } else if (sec % 5 === 0) {
-                    tickLen = 12;
-                } else if (sec % 1 === 0) {
-                    tickLen = 6;
-                }
-
-                ctx.moveTo(x, drawHeight);
-                ctx.lineTo(x, drawHeight + tickLen);
-
-                // Minor ticks every 0.25 sec
-                for (let minor = 1; minor < 4; minor++) {
-                    const minorX = x + minor * 0.25 * 1000 * pixelsPerMs;
-                    if (minorX > leftPadding && minorX <= width) {
-                        ctx.moveTo(minorX, drawHeight);
-                        ctx.lineTo(minorX, drawHeight + 4);
-                    }
-                }
+        for (const [threshold, maj, min, fmt] of tickTable) {
+            if (timeWindowMs < threshold) {
+                majorMs = maj;
+                minorMs = min;
+                labelFmt = fmt;
+                break;
             }
         }
+
+        // Helper: format a timestamp for the label
+        function formatLabel(ms: number): string {
+            const tzOffsetMs = selectedTimezone * 60 * 60 * 1000;
+            const d = new Date(ms + tzOffsetMs);
+            const hh = String(d.getUTCHours()).padStart(2, '0');
+            const mm = String(d.getUTCMinutes()).padStart(2, '0');
+            const ss = String(d.getUTCSeconds()).padStart(2, '0');
+            return labelFmt === 'hms' ? `${hh}:${mm}:${ss}` : `${hh}:${mm}`;
+        }
+
+        // Draw minor ticks (no label)
+        const minorStart = Math.floor(leftEdgeTime / minorMs) * minorMs;
+        for (let t = minorStart; t <= rightEdgeTime; t += minorMs) {
+            // Skip positions that will be covered by a major tick
+            if (t % majorMs === 0) continue;
+            const x = leftPadding + (t - leftEdgeTime) * pixelsPerMs;
+            if (x >= leftPadding && x <= width) {
+                ctx.moveTo(x, drawHeight);
+                ctx.lineTo(x, drawHeight + 8);
+            }
+        }
+
+        // Draw major ticks + labels
+        const majorStart = Math.floor(leftEdgeTime / majorMs) * majorMs;
+        for (let t = majorStart; t <= rightEdgeTime; t += majorMs) {
+            const x = leftPadding + (t - leftEdgeTime) * pixelsPerMs;
+            if (x >= leftPadding && x <= width) {
+                ctx.moveTo(x, drawHeight);
+                ctx.lineTo(x, drawHeight + 18);
+                ctx.fillText(formatLabel(t), x, drawHeight + 20);
+            }
+        }
+
         ctx.stroke();
 
         // Draw the waveform line
@@ -531,7 +669,11 @@
         window.addEventListener("touchcancel", handleTouchEnd);
 
         function updateLoop() {
-            if (!isDragging) {
+            const isHistoricalMode = historicalStartMs > 0 && historicalEndMs > 0;
+            // In historical mode, we don't need continuous re-draws based on clock;
+            // draw() is called on user interaction. But we still run the loop
+            // at a low rate so panning/dragging still works smoothly.
+            if (!isDragging || isHistoricalMode) {
                 draw();
             }
             animId = requestAnimationFrame(updateLoop);
