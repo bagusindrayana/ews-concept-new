@@ -12,7 +12,7 @@
 }
 
 .ews-card.ews-card-red {
-    --ews-card-color: var(--red, #f23);
+    --ews-card-color: var(--red, #e60908);
 }
 
 .ews-card-header {
