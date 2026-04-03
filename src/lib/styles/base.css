@@ -1,14 +1,15 @@
 :root {
     --orange: #fa0;
-    --red: #f23;
+    --red: #e60908;
     --glow-rgb: 255, 170, 0;
     --fill-color: #fa0;
     --text-color: #fa0;
-    --danger-fill-color: #f23;
+    --danger-fill-color: #e60908;
     --danger-glow-rgb: 255, 0, 0;
-    --danger-text-color: #f23;
+    --danger-text-color: #e60908;
     --gutter-size: 8px;
     --border-width: 3px;
+    color-scheme: dark;
 
 }
 
