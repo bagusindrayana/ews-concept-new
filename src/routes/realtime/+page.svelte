@@ -144,6 +144,12 @@
     let historicalStartMs: number = 0;
     let historicalEndMs: number = 0;
 
+    // Local MiniSEED file upload
+    let miniseedFileInput: HTMLInputElement;
+    let isLoadingMiniseed: boolean = false;
+    let miniseedError: string = "";
+    let miniseedFileName: string = "";
+
     async function loadHistoricalData() {
         if (!startTimeInput || !endTimeInput) {
             historyError = "Start Time dan End Time harus diisi.";
@@ -174,7 +180,9 @@
 
         const network = data.networkCode ?? "GE";
         const station = data.stationCode ?? "LUWI";
-        const channel = selectedChannel ? selectedChannel["@attributes"].code : "BHZ";
+        const channel = selectedChannel
+            ? selectedChannel["@attributes"].code
+            : "BHZ";
 
         const url = `https://geofon.gfz.de/fdsnws/dataselect/1/query?starttime=${encodeURIComponent(startISO)}&endtime=${encodeURIComponent(endISO)}&nodata=404&network=${network}&station=${station}&channel=${channel}`;
 
@@ -191,11 +199,17 @@
             // Clear buffer and load historical data
             // Pass startMs as hint for timestamp fallback, skipTrim=true so 1-hour+ data isn't cut
             waveformService.clearBuffer();
-            waveformService.processMiniseedRaw(arrayBuffer, nominalSampleRateMs, startMs, true);
+            waveformService.processMiniseedRaw(
+                arrayBuffer,
+                nominalSampleRateMs,
+                startMs,
+                true,
+            );
             dataBuffer = waveformService.getBuffer();
 
             if (dataBuffer.length === 0) {
-                historyError = "Data kosong atau tidak ada data pada rentang waktu ini.";
+                historyError =
+                    "Data kosong atau tidak ada data pada rentang waktu ini.";
                 isLoadingHistory = false;
                 return;
             }
@@ -216,7 +230,6 @@
             const actualEnd = dataBuffer[dataBuffer.length - 1].t;
             logMessages += `${new Date().toLocaleString()} : Historical data loaded (${dataBuffer.length} pts | actual: ${new Date(actualStart).toISOString()} ~ ${new Date(actualEnd).toISOString()})\n`;
             isSettingsOpen = false;
-
         } catch (err: any) {
             historyError = `Error: ${err.message}`;
             console.error(err);
@@ -233,8 +246,60 @@
         isHistoricalMode = false;
         timeOffsetMs = 0;
         historyError = "";
+        miniseedFileName = "";
+        miniseedError = "";
         if (waveformChart) waveformChart.resumeLive();
         logMessages += `${new Date().toLocaleString()} : Back to live mode\n`;
+    }
+
+    async function loadMiniseedFile(e: Event) {
+        const input = e.target as HTMLInputElement;
+        if (!input.files || input.files.length === 0) return;
+
+        const file = input.files[0];
+        miniseedFileName = file.name;
+        miniseedError = "";
+        isLoadingMiniseed = true;
+
+        try {
+            const arrayBuffer = await file.arrayBuffer();
+
+            waveformService.clearBuffer();
+            // No expectedStartMs hint — let header timestamps drive it
+            waveformService.processMiniseedRaw(
+                arrayBuffer,
+                nominalSampleRateMs,
+                undefined,
+                true,
+            );
+            dataBuffer = waveformService.getBuffer();
+
+            if (dataBuffer.length === 0) {
+                miniseedError =
+                    "Tidak ada data yang dapat dibaca dari file ini.";
+                isLoadingMiniseed = false;
+                return;
+            }
+
+            const actualStart = dataBuffer[0].t;
+            const actualEnd = dataBuffer[dataBuffer.length - 1].t;
+
+            historicalStartMs = actualStart;
+            historicalEndMs = actualEnd;
+            isHistoricalMode = true;
+            timeOffsetMs = 0;
+
+            if (waveformChart) waveformChart.jumpToHistoricalEnd();
+
+            logMessages += `${new Date().toLocaleString()} : MiniSEED file loaded "${file.name}" (${dataBuffer.length} pts | ${new Date(actualStart).toISOString()} ~ ${new Date(actualEnd).toISOString()})\n`;
+        } catch (err: any) {
+            miniseedError = `Error: ${err.message}`;
+            console.error(err);
+        } finally {
+            isLoadingMiniseed = false;
+            // Reset file input so the same file can be re-loaded
+            input.value = "";
+        }
     }
 
     function loadDataStation(network: string, station: string) {
@@ -348,7 +413,6 @@
             if (isDemoMode || isDemoPsychoMode || isHistoricalMode) {
                 return;
             }
-
 
             const buffer = dataBufferIncoming; // ArrayBuffer
 
@@ -568,12 +632,55 @@
                     {/snippet}
 
                     {#snippet footer()}
+                        <!-- Hidden file input for miniseed upload -->
+                        <input
+                            bind:this={miniseedFileInput}
+                            type="file"
+                            accept=".mseed,.miniseed,.ms,application/octet-stream"
+                            class="hidden"
+                            on:change={loadMiniseedFile}
+                        />
                         <div class="flex flex-col gap-2 w-full">
                             <button
                                 class="ews-btn ews-btn-primary"
                                 on:click={() => (isSettingsOpen = true)}
                                 >SETTING</button
                             >
+                            <button
+                                id="load-miniseed-btn"
+                                class="ews-btn ews-btn-danger {isLoadingMiniseed
+                                    ? 'opacity-60 cursor-not-allowed'
+                                    : 'cursor-pointer'}"
+                                on:click={() =>
+                                    !isLoadingMiniseed &&
+                                    miniseedFileInput.click()}
+                                disabled={isLoadingMiniseed}
+                                title="Load local MiniSEED file"
+                            >
+                                {#if isLoadingMiniseed}
+                                    <span class="animate-spin inline-block mr-1"
+                                        >⟳</span
+                                    > LOADING...
+                                {:else}
+                                    LOAD MINISEED
+                                {/if}
+                            </button>
+                            {#if miniseedFileName && !isLoadingMiniseed}
+                                <div
+                                    class="text-xs text-center truncate px-1"
+                                    style="color: #fa0; opacity: 0.75;"
+                                    title={miniseedFileName}
+                                >
+                                    📼 {miniseedFileName}
+                                </div>
+                            {/if}
+                            {#if miniseedError}
+                                <div
+                                    class="text-xs text-red-400 text-center px-1 break-words"
+                                >
+                                    {miniseedError}
+                                </div>
+                            {/if}
                         </div>
                     {/snippet}
                 </Card>
@@ -690,28 +797,30 @@
                     <span class="hidden md:inline">|</span>
                     <span>Zoom: {zoomLevel.toFixed(4)}x</span>
                 </div>
-            <div
-                class="flex flex-col lg:flex-row items-center gap-0 lg:gap-4 h-4"
-            >
-                {#if isHistoricalMode}
-                    <span class="text-yellow-400 text-xs font-bold">📼 HISTORICAL MODE</span>
-                    <button
-                        class="bg-orange-950 border hover:bg-orange-800 text-white text-xs lg:text-md px-1 lg:px-3 py-0 lg:py-1 rounded cursor-pointer transition-colors"
-                        style="border-color: #fa0;"
-                        on:click={clearHistoricalMode}
-                    >
-                        Back to Live
-                    </button>
-                {:else if timeOffsetMs > 0}
-                    <button
-                        class="bg-orange-950 border hover:bg-orange-800 text-white text-xs lg:text-md px-1 lg:px-3 py-0 lg:py-1 rounded cursor-pointer transition-colors"
-                        style="border-color: #fa0;"
-                        on:click={() => waveformChart.resumeLive()}
-                    >
-                        Resume Live
-                    </button>
-                {/if}
-            </div>
+                <div
+                    class="flex flex-col lg:flex-row items-center gap-0 lg:gap-4 h-4"
+                >
+                    {#if isHistoricalMode}
+                        <span class="text-yellow-400 text-xs font-bold"
+                            >HISTORICAL MODE</span
+                        >
+                        <button
+                            class="bg-orange-950 border hover:bg-orange-800 text-white text-xs lg:text-md px-1 lg:px-3 py-0 lg:py-1 rounded cursor-pointer transition-colors"
+                            style="border-color: #fa0;"
+                            on:click={clearHistoricalMode}
+                        >
+                            Back to Live
+                        </button>
+                    {:else if timeOffsetMs > 0}
+                        <button
+                            class="bg-orange-950 border hover:bg-orange-800 text-white text-xs lg:text-md px-1 lg:px-3 py-0 lg:py-1 rounded cursor-pointer transition-colors"
+                            style="border-color: #fa0;"
+                            on:click={() => waveformChart.resumeLive()}
+                        >
+                            Resume Live
+                        </button>
+                    {/if}
+                </div>
             </div>
 
             <div
@@ -751,27 +860,39 @@
                         </p>
                         <div class="flex flex-col gap-2">
                             <div class="flex flex-col gap-1">
-                                <label for="hist-start-time" class="text-orange-400 text-xs uppercase tracking-widest">Start Time (UTC)</label>
+                                <label
+                                    for="hist-start-time"
+                                    class="text-orange-400 text-xs uppercase tracking-widest"
+                                    >Start Time (UTC)</label
+                                >
                                 <input
                                     id="hist-start-time"
                                     type="datetime-local"
                                     bind:value={startTimeInput}
                                     class="bg-black border border-orange-700 text-orange-300 px-2 py-1 text-sm w-full focus:outline-none focus:border-orange-400"
+                                    style="color-scheme: dark;"
                                     step="1"
                                 />
                             </div>
                             <div class="flex flex-col gap-1">
-                                <label for="hist-end-time" class="text-orange-400 text-xs uppercase tracking-widest">End Time (UTC)</label>
+                                <label
+                                    for="hist-end-time"
+                                    class="text-orange-400 text-xs uppercase tracking-widest"
+                                    >End Time (UTC)</label
+                                >
                                 <input
                                     id="hist-end-time"
                                     type="datetime-local"
                                     bind:value={endTimeInput}
                                     class="bg-black border border-orange-700 text-orange-300 px-2 py-1 text-sm w-full focus:outline-none focus:border-orange-400"
+                                    style="color-scheme: dark;"
                                     step="1"
                                 />
                             </div>
                             {#if historyError}
-                                <p class="text-red-400 text-xs">{historyError}</p>
+                                <p class="text-red-400 text-xs">
+                                    {historyError}
+                                </p>
                             {/if}
                             <div class="flex gap-2">
                                 <button
@@ -782,13 +903,16 @@
                                     {#if isLoadingHistory}
                                         <span class="animate-spin">⟳</span> Memuat...
                                     {:else}
-                                        ⬇ Load Historical Data
+                                        Load Historical Data
                                     {/if}
                                 </button>
                                 {#if isHistoricalMode}
                                     <button
                                         class="border border-orange-700 hover:bg-orange-950 text-orange-400 text-sm px-3 py-1"
-                                        on:click={() => { clearHistoricalMode(); isSettingsOpen = false; }}
+                                        on:click={() => {
+                                            clearHistoricalMode();
+                                            isSettingsOpen = false;
+                                        }}
                                     >
                                         ✕ Clear
                                     </button>
