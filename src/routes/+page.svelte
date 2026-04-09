@@ -1408,7 +1408,7 @@
       className="no-snapshot fixed top-1 left-2 right-2 md:left-auto md:right-3 md:top-3 md:w-1/3 lg:w-1/5 show-pop-up ews-card ews-card-red ews-card-float"
     >
       {#snippet title()}
-        <StripeBar loop={true} color="red"
+        <StripeBar color="red"
           ><div
             class="absolute top-0 bottom-0 left-0 right-0 flex justify-center items-center"
           >

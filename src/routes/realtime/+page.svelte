@@ -466,6 +466,19 @@
 <div
     class="min-h-screen px-1 lg:px-0 py-1 lg:py-8 flex flex-col justify-center overflow-hidden font-mono relative gap-2"
 >
+    <div
+        class="flex no-snapshot fixed right-2 translate-y-0 top-2 left-0 right-0 m-auto flex-row justify-center items-center z-5 gap-2 pointer-events-none"
+        style="width:fit-content"
+    >
+        <a
+            class="ews-btn ews-btn-primary scale-75 md:scale-100 pointer-events-auto"
+            href="/">HOME</a
+        >
+        <a
+            class="ews-btn ews-btn-primary scale-75 md:scale-100 pointer-events-auto"
+            href="/status-ui">STATION STATUS</a
+        >
+    </div>
     <div class="w-full flex flex-col-reverse lg:flex-row gap-2 justify-center">
         {#if stationData != null && stationData.Network.Station != undefined && !Array.isArray(stationData.Network.Station)}
             <div class="flex flex-col gap-4 w-auto h-full items-stretch">

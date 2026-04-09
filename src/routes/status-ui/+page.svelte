@@ -90,7 +90,21 @@
   class="min-h-screen py-1 md:py-4 flex flex-col items-center overflow-x-hidden overflow-y-auto font-mono"
 >
   <div
-    class="mb-2 text-center p-2 z-10 w-full bordered flex justify-center items-center relative show-pop-up"
+    class="flex no-snapshot fixed right-2 translate-y-0 top-2 left-0 right-0 m-auto flex-row justify-center items-center z-5 gap-2 pointer-events-none"
+    style="width:fit-content"
+  >
+    <a
+      class="ews-btn ews-btn-primary scale-75 md:scale-100 pointer-events-auto"
+      href="/">HOME</a
+    >
+    <a
+      class="ews-btn ews-btn-primary scale-75 md:scale-100 pointer-events-auto"
+      href="/status-map">STATION MAP</a
+    >
+  </div>
+
+  <div
+    class="mb-2 text-center p-2 z-10 w-full bordered flex justify-center items-center relative show-pop-up mt-6"
   >
     <div class="overflow-hidden">
       <StripeBar loop={true} duration={20} color="red"></StripeBar>
