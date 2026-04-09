@@ -1,6 +1,7 @@
 import mapboxgl from "mapbox-gl";
 import AnimatedPopup from 'mapbox-gl-animated-popup';
 import type { InfoGempa } from '$lib/types';
+import { createGempaPopupHTML } from "$lib/utils/mapUtils";
 
 type TitikGempaSetting = {
     map: mapboxgl.Map;
@@ -152,30 +153,15 @@ export class TitikGempa {
 
     renderPopup() {
         const placeholder = document.createElement('div');
-        placeholder.innerHTML = `
-            <div class="ews-card ews-card-red min-h-48 min-w-48 whitespace-pre-wrap">
-                <div class="ews-card-header bordered-red-bottom">
-                    <div class="overflow-hidden">
-                        <div class="ews-stripe-wrapper " style="height: 30px;"><div class="ews-stripe-bar red  loop-stripe reverse anim-duration-20"></div> <div class="ews-stripe-bar red  loop-stripe reverse anim-duration-20"></div></div>
-                        <div class="absolute top-0 bottom-0 left-0 right-0 flex justify-center items-center">
-                            <p class="p-1 bg-black font-bold text-xs text-glow">EARTHQUAKE</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="ews-card-content p-1 lg:p-2  custom-scrollbar">
-                    ${this.mag ? `<table class="w-full">
-                        <tbody>
-                            <tr><td class="flex">Magnitudo</td><td class="text-right break-words pl-2">${Number(this.mag).toFixed(1)}</td></tr>
-                            <tr><td class="flex">Kedalaman</td><td class="text-right break-words pl-2">${this.depth}</td></tr>
-                            <tr><td class="flex">Waktu</td><td class="text-right break-words pl-2">${new Date(this.infoGempa.time!).toLocaleString()}</td></tr>
-                            <tr><td class="flex">Lokasi (Lat,Lng)</td><td class="text-right break-words pl-2">${this.infoGempa.lat} , ${this.infoGempa.lng}</td></tr>
-                        </tbody>
-                    </table>` : ''}
-                    ${this.setting?.description != null && this.setting?.description != '' ? `<hr><p class="mt-1 text-xs">${this.setting?.description}</p>` : ''}
-                </div>
-            </div>
-        `.trim()
-            .replace(/>\s+</g, "><");
+        placeholder.innerHTML = createGempaPopupHTML({
+            id: this.id,
+            mag: this.mag,
+            depth: this.depth,
+            time: new Date(this.infoGempa.time!).toLocaleString(),
+            lat: this.infoGempa.lat,
+            lng: this.infoGempa.lng,
+            place: this.infoGempa.place ?? "-",
+        });
 
         if (this.gemaMarker) {
             const popup = new AnimatedPopup({
