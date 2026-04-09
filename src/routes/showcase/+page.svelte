@@ -288,34 +288,30 @@
         </div>
         <div class="flex gap-2 w-full justify-center items-center">
           <div class="">
-            <div
-              class="hex-shape orange flat-top clip-content h-[100px] flex flex-col justify-center items-center"
-            >
-              <div class="inner-content">
-                <StripeBar
-                  className="bg-black"
-                  color="red"
-                  loop={true}
-                  reverse={true}
-                  duration={20}
-                ></StripeBar>
-              </div>
-            </div>
+            <HexShape clipContent={true} color="orange" className="h-[100px]">
+              <StripeBar
+                className="bg-black"
+                loop={true}
+                reverse={true}
+                duration={20}
+                color="red"
+              ></StripeBar>
+            </HexShape>
           </div>
           <div class="">
-            <div
-              class="hex-shape orange clip-content h-[100px] flex flex-col justify-center items-center"
+            <HexShape
+              clipContent={true}
+              flatTop={false}
+              color="orange"
+              className="h-[100px]"
             >
-              <div class="inner-content">
-                <StripeBar
-                  className="bg-black"
-                  color="red"
-                  loop={true}
-                  reverse={true}
-                  duration={20}
-                ></StripeBar>
-              </div>
-            </div>
+              <StripeBar
+                className="bg-black"
+                loop={true}
+                color="red"
+                duration={20}
+              ></StripeBar>
+            </HexShape>
           </div>
         </div>
         <div class="long-hex h-[100px]"></div>
@@ -381,7 +377,11 @@
               <div class="text">MAG</div>
             </div>
             <div class="decal">
-              <div class="w-full h-full stripe-bar vertical"></div>
+              <StripeBar
+                className="w-full h-full"
+                size={"100%"}
+                orientation="vertical"
+              ></StripeBar>
             </div>
           </div>
 
@@ -393,7 +393,12 @@
               <div class="text">MAG</div>
             </div>
             <div class="decal">
-              <div class="w-full h-full stripe-bar red vertical"></div>
+              <StripeBar
+                className="w-full h-full"
+                size={"100%"}
+                orientation="vertical"
+                color="red"
+              ></StripeBar>
             </div>
           </div>
         </div>
@@ -406,9 +411,12 @@
               <div class="text">MAG</div>
             </div>
             <div class="decal">
-              <div
-                class="w-full h-full stripe-bar vertical loop-stripe-vertical-reverse anim-duration-10"
-              ></div>
+              <StripeBar
+                className="w-full h-full"
+                size={"100%"}
+                orientation="vertical"
+                loop={true}
+              ></StripeBar>
             </div>
           </div>
 
@@ -420,9 +428,13 @@
               <div class="text">MAG</div>
             </div>
             <div class="decal">
-              <div
-                class="w-full h-full stripe-bar red vertical loop-stripe-vertical anim-duration-10"
-              ></div>
+              <StripeBar
+                className="w-full h-full"
+                size={"100%"}
+                orientation="vertical"
+                color="red"
+                loop={true}
+              ></StripeBar>
             </div>
           </div>
         </div>
