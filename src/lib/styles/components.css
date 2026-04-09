@@ -805,8 +805,12 @@
             transparent 50%,
             rgba(255, 0, 0, 0.1) 50%);
     background-size: 100% 4px;
-    animation: scanline 8s linear infinite;
+    /* animation: scanline 8s linear infinite; */
     pointer-events: none;
+}
+
+.scanline.animate::after {
+    animation: scanline 8s linear infinite;
 }
 
 table tr td {
