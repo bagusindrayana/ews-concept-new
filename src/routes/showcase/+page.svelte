@@ -148,7 +148,7 @@
   <title>Showcase UI Components</title>
 </svelte:head>
 
-<div class="p-8 min-h-screen w-4xl mx-auto text-xs">
+<div class="p-8 min-h-screen max-w-4xl mx-auto text-xs">
   <div class="mb-8">
     <h1 class="text-3xl font-bold mb-2">Showcase UI Components</h1>
   </div>
@@ -330,7 +330,7 @@
       </div>
     </section>
 
-    <section class="col-span-3">
+    <section class="col-span-1 md:col-span-2 lg:col-span-3">
       <h2 class="text-xl font-semibold mb-4 border-b border-gray-700 pb-2">
         Infinite Scroll
       </h2>
@@ -375,11 +375,15 @@
         </div>
 
         <div>
-          <p class="text-gray-500 text-xs mb-1">speed=120 (fast), direction=right</p>
+          <p class="text-gray-500 text-xs mb-1">
+            speed=120 (fast), direction=right
+          </p>
           <div class="bordered p-2">
             <InfiniteScroll speed={120} gap={32} direction="right">
               {#snippet children()}
-                <span class="ews-text-digital text-sm px-4">STATION: BDG-01</span>
+                <span class="ews-text-digital text-sm px-4"
+                  >STATION: BDG-01</span
+                >
                 <span class="ews-text-digital text-sm px-4">DEPTH: 10km</span>
                 <span class="ews-text-digital text-sm px-4">LAT: -6.208</span>
                 <span class="ews-text-digital text-sm px-4">LNG: 106.845</span>
@@ -389,7 +393,9 @@
         </div>
 
         <div>
-          <p class="text-gray-500 text-xs mb-1">pauseOnHover, speed=80, gap=64px — single large item</p>
+          <p class="text-gray-500 text-xs mb-1">
+            pauseOnHover, speed=80, gap=64px — single large item
+          </p>
           <div class="bordered-red p-2">
             <InfiniteScroll speed={80} gap={64} pauseOnHover={true}>
               {#snippet children()}
@@ -411,36 +417,34 @@
         Hexagonal Grid
       </h2>
 
-      <div class="flex flex-col gap-8">
-        <div class="w-full flex gap-2">
-          <!-- Honeycomb Offset Grid -->
-          <div class="basis-0 flex-1">
-            <p class="text-gray-500 text-xs mb-3">Honeycomb Offset Grid</p>
-            <HexGrid gap={0}>
-              {#each { length: 30 } as _, i}
-                <div class="ews-hex-hive">
-                  <HexShape clipContent={true} flatTop={false}>
-                    {i}
-                  </HexShape>
-                </div>
-              {/each}
-            </HexGrid>
-          </div>
+      <div class="w-full flex flex-col md:flex-row gap-2">
+        <!-- Honeycomb Offset Grid -->
+        <div class="basis-0 flex-1">
+          <p class="text-gray-500 text-xs mb-3">Honeycomb Offset Grid</p>
+          <HexGrid gap={0}>
+            {#each { length: 30 } as _, i}
+              <div class="ews-hex-hive">
+                <HexShape clipContent={true} flatTop={false}>
+                  {i}
+                </HexShape>
+              </div>
+            {/each}
+          </HexGrid>
+        </div>
 
-          <div class="basis-0 flex-1">
-            <p class="text-gray-500 text-xs mb-3">
-              Honeycomb Variant 2 Offset Grid
-            </p>
-            <HexGrid variant="flat">
-              {#each { length: 30 } as _, i}
-                <div class="hex-hive flat">
-                  <HexShape clipContent={true}>
-                    {i}
-                  </HexShape>
-                </div>
-              {/each}
-            </HexGrid>
-          </div>
+        <div class="basis-0 flex-1">
+          <p class="text-gray-500 text-xs mb-3">
+            Honeycomb Variant 2 Offset Grid
+          </p>
+          <HexGrid variant="flat">
+            {#each { length: 30 } as _, i}
+              <div class="hex-hive flat">
+                <HexShape clipContent={true}>
+                  {i}
+                </HexShape>
+              </div>
+            {/each}
+          </HexGrid>
         </div>
       </div>
     </section>
