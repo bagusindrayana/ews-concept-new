@@ -11,6 +11,7 @@
   // import css from "svelte-highlight/languages/css";
   // import vbscriptHtml from "svelte-highlight/languages/vbscript-html";
   import StripeBar from "$lib/components/StripeBar.svelte";
+  import InfiniteScroll from "$lib/components/InfiniteScroll.svelte";
   import HexShape from "$lib/components/HexShape.svelte";
   import MentalToxicityLevel from "$lib/components/MentalToxicityLevel.svelte";
   import ThreadedComments, {
@@ -180,6 +181,11 @@
             <StripeBar color="red" loop={true} reverse={true} duration={20}
             ></StripeBar>
           </div>
+
+          <p>Flip</p>
+          <div class="h-[30px]">
+            <StripeBar className="my-2 -scale-x-100"></StripeBar>
+          </div>
         </div>
 
         <div class="w-full">
@@ -206,6 +212,7 @@
         </div>
       </div>
     </section>
+
     <!-- CARD DEMO -->
     <section>
       <h2 class="text-xl font-semibold mb-4 border-b border-gray-700 pb-2">
@@ -319,6 +326,81 @@
           class="long-hex h-[100px] flex flex-col justify-center items-center"
         >
           <p>LOREM</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="col-span-3">
+      <h2 class="text-xl font-semibold mb-4 border-b border-gray-700 pb-2">
+        Infinite Scroll
+      </h2>
+
+      <!-- Demo 1: Ticker bar with emergency notices -->
+      <div class="flex w-full relative mb-4">
+        <StripeBar className="my-2 " size="200px"></StripeBar>
+        <StripeBar className="my-2 -scale-x-100 " size="200px"></StripeBar>
+        <div
+          class="absolute top-0 left-0 bottom-0 right-0 flex items-center justify-center text-center"
+        >
+          <div class="p-1 bg-black rounded-lg w-full">
+            <div class="bordered-red bg-black p-2 w-full text-primary">
+              <InfiniteScroll speed={60} gap={48}>
+                {#snippet children()}
+                  <div class="flex flex-col text-center px-4">
+                    <span class="text-xs">CONDITION: RED</span>
+                    <b class="text-4xl" style="line-height: 0.8;">EMERGENCY</b>
+                    <span class="text-xs">CODE: 102</span>
+                  </div>
+                {/snippet}
+              </InfiniteScroll>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Demo 2: Variasi speed & direction -->
+      <div class="flex flex-col gap-3">
+        <div>
+          <p class="text-gray-500 text-xs mb-1">speed=40 (slow), gap=32px</p>
+          <div class="bordered p-2">
+            <InfiniteScroll speed={40} gap={32}>
+              {#snippet children()}
+                <span class="ews-text text-sm px-4">⬡ SEISMIC ALERT</span>
+                <span class="ews-text danger text-sm px-4">⚠ AWAS GEMPA</span>
+                <span class="ews-text text-sm px-4">⬡ ZONE: SUMATERA</span>
+                <span class="ews-text danger text-sm px-4">⚠ MAG 7.2</span>
+              {/snippet}
+            </InfiniteScroll>
+          </div>
+        </div>
+
+        <div>
+          <p class="text-gray-500 text-xs mb-1">speed=120 (fast), direction=right</p>
+          <div class="bordered p-2">
+            <InfiniteScroll speed={120} gap={32} direction="right">
+              {#snippet children()}
+                <span class="ews-text-digital text-sm px-4">STATION: BDG-01</span>
+                <span class="ews-text-digital text-sm px-4">DEPTH: 10km</span>
+                <span class="ews-text-digital text-sm px-4">LAT: -6.208</span>
+                <span class="ews-text-digital text-sm px-4">LNG: 106.845</span>
+              {/snippet}
+            </InfiniteScroll>
+          </div>
+        </div>
+
+        <div>
+          <p class="text-gray-500 text-xs mb-1">pauseOnHover, speed=80, gap=64px — single large item</p>
+          <div class="bordered-red p-2">
+            <InfiniteScroll speed={80} gap={64} pauseOnHover={true}>
+              {#snippet children()}
+                <div class="flex flex-col text-center px-2">
+                  <span class="text-xs text-gray-400">HOVER TO PAUSE</span>
+                  <b class="text-2xl ews-text danger">⚠ TSUNAMI WARNING</b>
+                  <span class="text-xs">EVAKUASI SEGERA</span>
+                </div>
+              {/snippet}
+            </InfiniteScroll>
+          </div>
         </div>
       </div>
     </section>
