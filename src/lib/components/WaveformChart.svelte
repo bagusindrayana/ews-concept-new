@@ -67,6 +67,11 @@
     let height = 600;
 
     let frozenLatestTime = 0;
+
+    // Automatically freeze live mode if timeOffsetMs is increased externally
+    $: if (timeOffsetMs > 0 && frozenLatestTime === 0 && historicalStartMs === 0) {
+        frozenLatestTime = Date.now();
+    }
     let isDragging = false;
     let lastMouseX = 0;
     let initialPinchDistance = 0;

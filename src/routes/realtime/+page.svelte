@@ -150,6 +150,161 @@
     let miniseedError: string = "";
     let miniseedFileName: string = "";
 
+    // Web Serial ESP32
+    let isEspConnected = false;
+    let espSerialPort: any;
+
+    class LineBreakTransformer {
+        chunks: string;
+        constructor() {
+            this.chunks = "";
+        }
+
+        transform(chunk: string, controller: any) {
+            this.chunks += chunk;
+            const lines = this.chunks.split("\n");
+            this.chunks = lines.pop() || "";
+            lines.forEach((line) => controller.enqueue(line.trim()));
+        }
+
+        flush(controller: any) {
+            if (this.chunks) {
+                controller.enqueue(this.chunks.trim());
+            }
+        }
+    }
+    let targetP1 = -1;
+    let targetP2 = -1;
+    let targetP3 = -1;
+
+    let currentP1 = -1;
+    let currentP2 = -1;
+    let currentP3 = -1;
+
+    let lerpAnimFrame: number;
+
+    const LERP_SPEED = 0.1; // Tingkat kehalusan, semakin kecil makin halus
+
+    function lerpLoop() {
+        if (!isEspConnected) return;
+
+        if (targetP1 !== -1 && currentP1 !== -1) {
+            currentP1 += (targetP1 - currentP1) * LERP_SPEED;
+            zoomLevel = MIN_ZOOM + (currentP1 / 4095) * (MAX_ZOOM - MIN_ZOOM);
+        }
+
+        if (targetP2 !== -1 && currentP2 !== -1) {
+            currentP2 += (targetP2 - currentP2) * LERP_SPEED;
+            timeWindowMs = 2000 + (currentP2 / 4095) * (300000 - 2000);
+        }
+
+        if (targetP3 !== -1 && currentP3 !== -1) {
+            currentP3 += (targetP3 - currentP3) * LERP_SPEED;
+
+            // Snap ke 0 ketika target sudah pasti 0 agar resumeLive memicu
+            if (targetP3 === 0 && currentP3 < 1) {
+                currentP3 = 0;
+            }
+
+            if (currentP3 === 0) {
+                if (timeOffsetMs !== 0) {
+                    timeOffsetMs = 0;
+                    if (waveformChart) waveformChart.resumeLive();
+                }
+            } else {
+                timeOffsetMs = (currentP3 / 4095) * 300000;
+            }
+        }
+
+        lerpAnimFrame = requestAnimationFrame(lerpLoop);
+    }
+
+    async function connectEsp32() {
+        if (!browser) return;
+        try {
+            if ("serial" in navigator) {
+                if (!espSerialPort) {
+                    espSerialPort = await (
+                        navigator as any
+                    ).serial.requestPort();
+                    await espSerialPort.open({ baudRate: 115200 });
+                    isEspConnected = true;
+                    logMessages += `${new Date().toLocaleString()} : ESP32 Serial Connected\n`;
+                    targetP1 = -1;
+                    targetP2 = -1;
+                    targetP3 = -1;
+                    currentP1 = -1;
+                    currentP2 = -1;
+                    currentP3 = -1;
+                    if (lerpAnimFrame) cancelAnimationFrame(lerpAnimFrame);
+                    lerpAnimFrame = requestAnimationFrame(lerpLoop);
+                    readEsp32Serial();
+                } else {
+                    // Close the port if already connected
+                    await espSerialPort.close();
+                    espSerialPort = null;
+                    isEspConnected = false;
+                    if (lerpAnimFrame) cancelAnimationFrame(lerpAnimFrame);
+                    logMessages += `${new Date().toLocaleString()} : ESP32 Serial Disconnected\n`;
+                }
+            } else {
+                console.error("Web Serial API not supported in this browser.");
+                logMessages += `${new Date().toLocaleString()} : Web Serial API not supported.\n`;
+            }
+        } catch (err) {
+            console.error("Error connecting to ESP32:", err);
+            logMessages += `${new Date().toLocaleString()} : ESP32 Connection Error.\n`;
+        }
+    }
+
+    async function readEsp32Serial() {
+        if (!espSerialPort) return;
+        const textDecoder = new TextDecoderStream();
+        const readableStreamClosed = espSerialPort.readable.pipeTo(
+            textDecoder.writable,
+        );
+        const reader = textDecoder.readable
+            .pipeThrough(new TransformStream(new LineBreakTransformer()))
+            .getReader();
+
+        try {
+            while (true) {
+                const { value, done } = await reader.read();
+                if (done) break;
+                if (value) {
+                    try {
+                        const data = JSON.parse(value);
+                        if (
+                            data.p1 !== undefined &&
+                            data.p2 !== undefined &&
+                            data.p3 !== undefined
+                        ) {
+                            let p1Val = data.p1 < 50 ? 0 : data.p1;
+                            let p2Val = data.p2 < 50 ? 0 : data.p2;
+                            let p3Val = data.p3 < 50 ? 0 : data.p3;
+
+                            targetP1 = p1Val;
+                            targetP2 = p2Val;
+                            targetP3 = p3Val;
+
+                            if (currentP1 === -1) currentP1 = p1Val;
+                            if (currentP2 === -1) currentP2 = p2Val;
+                            if (currentP3 === -1) currentP3 = p3Val;
+                        }
+                    } catch (e) {
+                        // ignore JSON parse errors or partial lines
+                    }
+                }
+            }
+        } catch (err) {
+            console.error("Serial read error", err);
+        } finally {
+            isEspConnected = false;
+            espSerialPort = null;
+            if (lerpAnimFrame) cancelAnimationFrame(lerpAnimFrame);
+        }
+    }
+
     async function loadHistoricalData() {
         if (!startTimeInput || !endTimeInput) {
             historyError = "Start Time dan End Time harus diisi.";
@@ -677,6 +832,17 @@
                                 {:else}
                                     LOAD MINISEED
                                 {/if}
+                            </button>
+                            <button
+                                id="connect-esp32-btn"
+                                class="ews-btn {isEspConnected
+                                    ? 'ews-btn-danger'
+                                    : 'ews-btn-primary'} cursor-pointer"
+                                on:click={connectEsp32}
+                            >
+                                {isEspConnected
+                                    ? "ESP32 CONNECTED"
+                                    : "CONNECT ESP32"}
                             </button>
                             {#if miniseedFileName && !isLoadingMiniseed}
                                 <div
