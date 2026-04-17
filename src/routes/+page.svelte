@@ -37,6 +37,7 @@
   } from "$lib/utils/db";
   import Icon from "@iconify/svelte";
   import SerialStatus from "$lib/components/SerialStatus.svelte";
+  import RangeSlider from "$lib/components/RangeSlider.svelte";
 
   let mapContainer: HTMLDivElement;
   let map: mapboxgl.Map;
@@ -51,9 +52,9 @@
 
   let geoJsonData: any = null;
   let geoJsonCoastline: any = null;
-  let geoJsonTitikGempa: any = null;
+  let geoJsonTitikGempa = $state<any>(null);
   let worker: Worker | null = null;
-  let tgs: TitikGempa[] = [];
+  let tgs = $state<TitikGempa[]>([]);
   let titikGempaBaru: TitikGempa[] = [];
   let tts: TitikTsunami[] = [];
   let markerDaerahs: number[][] = [];
@@ -80,6 +81,102 @@
   let showSourceModal = $state(false);
   let sourceDataInput = $state(JSON.stringify(sourceDataConfig, null, 4));
   let historyRecords = $state<string[][]>([]);
+
+  // Filter state
+  let showFilterModal = $state(false);
+  let filters = $state({
+    magMin: 0,
+    magMax: 10,
+    depthMin: 0,
+    depthMax: 1000,
+    timeMinHours: 0,
+    timeMaxHours: 168, // 7 days
+  });
+
+  function formatHours(h: number) {
+    const days = Math.floor(h / 24);
+    const hours = h % 24;
+    let res = "";
+    if (days > 0) res += `${days}d `;
+    if (hours > 0 || days === 0) res += `${hours}h`;
+    return res.trim();
+  }
+
+  const filteredEvents = $derived.by(() => {
+    return tgs.filter((tg) => {
+      const mag = tg.infoGempa.mag || 0;
+      const depth =
+        parseFloat(String(tg.infoGempa.depth).replace(" Km", "")) || 0;
+
+      const magMatch = mag >= filters.magMin && mag <= filters.magMax;
+      const depthMatch = depth >= filters.depthMin && depth <= filters.depthMax;
+
+      let timeMatch = true;
+      if (tg.infoGempa.time) {
+        const eventTime = new Date(tg.infoGempa.time).getTime();
+        const now = new Date().getTime();
+        const diffHours = (now - eventTime) / (1000 * 60 * 60);
+        timeMatch =
+          diffHours >= filters.timeMinHours &&
+          diffHours <= filters.timeMaxHours;
+      }
+
+      return magMatch && depthMatch && timeMatch;
+    });
+  });
+
+  $effect(() => {
+    // Tracking reactive dependencies: filteredEvents, geoJsonTitikGempa
+    events = filteredEvents;
+    if (geoJsonTitikGempa) {
+      updateMapFilter();
+    }
+  });
+
+  function updateMapFilter() {
+    if (!map || !map.getSource("earthquakes") || !geoJsonTitikGempa) return;
+
+    console.log("Filtering map features with:", filters);
+    const filteredFeatures = geoJsonTitikGempa.features.filter((f: any) => {
+      const mag = parseFloat(String(f.properties.mag || 0));
+      const depth = parseFloat(
+        String(f.properties.depth || 0).replace(" Km", ""),
+      );
+      const time = f.properties.time;
+
+      const magMatch = mag >= filters.magMin && mag <= filters.magMax;
+      const depthMatch = depth >= filters.depthMin && depth <= filters.depthMax;
+
+      let timeMatch = true;
+      if (time) {
+        const eventTime = new Date(time).getTime();
+        const now = new Date().getTime();
+        const diffHours = (now - eventTime) / (1000 * 60 * 60);
+        timeMatch =
+          diffHours >= filters.timeMinHours &&
+          diffHours <= filters.timeMaxHours;
+      }
+
+      return magMatch && depthMatch && timeMatch;
+    });
+
+    console.log(
+      `Updating map source with ${filteredFeatures.length} / ${geoJsonTitikGempa.features.length} features`,
+    );
+    (map.getSource("earthquakes") as mapboxgl.GeoJSONSource).setData({
+      type: "FeatureCollection",
+      features: filteredFeatures,
+    });
+  }
+
+  function resetFilters() {
+    filters.magMin = 0;
+    filters.magMax = 10;
+    filters.depthMin = 0;
+    filters.depthMax = 1000;
+    filters.timeMinHours = 0;
+    filters.timeMaxHours = 168;
+  }
 
   // Snapshot Modal state
   let showSnapshotModal = $state(false);
@@ -546,7 +643,6 @@
           (info: any) => new TitikGempa(info.id, info),
         );
         tgs = ntg;
-        events = [...tgs];
 
         // Ensure loading screen is removed
         setTimeout(() => {
@@ -590,6 +686,8 @@
               visibility: "visible",
             },
           });
+
+          updateMapFilter();
 
           map.on("click", "earthquakes-layer", (e: any) => {
             const coords = e.features[0].geometry.coordinates.slice();
@@ -703,16 +801,18 @@
         GempaTerakhir.removeMarker();
         if (tgs.length > 0) {
           const ig = tgs[0].infoGempa;
-          geoJsonTitikGempa.features.push(
-            earthquakeService.toGeoJsonFeature(ig),
-          );
-          (map.getSource("earthquakes") as mapboxgl.GeoJSONSource).setData(
-            geoJsonTitikGempa,
-          );
+          const newFeature = earthquakeService.toGeoJsonFeature(ig);
+          if (geoJsonTitikGempa) {
+            geoJsonTitikGempa.features = [
+              ...geoJsonTitikGempa.features,
+              newFeature,
+            ];
+          }
         }
       }
 
-      tgs.push(
+      tgs = [
+        ...tgs,
         new TitikGempa(nig.id, nig, {
           map,
           zoomToPosition: true,
@@ -721,7 +821,7 @@
           showPopUpInSecond: 1,
           description: nig.message,
         }),
-      );
+      ];
       tgs.sort(
         (a, b) => new Date(b.time!).getTime() - new Date(a.time!).getTime(),
       );
@@ -913,8 +1013,13 @@
   >
     <button
       class="ews-btn ews-btn-primary scale-75 md:scale-100 pointer-events-auto"
+      onclick={() => (showFilterModal = true)}>FILTER</button
+    >
+    <button
+      class="ews-btn ews-btn-primary scale-75 md:scale-100 pointer-events-auto"
       onclick={() => (showSettingsModal = true)}>SETTING</button
     >
+
     <button
       class="ews-btn ews-btn-primary scale-75 md:scale-100 pointer-events-auto"
       onclick={() => (showSourceModal = true)}>SOURCE</button
@@ -932,9 +1037,16 @@
     >
   </div>
 
+  <!-- mobile menu button -->
   <div
     class="flex flex-col md:hidden justify-center fixed z-5 items-end left-auto right-0 top-0 bottom-0 m-auto"
   >
+    <button
+      class="ews-btn-primary p-1"
+      onclick={() => (showFilterModal = true)}
+    >
+      <Icon icon="icon-park-solid:filter" width="20" height="20" />
+    </button>
     <button
       class="ews-btn-primary p-1"
       onclick={() => (showSettingsModal = true)}
@@ -1046,6 +1158,82 @@
           <span class="absolute bg-black ews-label px-2 py-1"
             >⚠ TEST TSUNAMI</span
           ></button
+        >
+      </div>
+    </div>
+  </Modal>
+
+  <!-- FILTER MODAL -->
+  <Modal bind:show={showFilterModal} title="EVENT FILTER" variant="medium">
+    <div class="flex flex-col gap-6 p-4 text-sm bg-[#050505]">
+      <!-- Magnitude Filter -->
+      <div class="flex flex-col gap-2">
+        <label
+          class="font-bold flex justify-between uppercase"
+          style="color:var(--orange)"
+        >
+          <span>Magnitude</span>
+          <span style="color:var(--red)"
+            >{filters.magMin.toFixed(1)} - {filters.magMax.toFixed(1)} M</span
+          >
+        </label>
+        <RangeSlider
+          min={0}
+          max={10}
+          step={0.1}
+          bind:low={filters.magMin}
+          bind:high={filters.magMax}
+        />
+      </div>
+
+      <!-- Depth Filter -->
+      <div class="flex flex-col gap-2">
+        <label
+          class="font-bold flex justify-between uppercase"
+          style="color:var(--orange)"
+        >
+          <span>Depth</span>
+          <span style="color:var(--red)"
+            >{filters.depthMin} - {filters.depthMax} KM</span
+          >
+        </label>
+        <RangeSlider
+          min={0}
+          max={1000}
+          step={10}
+          bind:low={filters.depthMin}
+          bind:high={filters.depthMax}
+        />
+      </div>
+
+      <!-- Time Filter -->
+      <div class="flex flex-col gap-2">
+        <label
+          class="font-bold flex justify-between uppercase"
+          style="color:var(--orange)"
+        >
+          <span>Time Offset (Last 7 Days)</span>
+          <span style="color:var(--red)"
+            >{formatHours(filters.timeMinHours)} - {formatHours(
+              filters.timeMaxHours,
+            )} ago</span
+          >
+        </label>
+        <RangeSlider
+          min={0}
+          max={168}
+          step={1}
+          bind:low={filters.timeMinHours}
+          bind:high={filters.timeMaxHours}
+        />
+      </div>
+
+      <div
+        class="flex justify-end mt-4 pt-3"
+        style="border-top: 1px solid rgba(var(--danger-glow-rgb), 0.3)"
+      >
+        <button class="ews-btn ews-btn-primary" onclick={resetFilters}
+          >RESET FILTER</button
         >
       </div>
     </div>
