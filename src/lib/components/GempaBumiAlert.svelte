@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onMount } from "svelte";
   import StripeBar from "./StripeBar.svelte";
+  import InfiniteScroll from "./InfiniteScroll.svelte";
 
   interface GempaBumiAlertProps {
     magnitudo?: number;
@@ -104,11 +105,54 @@
         ></div>
       </div>
     </div>
-    <div class="absolute top-0">
+    <!-- <div class="absolute top-0">
       <StripeBar loop={true} reverse={true} duration={20}></StripeBar>
     </div>
     <div class="absolute bottom-0">
       <StripeBar loop={true} duration={20}></StripeBar>
+    </div> -->
+
+    <div class="flex w-full absolute top-0 left-0 right-0" style="z-index: 2;">
+      <StripeBar className="my-2 " size="100px"></StripeBar>
+      <StripeBar className="my-2 -scale-x-100 " size="100px"></StripeBar>
+      <div
+        class="absolute top-0 left-0 bottom-0 right-0 flex items-center justify-center text-center"
+      >
+        <div class="p-1 bg-black rounded-lg w-full">
+          <div class="bordered-red bg-black p-2 w-full text-primary">
+            <InfiniteScroll speed={100} gap={48}>
+              {#snippet children()}
+                <div class="flex flex-col text-center px-4">
+                  <b class="text-3xl" style="line-height: 0.8;">EARTHQUAKE</b>
+                </div>
+              {/snippet}
+            </InfiniteScroll>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div
+      class="flex w-full absolute bottom-0 left-0 right-0"
+      style="z-index: 2;"
+    >
+      <StripeBar className="my-2 " size="100px"></StripeBar>
+      <StripeBar className="my-2 -scale-x-100 " size="100px"></StripeBar>
+      <div
+        class="absolute top-0 left-0 bottom-0 right-0 flex items-center justify-center text-center"
+      >
+        <div class="p-1 bg-black rounded-lg w-full">
+          <div class="bordered-red bg-black p-2 w-full text-primary">
+            <InfiniteScroll speed={100} gap={48} direction="right">
+              {#snippet children()}
+                <div class="flex flex-col text-center px-4">
+                  <b class="text-3xl" style="line-height: 0.8;">EARTHQUAKE</b>
+                </div>
+              {/snippet}
+            </InfiniteScroll>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 {/if}
