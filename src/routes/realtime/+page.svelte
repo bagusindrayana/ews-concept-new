@@ -12,6 +12,7 @@
     import HexGrid from "$lib/components/HexGrid.svelte";
     import HexShape from "$lib/components/HexShape.svelte";
     import StripeBar from "$lib/components/StripeBar.svelte";
+  import { mapStore } from "$lib/stores/mapStore.svelte.ts";
 
     export let data: PageData;
     let waveformChart: any;
@@ -339,7 +340,7 @@
             ? selectedChannel["@attributes"].code
             : "BHZ";
 
-        const url = `https://geofon.gfz.de/fdsnws/dataselect/1/query?starttime=${encodeURIComponent(startISO)}&endtime=${encodeURIComponent(endISO)}&nodata=404&network=${network}&station=${station}&channel=${channel}`;
+        const url = `${mapStore.dataSource.baseUrl}/fdsnws/dataselect/1/query?starttime=${encodeURIComponent(startISO)}&endtime=${encodeURIComponent(endISO)}&nodata=404&network=${network}&station=${station}&channel=${channel}`;
 
         try {
             const response = await fetch(url);
@@ -458,7 +459,7 @@
     }
 
     function loadDataStation(network: string, station: string) {
-        const url = `https://geofon.gfz.de/fdsnws/station/1/query?network=${network}&station=${station}&level=response&format=xml`;
+        const url = `${mapStore.dataSource.baseUrl}/fdsnws/station/1/query?network=${network}&station=${station}&level=response&format=xml`;
 
         return fetch(url)
             .then((response) => {

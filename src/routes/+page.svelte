@@ -38,6 +38,7 @@
   import Icon from "@iconify/svelte";
   import SerialStatus from "$lib/components/SerialStatus.svelte";
   import RangeSlider from "$lib/components/RangeSlider.svelte";
+  import { mapStore, DATA_SOURCES } from "$lib/stores/mapStore.svelte.ts";
 
   let mapContainer: HTMLDivElement;
   let map: mapboxgl.Map;
@@ -1246,17 +1247,50 @@
     variant="large"
     contentClass="flex flex-col gap-4"
   >
-    <textarea
-      bind:value={sourceDataInput}
-      class="w-full h-96 bg-black text-green-500 font-mono p-2 border border-gray-700 focus:outline-none focus:border-red-500 custom-scrollbar text-xs"
-    ></textarea>
-    <div class="flex gap-2 justify-end">
-      <button class="ews-btn ews-btn-danger" onclick={resetSourceData}
-        >RESET</button
-      >
-      <button class="ews-btn ews-btn-primary" onclick={saveSourceData}
-        >SAVE & RELOAD</button
-      >
+    <!-- Data Source Selection -->
+    <div class="flex flex-col gap-2">
+      <label class="font-bold uppercase text-xs" style="color:var(--orange)">
+        FDSN DATA SOURCE
+      </label>
+      <div class="grid grid-cols-1 gap-2">
+        {#each DATA_SOURCES as ds}
+          <label class="flex items-center gap-3 p-2 border border-gray-700 hover:border-orange-500 cursor-pointer transition-colors">
+            <input
+              type="radio"
+              name="dataSource"
+              value={ds.id}
+              bind:group={mapStore.dataSourceId}
+              class="accent-orange-500"
+            />
+            <div class="flex flex-col">
+              <span class="text-sm font-bold text-white">{ds.name}</span>
+              <span class="text-xs text-gray-400">{ds.baseUrl}</span>
+            </div>
+          </label>
+        {/each}
+      </div>
+    </div>
+
+    <!-- Separator -->
+    <div class="h-px bg-gray-700"></div>
+
+    <!-- Source Data Config -->
+    <div class="flex flex-col gap-2">
+      <label class="font-bold uppercase text-xs" style="color:var(--orange)">
+        EARTHQUAKE DATA CONFIG
+      </label>
+      <textarea
+        bind:value={sourceDataInput}
+        class="w-full h-64 bg-black text-green-500 font-mono p-2 border border-gray-700 focus:outline-none focus:border-red-500 custom-scrollbar text-xs"
+      ></textarea>
+      <div class="flex gap-2 justify-end">
+        <button class="ews-btn ews-btn-danger" onclick={resetSourceData}
+          >RESET</button
+        >
+        <button class="ews-btn ews-btn-primary" onclick={saveSourceData}
+          >SAVE & RELOAD</button
+        >
+      </div>
     </div>
   </Modal>
 

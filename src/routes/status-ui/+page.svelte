@@ -3,7 +3,7 @@
     import { xmlToJson, type JsonNode } from "$lib/xmlUtils";
     import StripeBar from "$lib/components/StripeBar.svelte";
     import RibCageLayout from "$lib/components/RibCageLayout.svelte";
-    import { mapStore } from "$lib/stores/mapStore.svelte";
+    import { mapStore } from "$lib/stores/mapStore.svelte.ts";
 
     // Dummy data for the status list
     let statuses = $state<
@@ -17,10 +17,12 @@
         }[]
     >([]);
 
-    onMount(() => {
-        // https://geofon.bmkg.go.id/fdsnws/station/1/
-        // URL GEOFON (tanpa format=text agar mengembalikan XML)
-        const url = `https://geofon.gfz.de/fdsnws/station/1/query?${mapStore.urlParams}&level=station`;
+    function fetchStatuses() {
+        // Clear existing statuses
+        statuses = [];
+        
+        // URL with selected data source
+        const url = `${mapStore.dataSource.baseUrl}/fdsnws/station/1/query?${mapStore.urlParams}&level=station`;
 
         fetch(url)
             .then((response) => {
@@ -79,6 +81,15 @@
                     if (el) el.style.display = "none";
                 }, 1000);
             });
+    }
+
+    onMount(() => {
+        fetchStatuses();
+    });
+
+    // Refetch statuses when data source changes
+    $effect(() => {
+        fetchStatuses();
     });
 
     onDestroy(() => {

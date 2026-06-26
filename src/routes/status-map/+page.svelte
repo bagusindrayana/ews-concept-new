@@ -9,7 +9,7 @@
     import mapboxgl from "mapbox-gl";
     import "mapbox-gl/dist/mapbox-gl.css";
     import * as turf from "@turf/turf";
-    import { mapStore } from "$lib/stores/mapStore.svelte";
+    import { mapStore } from "$lib/stores/mapStore.svelte.ts";
 
     let mapContainer: HTMLElement;
     let map: mapboxgl.Map;
@@ -26,7 +26,7 @@
         markers = [];
         networkStats = [];
 
-        const url = `https://geofon.gfz.de/fdsnws/station/1/query?${mapStore.urlParams}&level=station`;
+        const url = `${mapStore.dataSource.baseUrl}/fdsnws/station/1/query?${mapStore.urlParams}&level=station`;
 
         fetch(url)
             .then((response) => {
@@ -212,6 +212,13 @@
 
             fetchStations();
         });
+    });
+
+    // Refetch stations when data source changes
+    $effect(() => {
+        if (map) {
+            fetchStations();
+        }
     });
 
     onDestroy(() => {
