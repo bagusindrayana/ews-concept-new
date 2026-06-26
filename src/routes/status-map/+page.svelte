@@ -26,7 +26,7 @@
         markers = [];
         networkStats = [];
 
-        const url = `https://geofon.gfz-potsdam.de/fdsnws/station/1/query?${mapStore.urlParams}&level=station`;
+        const url = `https://geofon.gfz.de/fdsnws/station/1/query?${mapStore.urlParams}&level=station`;
 
         fetch(url)
             .then((response) => {

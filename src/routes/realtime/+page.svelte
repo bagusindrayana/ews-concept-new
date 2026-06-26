@@ -458,7 +458,7 @@
     }
 
     function loadDataStation(network: string, station: string) {
-        const url = `https://geofon.gfz-potsdam.de/fdsnws/station/1/query?network=${network}&station=${station}&level=response&format=xml`;
+        const url = `https://geofon.gfz.de/fdsnws/station/1/query?network=${network}&station=${station}&level=response&format=xml`;
 
         return fetch(url)
             .then((response) => {
