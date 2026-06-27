@@ -107,8 +107,8 @@
     class="min-h-screen py-1 md:py-4 flex flex-col items-center overflow-x-hidden overflow-y-auto font-mono"
 >
     <div
-        class="flex no-snapshot fixed right-2 translate-y-0 top-2 left-0 right-0 m-auto flex-row justify-center items-center z-5 gap-2 pointer-events-none"
-        style="width:fit-content"
+        class="flex no-snapshot fixed right-2 translate-y-0 top-2 left-0 right-0 m-auto flex-row justify-center items-center z-100 gap-2 pointer-events-none"
+        style="width:fit-content;"
     >
         <a
             class="ews-btn ews-btn-primary scale-75 md:scale-100 pointer-events-auto"
