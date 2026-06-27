@@ -8,12 +8,14 @@
     variant = "medium",
     contentClass = "",
     children,
+    footer,
   }: {
     show: boolean;
     title?: string;
     variant?: "medium" | "large";
     contentClass?: string;
     children: Snippet;
+    footer?: Snippet;
   } = $props();
 
   function close() {
@@ -26,11 +28,11 @@
     <div
       class="settings-modal ews-card ews-card-red {variant === 'large'
         ? '!w-11/12 !max-w-4xl'
-        : ''}"
+        : ''} flex flex-col"
       onclick={(e) => e.stopPropagation()}
       role="presentation"
     >
-      <div class="ews-card-header bordered-red-bottom overflow-hidden">
+      <div class="ews-card-header bordered-red-bottom overflow-hidden flex-shrink-0">
         <StripeBar></StripeBar>
         <div
           class="absolute top-0 bottom-0 left-0 right-0 flex justify-between items-center px-3"
@@ -46,12 +48,17 @@
         </div>
       </div>
       <div
-        class="ews-card-content {variant === 'large'
+        class="ews-card-content overflow-y-auto flex-1 {variant === 'large'
           ? 'p-4'
           : 'p-1 lg:p-2 p-4'} {contentClass}"
       >
         {@render children()}
       </div>
+      {#if footer}
+        <div class="flex-shrink-0 border-t border-gray-700 px-4 py-3">
+          {@render footer()}
+        </div>
+      {/if}
     </div>
   </div>
 {/if}

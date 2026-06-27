@@ -869,7 +869,7 @@ table tr td {
     width: 90%;
     max-width: 400px;
     max-height: 80vh;
-    overflow-y: auto;
+    overflow: hidden;
     animation: modalSlideIn 0.3s ease-out;
 }
 

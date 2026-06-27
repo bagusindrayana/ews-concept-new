@@ -1283,6 +1283,9 @@
         bind:value={sourceDataInput}
         class="w-full h-64 bg-black text-green-500 font-mono p-2 border border-gray-700 focus:outline-none focus:border-red-500 custom-scrollbar text-xs"
       ></textarea>
+    </div>
+
+    {#snippet footer()}
       <div class="flex gap-2 justify-end">
         <button class="ews-btn ews-btn-danger" onclick={resetSourceData}
           >RESET</button
@@ -1291,7 +1294,7 @@
           >SAVE & RELOAD</button
         >
       </div>
-    </div>
+    {/snippet}
   </Modal>
 
   <!-- SNAPSHOT MODAL -->
