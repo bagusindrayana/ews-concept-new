@@ -183,6 +183,9 @@
   let showSnapshotModal = $state(false);
   let snapshotsList: Snapshot[] = $state([]);
 
+  // Desktop menu state
+  let showDesktopMenu = $state(false);
+
   // Missing earthquake tracking states
   let GempaDirasakan: TitikGempa | null = $state(null);
   let GempaTerakhir: TitikGempa | null = $state(null);
@@ -1007,35 +1010,53 @@
   >
   <div bind:this={mapContainer} class="w-full h-screen"></div>
 
-  <!-- SETTINGS BUTTON -->
+  <!-- DESKTOP MENU -->
   <div
-    class="hidden md:flex no-snapshot fixed right-2 translate-y-0 top-2 left-0 right-0 m-auto flex-row justify-center items-center z-5 gap-2 pointer-events-none"
+    class="hidden md:flex no-snapshot fixed left-0 right-0 top-0 m-auto flex-col items-center z-5 pointer-events-none"
     style="width:fit-content"
   >
-    <button
-      class="ews-btn ews-btn-primary scale-75 md:scale-100 pointer-events-auto"
-      onclick={() => (showFilterModal = true)}>FILTER</button
+    <!-- Slide-down button container -->
+    <div
+      class="flex flex-row gap-2 pointer-events-auto transition-all duration-300 ease-in-out overflow-hidden {showDesktopMenu
+        ? 'max-h-24 opacity-100 pt-2'
+        : 'max-h-0 opacity-0'}"
     >
-    <button
-      class="ews-btn ews-btn-primary scale-75 md:scale-100 pointer-events-auto"
-      onclick={() => (showSettingsModal = true)}>SETTING</button
-    >
+      <button
+        class="ews-btn ews-btn-primary"
+        onclick={() => (showFilterModal = true)}>FILTER</button
+      >
+      <button
+        class="ews-btn ews-btn-primary"
+        onclick={() => (showSettingsModal = true)}>SETTING</button
+      >
+      <button
+        class="ews-btn ews-btn-primary"
+        onclick={() => (showSourceModal = true)}>SOURCE</button
+      >
+      <button
+        class="ews-btn ews-btn-primary"
+        onclick={async () => {
+          snapshotsList = await getSnapshots();
+          showSnapshotModal = true;
+        }}>SNAPSHOTS</button
+      >
+      <a
+        class="ews-btn ews-btn-primary"
+        href="/status-ui">STATION</a
+      >
+    </div>
 
+    <!-- MENU / X toggle button -->
     <button
-      class="ews-btn ews-btn-primary scale-75 md:scale-100 pointer-events-auto"
-      onclick={() => (showSourceModal = true)}>SOURCE</button
+      class="ews-btn ews-btn-primary pointer-events-auto mt-1 transition-all duration-300 min-w-[80px]"
+      onclick={() => (showDesktopMenu = !showDesktopMenu)}
     >
-    <button
-      class="ews-btn ews-btn-primary scale-75 md:scale-100 pointer-events-auto"
-      onclick={async () => {
-        snapshotsList = await getSnapshots();
-        showSnapshotModal = true;
-      }}>SNAPSHOTS</button
-    >
-    <a
-      class="ews-btn ews-btn-primary scale-75 md:scale-100 pointer-events-auto"
-      href="/status-ui">STATION</a
-    >
+      {#if showDesktopMenu}
+        ✕ CLOSE
+      {:else}
+        ☰ MENU
+      {/if}
+    </button>
   </div>
 
   <!-- mobile menu button -->
