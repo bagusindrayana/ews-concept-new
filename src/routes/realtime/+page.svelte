@@ -537,10 +537,15 @@
     onMount(async () => {
         if (!browser) return;
 
-        console.log(data);
+        // console.log(data);
+        
         if (data.networkCode == "" || data.stationCode == "") {
             return;
         }
+
+        const sourceUrl = new URL(mapStore.dataSource.baseUrl); 
+        console.log(sourceUrl)
+        console.log(sourceUrl.host);
 
         const stationPromise = loadDataStation(
             data.networkCode ?? "GE",
@@ -555,7 +560,9 @@
         ws.binaryType = "arraybuffer";
 
         ws.onopen = () => {
+            
             const request = {
+                host: sourceUrl.host,
                 net: data.networkCode ?? "GE",
                 sta: data.stationCode ?? "GSI",
                 cha: selectedChannel["@attributes"].code,

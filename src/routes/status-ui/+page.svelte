@@ -14,6 +14,7 @@
             type: string;
             stationCode: string;
             networkCode: string;
+            site: string;
         }[]
     >([]);
 
@@ -70,6 +71,7 @@
                             type: endDate ? "danger" : "normal",
                             stationCode: `${staCode}`,
                             networkCode: `${netCode}`,
+                            site: `${(stationNode["Site"] as any)?.Name || "UNKNOWN"}`,
                         });
                     });
                 });
@@ -146,7 +148,7 @@
             item: any,
             { side, delay }: { side: string; delay: number },
         )}
-            <div
+            <div title={item.site}
                 class="slide-fade-in ews-rib-node {side === 'right'
                     ? 'flip'
                     : ''} {item.type === 'danger' ? 'danger' : ''}"

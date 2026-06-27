@@ -128,8 +128,14 @@
         if (map) {
             if (isLocked) {
                 map.dragPan.disable();
+                map.scrollZoom.disable();
+                map.doubleClickZoom.disable();
+                map.touchZoomRotate.disable();
             } else {
                 map.dragPan.enable();
+                map.scrollZoom.enable();
+                map.doubleClickZoom.enable();
+                map.touchZoomRotate.enable();
             }
         }
     }
@@ -147,6 +153,9 @@
         ];
         isLocked = true;
         map.dragPan.disable();
+        map.scrollZoom.disable();
+        map.doubleClickZoom.disable();
+        map.touchZoomRotate.disable();
         fetchStations();
     }
 
@@ -338,7 +347,7 @@
                             <p
                                 class="text-[9px] text-gray-400 mt-1 leading-tight"
                             >
-                                PANNING ENABLED. ZOOMING LOCKED. ADJUST VIEWPORT
+                                PANNING & ZOOMING ENABLED. ADJUST VIEWPORT
                                 AND CONFIRM.
                             </p>
                         </div>
