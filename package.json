@@ -21,6 +21,7 @@
 		"@types/geojson": "^7946.0.16",
 		"@types/luxon": "^3.7.1",
 		"@types/mapbox-gl": "^3.1.0",
+		"@types/three": "^0.185.0",
 		"@types/ws": "^8.18.1",
 		"@ubermanu/sveltekit-websocket": "^0.3.3",
 		"devalue": ">=5.6.4",
@@ -43,6 +44,7 @@
 		"socket.io-client": "^4.8.1",
 		"svelte-highlight": "^7.9.0",
 		"tailwindcss": "^4.2.1",
+		"three": "^0.185.1",
 		"ws": "^8.19.0"
 	}
 }
