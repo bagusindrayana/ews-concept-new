@@ -7,7 +7,7 @@
 
     import type { PageData } from "./$types";
 
-    import { PUBLIC_WEBSOCKET_URL } from "$env/static/public";
+    import { env } from "$env/dynamic/public";
     import { WaveformService } from "$lib/services/WaveformService";
     import HexGrid from "$lib/components/HexGrid.svelte";
     import HexShape from "$lib/components/HexShape.svelte";
@@ -563,7 +563,7 @@
         await stationPromise;
         seedLinkHost = mapStore.dataSource.seedLinkHost ?? sourceUrl.host;
 
-        const wsUrl = PUBLIC_WEBSOCKET_URL || "ws://localhost:8080";
+        const wsUrl = env.PUBLIC_WEBSOCKET_URL ?? "ws://localhost:8080";
         ws = new WebSocket(wsUrl);
         ws.binaryType = "arraybuffer";
 
