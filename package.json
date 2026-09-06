@@ -27,7 +27,6 @@
 		"svelte": "^5.57.0",
 		"svelte-check": "^4.7.6",
 		"typescript": "^5.9.3",
-		"undici": "^8.10.2",
 		"vite": "^7.3.6"
 	},
 	"dependencies": {
