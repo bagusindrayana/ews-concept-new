@@ -5,7 +5,7 @@
   import mapboxgl from "mapbox-gl";
   import AnimatedPopup from "mapbox-gl-animated-popup";
   import { XMLParser } from "fast-xml-parser";
-  import { PUBLIC_MAPBOX_ACCESS_TOKEN } from "$env/static/public";
+  import { env } from "$env/dynamic/public";
   import { mapStore, DATA_SOURCES } from "$lib/stores/mapStore.svelte";
   import { MapLayerService } from "$lib/services/mapLayerService";
   import { createGempaPopupHTML } from "$lib/utils/mapUtils";
@@ -291,7 +291,7 @@
     loadEarthquakeData();
   }
 
-  mapboxgl.accessToken = PUBLIC_MAPBOX_ACCESS_TOKEN;
+  mapboxgl.accessToken = env.PUBLIC_MAPBOX_ACCESS_TOKEN ?? "";
 
   let timezoneInterval: any = null;
 

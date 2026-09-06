@@ -5,7 +5,7 @@
     import MentalToxicityLevel from "$lib/components/MentalToxicityLevel.svelte";
     import Card from "$lib/components/Card.svelte";
 
-    import { PUBLIC_MAPBOX_ACCESS_TOKEN } from "$env/static/public";
+    import { env } from "$env/dynamic/public";
     import mapboxgl from "mapbox-gl";
     import "mapbox-gl/dist/mapbox-gl.css";
     import * as turf from "@turf/turf";
@@ -161,12 +161,13 @@
     }
 
     onMount(() => {
-        if (!PUBLIC_MAPBOX_ACCESS_TOKEN) {
+        const mapboxAccessToken = env.PUBLIC_MAPBOX_ACCESS_TOKEN ?? "";
+        if (!mapboxAccessToken) {
             console.error("Mapbox token is missing!");
             return;
         }
 
-        mapboxgl.accessToken = PUBLIC_MAPBOX_ACCESS_TOKEN;
+        mapboxgl.accessToken = mapboxAccessToken;
 
         map = new mapboxgl.Map({
             container: mapContainer,
