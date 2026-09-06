@@ -432,25 +432,31 @@
   </Modal>
 
   <!-- SOURCE MODAL -->
-  <Modal bind:show={showSourceModal} title="DATA SOURCE" variant="medium">
+  <Modal bind:show={showSourceModal} title="DATA SOURCE" variant="large">
     <div class="flex flex-col gap-4 p-4">
       <p class="font-bold uppercase text-xs" style="color:var(--orange)">FDSN DATA SOURCE</p>
-      <div class="grid grid-cols-1 gap-2">
+      <div class="grid grid-cols-3 gap-2">
         {#each DATA_SOURCES as ds}
           <label
-            class="flex items-center gap-3 p-2 border border-gray-700 hover:border-orange-500 cursor-pointer transition-colors"
+            class="flex flex-col items-center justify-center py-2 px-2 text-center cursor-pointer transition-all duration-150 select-none relative min-h-[52px] {mapStore.dataSourceId === ds.id
+              ? 'bg-[#00FF80] text-black font-extrabold shadow-[0_0_10px_rgba(0,255,128,0.4)]'
+              : 'bg-[#E60003] text-white font-bold hover:brightness-110'}"
           >
             <input
               type="radio"
               name="dataSource"
               value={ds.id}
               bind:group={mapStore.dataSourceId}
-              class="accent-orange-500"
+              class="sr-only"
             />
-            <div class="flex flex-col">
-              <span class="text-sm font-bold text-white">{ds.name}</span>
-              <span class="text-xs text-gray-400">{ds.baseUrl}</span>
-            </div>
+            <span class="text-xs sm:text-sm font-black uppercase tracking-wide leading-tight truncate max-w-full">
+              {ds.name}
+            </span>
+            <span
+              class="text-[10px] mt-0.5 opacity-85 truncate max-w-full font-mono"
+            >
+              {ds.baseUrl}
+            </span>
           </label>
         {/each}
       </div>

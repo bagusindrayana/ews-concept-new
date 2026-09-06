@@ -12,12 +12,31 @@ export interface DataSource {
 
 export const DATA_SOURCES: DataSource[] = [
     { id: "geofon", name: "GEOFON (GFZ)", baseUrl: "https://geofon.gfz.de" },
-    { id: "iris", name: "IRIS (EarthScope)", baseUrl: "https://service.earthscope.org",seedLinkHost:"rtserve.earthscope.org" },
+    { id: "iris", name: "IRIS (EarthScope)", baseUrl: "https://service.earthscope.org", seedLinkHost: "rtserve.earthscope.org" },
     { id: "knmi", name: "KNMI", baseUrl: "https://rdsa.knmi.nl" },
     { id: "ipgp", name: "IPGP", baseUrl: "https://ws.ipgp.fr" },
     { id: "bmkg", name: "BMKG", baseUrl: "https://geof.bmkg.go.id" },
     { id: "isc", name: "ISC AC", baseUrl: "https://www.isc.ac.uk" },
-    { id: "usgs", name: "USGS", baseUrl: "https://earthquake.usgs.gov",seedLinkHost:"cwbpub.cr.usgs.gov" },
+    { id: "usgs", name: "USGS", baseUrl: "https://earthquake.usgs.gov", seedLinkHost: "cwbpub.cr.usgs.gov" },
+    { id: "bgr", name: "BGR", baseUrl: "https://eida.bgr.de" },
+    { id: "koeri", name: "KOERI", baseUrl: "http://eida-service.koeri.boun.edu.tr" },
+    { id: "ethz", name: "ETHZ", baseUrl: "http://eida.ethz.ch" },
+    { id: "icgc", name: "ICGC", baseUrl: "http://ws.icgc.cat" },
+    { id: "ingv", name: "INGV", baseUrl: "http://webservices.ingv.it" },
+    { id: "lmu", name: "LMU", baseUrl: "http://erde.geophysik.uni-muenchen.de" },
+    { id: "niep", name: "NIEP", baseUrl: "https://eida-sc3.infp.ro" },
+    { id: "noa", name: "NOA", baseUrl: "http://eida.gein.noa.gr" },
+    { id: "orfeus", name: "ORFEUS", baseUrl: "http://www.orfeus-eu.org" },
+    { id: "resif", name: "RESIF", baseUrl: "http://ws.resif.fr" },
+    { id: "ncedc", name: "NCEDC", baseUrl: "https://service.ncedc.org" },
+    { id: "scedc", name: "SCEDC", baseUrl: "http://service.scedc.caltech.edu" },
+    { id: "texnet", name: "TexNet", baseUrl: "http://rtserve.beg.utexas.edu", seedLinkHost: "rtserve.beg.utexas.edu" },
+    { id: "usp-iag", name: "USP-IAG", baseUrl: "http://seisrequest.iag.usp.br" },
+    { id: "auspass", name: "AusPass", baseUrl: "https://auspass.edu.au:8080" },
+    { id: "esm", name: "ESM", baseUrl: "https://esm-db.eu" },
+    { id: "geonet", name: "GeoNet", baseUrl: "https://service.geonet.org.nz" },
+    { id: "haiti", name: "Haiti", baseUrl: "https://ayiti.unice.fr/ayiti-seismes" },
+    { id: "sismoazur", name: "SismoAzur", baseUrl: "https://sismoazur.oca.eu" },
 ];
 
 const DEFAULT_BBOX: BBox = [95, -11, 141, 6];

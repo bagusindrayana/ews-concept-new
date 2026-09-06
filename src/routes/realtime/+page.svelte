@@ -472,7 +472,7 @@
             })
             .then((xmlString) => {
                 stationData = xmlToJson(xmlString).FDSNStationXML;
-                console.log(stationData);
+                // console.log(stationData);
                 if (Array.isArray(stationData.Network.Station)) {
                     //find sation that dont have endDate
                     stationData.Network.Station =
@@ -492,15 +492,20 @@
                     const channel = stationData.Network.Station.Channel[index];
 
                     //check if channel already in listChannel based on code
-                    var check = listChannel.find(
+                    var check = listChannel.findIndex(
                         (item) =>
                             item["@attributes"].code ==
                             channel["@attributes"].code,
                     );
-                    if (check) {
-                        continue;
+                    if (check !== -1) {
+                        if (channel["@attributes"].endDate == undefined || channel["@attributes"].endDate == ""){
+                            listChannel[check] = channel;
+                        }  else {
+                            continue;
+                        }
+                    } else {
+                        listChannel.push(channel);
                     }
-                    listChannel.push(channel);
                 }
 
                 //find listChannel that dont have ["@attributes"].endDate
