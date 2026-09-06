@@ -1,6 +1,6 @@
+@import "./lib/styles/fonts.css";
 @import "tailwindcss";
 
-@import "./lib/styles/fonts.css";
 @import "./lib/styles/base.css";
 @import "./lib/styles/animations.css";
 @import "./lib/styles/components.css";

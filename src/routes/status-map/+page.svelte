@@ -27,7 +27,7 @@
         markers = [];
         networkStats = [];
 
-        const url = `${mapStore.dataSource.baseUrl}/fdsnws/station/1/query?${mapStore.urlParams}&level=station&nodata=404`;
+        const url = `${mapStore.dataSource.baseUrl}/fdsnws/station/1/query?${mapStore.urlParams}&level=station&nodata=404&channel=BH?,SH?`;
 
         fdsnFetch(url, "/api/fdsn/station")
             .then((response) => {
