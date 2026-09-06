@@ -16,10 +16,8 @@
   import AffectedAreaItem from "$lib/components/AffectedAreaItem.svelte";
   import Card from "$lib/components/Card.svelte";
   import Modal from "$lib/components/Modal.svelte";
-  import {
-    PUBLIC_SOCKET_DATA_URL,
-    PUBLIC_MAPBOX_ACCESS_TOKEN,
-  } from "$env/static/public";
+  import { env } from "$env/dynamic/public";
+
   import StripeBar from "$lib/components/StripeBar.svelte";
   import { MapLayerService } from "$lib/services/mapLayerService";
   import { AudioService, SOUNDS } from "$lib/services/audioService";
@@ -194,7 +192,7 @@
   let selectedPopup: any = null;
   let timezoneInterval: any = null;
 
-  mapboxgl.accessToken = PUBLIC_MAPBOX_ACCESS_TOKEN;
+  mapboxgl.accessToken = env.PUBLIC_MAPBOX_ACCESS_TOKEN ?? "";
 
   async function takeSnapshot(
     eventId: string,
@@ -441,7 +439,7 @@
 
   function socketInitializer() {
     if (socket != null) return;
-    const socketUrl = PUBLIC_SOCKET_DATA_URL ?? "http://localhost:8081";
+    const socketUrl = env.PUBLIC_SOCKET_DATA_URL ?? "http://localhost:8081";
     socket = io(socketUrl);
     socket.on("connect", () => console.log("connected"));
     socket.on("warning", (v: any) => warningHandler(v));
