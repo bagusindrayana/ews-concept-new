@@ -1,0 +1,4 @@
+name = "my-sveltekit-app"
+pages_build_output_dir = ".svelte-kit/cloudflare"
+compatibility_date = "2026-03-17"
+compatibility_flags = [ "nodejs_compat", "nodejs_als" ]
