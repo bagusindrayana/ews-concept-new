@@ -3,7 +3,8 @@
     import { xmlToJson, type JsonNode } from "$lib/xmlUtils";
     import StripeBar from "$lib/components/StripeBar.svelte";
     import RibCageLayout from "$lib/components/RibCageLayout.svelte";
-    import { mapStore } from "$lib/stores/mapStore.svelte.ts";
+    import { mapStore } from "$lib/stores/mapStore.svelte";
+    import { fdsnFetch } from "$lib/utils/fdsnFetch";
 
     // Dummy data for the status list
     let statuses = $state<
@@ -23,9 +24,9 @@
         statuses = [];
         
         // URL with selected data source
-        const url = `${mapStore.dataSource.baseUrl}/fdsnws/station/1/query?${mapStore.urlParams}&level=station`;
+        const url = `${mapStore.dataSource.baseUrl}/fdsnws/station/1/query?${mapStore.urlParams}&level=station&nodata=404`;
 
-        fetch(url)
+        fdsnFetch(url, "/api/fdsn/station")
             .then((response) => {
                 if (!response.ok)
                     throw new Error("Gagal mengambil data jaringan");

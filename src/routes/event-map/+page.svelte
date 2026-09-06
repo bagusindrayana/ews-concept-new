@@ -12,6 +12,7 @@
   import Modal from "$lib/components/Modal.svelte";
   import RangeSlider from "$lib/components/RangeSlider.svelte";
   import Icon from "@iconify/svelte";
+  import { fdsnFetch } from "$lib/utils/fdsnFetch";
 
   let mapContainer: HTMLDivElement;
   let map: mapboxgl.Map;
@@ -209,7 +210,7 @@
     loadingScreen = true;
     try {
       const url = buildFdsnUrl();
-      const res = await fetch(url);
+      const res = await fdsnFetch(url, "/api/fdsn/event");
       if (!res.ok) throw new Error(`HTTP ${res.status}: ${res.statusText}`);
       const xmlText = await res.text();
 

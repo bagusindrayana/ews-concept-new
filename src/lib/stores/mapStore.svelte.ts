@@ -7,16 +7,17 @@ export interface DataSource {
     id: string;
     name: string;
     baseUrl: string;
+    seedLinkHost?: string;
 }
 
 export const DATA_SOURCES: DataSource[] = [
     { id: "geofon", name: "GEOFON (GFZ)", baseUrl: "https://geofon.gfz.de" },
-    { id: "iris", name: "IRIS", baseUrl: "https://service.iris.edu" },
+    { id: "iris", name: "IRIS (EarthScope)", baseUrl: "https://service.earthscope.org",seedLinkHost:"rtserve.earthscope.org" },
     { id: "knmi", name: "KNMI", baseUrl: "https://rdsa.knmi.nl" },
     { id: "ipgp", name: "IPGP", baseUrl: "https://ws.ipgp.fr" },
     { id: "bmkg", name: "BMKG", baseUrl: "https://geof.bmkg.go.id" },
     { id: "isc", name: "ISC AC", baseUrl: "https://www.isc.ac.uk" },
-    { id: "usgs", name: "USGS", baseUrl: "https://earthquake.usgs.gov" },
+    { id: "usgs", name: "USGS", baseUrl: "https://earthquake.usgs.gov",seedLinkHost:"cwbpub.cr.usgs.gov" },
 ];
 
 const DEFAULT_BBOX: BBox = [95, -11, 141, 6];

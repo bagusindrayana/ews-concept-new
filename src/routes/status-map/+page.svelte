@@ -9,7 +9,8 @@
     import mapboxgl from "mapbox-gl";
     import "mapbox-gl/dist/mapbox-gl.css";
     import * as turf from "@turf/turf";
-    import { mapStore } from "$lib/stores/mapStore.svelte.ts";
+    import { mapStore } from "$lib/stores/mapStore.svelte";
+    import { fdsnFetch } from "$lib/utils/fdsnFetch";
 
     let mapContainer: HTMLElement;
     let map: mapboxgl.Map;
@@ -26,9 +27,9 @@
         markers = [];
         networkStats = [];
 
-        const url = `${mapStore.dataSource.baseUrl}/fdsnws/station/1/query?${mapStore.urlParams}&level=station`;
+        const url = `${mapStore.dataSource.baseUrl}/fdsnws/station/1/query?${mapStore.urlParams}&level=station&nodata=404`;
 
-        fetch(url)
+        fdsnFetch(url, "/api/fdsn/station")
             .then((response) => {
                 if (!response.ok)
                     throw new Error("Gagal mengambil data jaringan");

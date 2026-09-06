@@ -12,7 +12,8 @@
     import HexGrid from "$lib/components/HexGrid.svelte";
     import HexShape from "$lib/components/HexShape.svelte";
     import StripeBar from "$lib/components/StripeBar.svelte";
-  import { mapStore } from "$lib/stores/mapStore.svelte.ts";
+    import { mapStore } from "$lib/stores/mapStore.svelte";
+    import { fdsnFetch } from "$lib/utils/fdsnFetch";
 
     export let data: PageData;
     let waveformChart: any;
@@ -20,6 +21,7 @@
     let stationData: any;
     let selectedChannel: any;
     let listChannel: any[] = [];
+    let seedLinkHost: string | undefined;
 
     let ws: WebSocket;
 
@@ -343,7 +345,7 @@
         const url = `${mapStore.dataSource.baseUrl}/fdsnws/dataselect/1/query?starttime=${encodeURIComponent(startISO)}&endtime=${encodeURIComponent(endISO)}&nodata=404&network=${network}&station=${station}&channel=${channel}`;
 
         try {
-            const response = await fetch(url);
+            const response = await fdsnFetch(url, "/api/fdsn/dataselect");
             if (!response.ok) {
                 historyError = `Gagal fetch data: HTTP ${response.status}`;
                 isLoadingHistory = false;
@@ -459,9 +461,9 @@
     }
 
     function loadDataStation(network: string, station: string) {
-        const url = `${mapStore.dataSource.baseUrl}/fdsnws/station/1/query?network=${network}&station=${station}&level=response&format=xml`;
+        const url = `${mapStore.dataSource.baseUrl}/fdsnws/station/1/query?network=${network}&station=${station}&level=response&format=xml&nodata=404`;
 
-        return fetch(url)
+        return fdsnFetch(url, "/api/fdsn/station")
             .then((response) => {
                 if (!response.ok)
                     throw new Error("Gagal mengambil data jaringan");
@@ -554,6 +556,7 @@
 
         await waveformService.init();
         await stationPromise;
+        seedLinkHost = mapStore.dataSource.seedLinkHost ?? sourceUrl.host;
 
         const wsUrl = PUBLIC_WEBSOCKET_URL || "ws://localhost:8080";
         ws = new WebSocket(wsUrl);
@@ -562,7 +565,7 @@
         ws.onopen = () => {
             
             const request = {
-                host: sourceUrl.host,
+                host: seedLinkHost,
                 net: data.networkCode ?? "GE",
                 sta: data.stationCode ?? "GSI",
                 cha: selectedChannel["@attributes"].code,
@@ -769,6 +772,7 @@
                                                 on:click={() => {
                                                     selectedChannel = channel;
                                                     const request = {
+                                                        host:seedLinkHost,
                                                         net:
                                                             data.networkCode ??
                                                             "GE",
@@ -784,6 +788,7 @@
                                                         ws.readyState ===
                                                             WebSocket.OPEN
                                                     ) {
+                                                        console.log(request);
                                                         ws.send(
                                                             JSON.stringify(
                                                                 request,
