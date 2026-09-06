@@ -4,5 +4,5 @@ compatibility_date = "2026-03-17"
 compatibility_flags = [ "nodejs_compat", "nodejs_als" ]
 [vars]
 PUBLIC_MAPBOX_ACCESS_TOKEN = "pk.eyJ1IjoiYmFndXNpbmRyYXlhbmEiLCJhIjoiY2p0dHMxN2ZhMWV5bjRlbnNwdGY4MHFuNSJ9.0j5UAU7dprNjZrouWnoJyg"
-PUBLIC_WEBSOCKET_URL = "ws://seedlink-websocket-production.up.railway.app"
+PUBLIC_WEBSOCKET_URL = "wss://seedlink-websocket-production.up.railway.app"
 PUBLIC_SOCKET_DATA_URL = "https://early-warning.potadev.com"
