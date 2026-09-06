@@ -40,6 +40,10 @@
   import RangeSlider from "$lib/components/RangeSlider.svelte";
   import { mapStore, DATA_SOURCES } from "$lib/stores/mapStore.svelte.ts";
 
+  import Map3D from "$lib/components/Map3D.svelte";
+
+  let map3d = $state<Map3D>();
+
   let mapContainer: HTMLDivElement;
   let map: mapboxgl.Map;
   let socket: any;
@@ -71,6 +75,9 @@
   let alertTsunami: TitikTsunami | null = $state(null);
   let infoTsunami: TitikTsunami | null = $state(null);
   let shakeMap: string | null = $state(null);
+  let show3DMap = $state(false);
+  let map3dLat = $state<number | null>(null);
+  let map3dLng = $state<number | null>(null);
 
   // Settings modal state
   let showSettingsModal = $state(false);
@@ -969,6 +976,8 @@
     initializeMapData();
   }
 
+  let handleOpen3DMap: ((e: MouseEvent) => void) | null = null;
+
   onMount(() => {
     map = new mapboxgl.Map({
       container: mapContainer,
@@ -993,6 +1002,21 @@
       }
       loadGeoJsonCoastline();
     });
+
+    handleOpen3DMap = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      const btn = target.closest(".open-3d-map");
+      if (!btn) return;
+      try {
+        const data = JSON.parse(btn.getAttribute("data-json") || "{}");
+        show3DMap = true;
+        map3dLat = data.lat;
+        map3dLng = data.lng;
+      } catch (err) {
+        console.error("Failed to parse 3D map data", err);
+      }
+    };
+    document.addEventListener("click", handleOpen3DMap);
   });
 
   onDestroy(() => {
@@ -1001,6 +1025,9 @@
       socket.disconnect();
     }
     if (timezoneInterval) clearInterval(timezoneInterval);
+    if (handleOpen3DMap) {
+      document.removeEventListener("click", handleOpen3DMap);
+    }
   });
 </script>
 
@@ -1040,10 +1067,7 @@
           showSnapshotModal = true;
         }}>SNAPSHOTS</button
       >
-      <a
-        class="ews-btn ews-btn-primary"
-        href="/status-ui">STATION</a
-      >
+      <a class="ews-btn ews-btn-primary" href="/status-ui">STATION</a>
     </div>
 
     <!-- MENU / X toggle button -->
@@ -1275,7 +1299,9 @@
       </label>
       <div class="grid grid-cols-1 gap-2">
         {#each DATA_SOURCES as ds}
-          <label class="flex items-center gap-3 p-2 border border-gray-700 hover:border-orange-500 cursor-pointer transition-colors">
+          <label
+            class="flex items-center gap-3 p-2 border border-gray-700 hover:border-orange-500 cursor-pointer transition-colors"
+          >
             <input
               type="radio"
               name="dataSource"
@@ -1662,6 +1688,41 @@
         </Card>
       {/each}
     {/if}
+
+      <!-- 3D MAP CARD -->
+  {#if show3DMap}
+      <Card className="show-pop-up pointer-events-auto max-w-[500px]">
+        {#snippet title()}
+        <div class="overflow-hidden w-full">
+          <StripeBar loop={false} reverse={true}></StripeBar>
+            <div
+              class="absolute top-0 bottom-0 left-0 right-0 flex justify-center items-center px-3"
+            >
+              <p class="p-1 bg-black font-bold ews-title text-xs lg:text-lg">
+                3D Map
+              </p>
+              <button
+                class="bg-black px-2 py-1 cursor-pointer absolute right-1"
+                style="color:#e60003"
+                onclick={() => { show3DMap = false; }}>X</button
+              >
+            </div>
+        </div>
+      {/snippet}
+
+        {#snippet children()}
+          <div class=" text-sm w-full p-1 lg:p-2" style="font-size:10px;">
+            <Map3D
+              bind:this={map3d}
+              lat={map3dLat ?? undefined}
+              lon={map3dLng ?? undefined}
+              bokeh={{ aperture: 0.0003, maxblur: 0.005 }}
+              range={2}
+            />
+          </div>
+        {/snippet}
+      </Card>
+  {/if}
   </div>
 
   <!-- EVENT LOG -->
@@ -1702,323 +1763,321 @@
       {/snippet}
     </Card>
   {/if}
+</div>
 
-  <!-- EARTHQUAKE DIRASAKAN SECTION -->
-  <div
-    id="gempa-bumi-dirasakan"
-    class="fixed bottom-6 left-2 right-2 md:right-3 md:left-3 flex flex-row md:flex-col-reverse lg:flex-row gap-2 justify-center md:justify-start lg:items-end items-end pointer-events-none"
-  >
-    {#if !loadingScreen && GempaDirasakan != undefined && GempaDirasakan != null && showGempaDirasakan}
-      <Card
-        className="no-snapshot block show-pop-up w-1/2 md:w-1/2 lg:w-2/5 xl:w-1/5 pointer-events-auto bordered-red"
-      >
-        {#snippet title()}
-          <StripeBar loop={true} color="red">
-            <div
-              class="absolute top-0 bottom-0 left-0 right-0 flex justify-center items-center"
-            >
-              <div
-                class="absolute top-0 bottom-0 left-0 right-0 flex justify-center items-center"
-              >
-                <p
-                  class="text-xs lg:text-lg bg-black font-bold p-1 ews-title text-3xl"
-                >
-                  LAST EARTHQUAKE FELT
-                </p>
-              </div>
-            </div>
-          </StripeBar>
-        {/snippet}
-        {#snippet footer()}
-          <button
-            class="flex justify-center w-full cursor-pointer"
-            onclick={() =>
-              GempaDirasakan && selectEvent(GempaDirasakan.infoGempa)}
-          >
-            <Icon icon="ri:map-pin-fill" width="20" height="20" />
-          </button>
-        {/snippet}
-        {#snippet children()}
+<!-- EARTHQUAKE DIRASAKAN SECTION -->
+<div
+  id="gempa-bumi-dirasakan"
+  class="fixed bottom-6 left-2 right-2 md:right-3 md:left-3 flex flex-row md:flex-col-reverse lg:flex-row gap-2 justify-center md:justify-start lg:items-end items-end pointer-events-none"
+>
+  {#if !loadingScreen && GempaDirasakan != undefined && GempaDirasakan != null && showGempaDirasakan}
+    <Card
+      className="no-snapshot block show-pop-up w-1/2 md:w-1/2 lg:w-2/5 xl:w-1/5 pointer-events-auto bordered-red"
+    >
+      {#snippet title()}
+        <StripeBar loop={true} color="red">
           <div
-            class="flex flex-col w-full justify-center items-center text-sm p-1 lg:p-2"
-            style="font-size:10px"
+            class="absolute top-0 bottom-0 left-0 right-0 flex justify-center items-center"
           >
-            <div class="w-full flex flex-col md:flex-row gap-2">
-              <div>
-                <div
-                  class="ews-title text-3xl internal bordered flex justify-between mb-2 w-full lg:w-32"
-                >
-                  <div class="flex flex-col items-center p-1">
-                    <div class="text -characters">
-                      {GempaDirasakan?.readableMag}
-                    </div>
-                    <div class="text">MAG</div>
-                  </div>
-                  <div class="decal">
-                    <div
-                      class="w-full h-full stripe-bar-red-vertical loop-stripe-vertical anim-duration-20"
-                    ></div>
-                    <div
-                      class="w-full h-full stripe-bar-red-vertical loop-stripe-vertical anim-duration-20"
-                    ></div>
-                  </div>
-                </div>
-                <p class=" font-bold">
-                  DEPTH : {GempaDirasakan?.readableDepth} KM
-                </p>
-              </div>
-              <div class="bordered p-1 lg:p-2 w-full">
-                <table class="w-full">
-                  <tbody>
-                    <tr
-                      ><td class="text-left p-0">TIME</td><td
-                        class="text-right p-0"
-                        >{GempaDirasakan?.infoGempa.time} WIB</td
-                      ></tr
-                    >
-                    <tr
-                      ><td class="text-left p-0">MAG</td><td
-                        class="text-right p-0"
-                        >{Number(GempaDirasakan?.infoGempa.mag).toFixed(1)}</td
-                      ></tr
-                    >
-                    <tr
-                      ><td class="text-left p-0">DEPTH</td><td
-                        class="text-right p-0"
-                        >{GempaDirasakan?.infoGempa.depth}</td
-                      ></tr
-                    >
-                    <tr
-                      ><td class="text-left p-0">LAT</td><td
-                        class="text-right p-0"
-                        >{GempaDirasakan?.infoGempa.lat}</td
-                      ></tr
-                    >
-                    <tr
-                      ><td class="text-left p-0">LNG</td><td
-                        class="text-right p-0"
-                        >{GempaDirasakan?.infoGempa.lng}</td
-                      ></tr
-                    >
-                  </tbody>
-                </table>
-              </div>
-            </div>
-            <div class="mt-2 bordered hidden lg:block">
-              <p class=" p-2 break-words">
-                {GempaDirasakan?.infoGempa.message}
-              </p>
-            </div>
-          </div>
-        {/snippet}
-      </Card>
-    {/if}
-
-    <!-- LAST DETECTED EARTHQUAKE -->
-    {#if !loadingScreen && GempaTerakhir != undefined && GempaTerakhir != null && showGempaTerdeteksi}
-      <Card
-        className="block show-pop-up w-1/2 md:w-1/4 lg:w-1/6 pointer-events-auto"
-      >
-        {#snippet title()}
-          <div class="overflow-hidden">
-            <StripeBar loop={true} reverse={true}></StripeBar>
             <div
               class="absolute top-0 bottom-0 left-0 right-0 flex justify-center items-center"
             >
-              <p class="bg-black font-bold p-1 ews-title text-xs lg:text-lg">
-                LAST DETECTED EARTHQUAKE
+              <p
+                class="text-xs lg:text-lg bg-black font-bold p-1 ews-title text-3xl"
+              >
+                LAST EARTHQUAKE FELT
               </p>
             </div>
           </div>
-        {/snippet}
-        {#snippet footer()}
-          <button
-            class="flex justify-center w-full cursor-pointer"
-            onclick={() =>
-              GempaTerakhir && selectEvent(GempaTerakhir.infoGempa)}
+        </StripeBar>
+      {/snippet}
+      {#snippet footer()}
+        <button
+          class="flex justify-center w-full cursor-pointer"
+          onclick={() =>
+            GempaDirasakan && selectEvent(GempaDirasakan.infoGempa)}
+        >
+          <Icon icon="ri:map-pin-fill" width="20" height="20" />
+        </button>
+      {/snippet}
+      {#snippet children()}
+        <div
+          class="flex flex-col w-full justify-center items-center text-sm p-1 lg:p-2"
+          style="font-size:10px"
+        >
+          <div class="w-full flex flex-col md:flex-row gap-2">
+            <div>
+              <div
+                class="ews-title text-3xl internal bordered flex justify-between mb-2 w-full lg:w-32"
+              >
+                <div class="flex flex-col items-center p-1">
+                  <div class="text -characters">
+                    {GempaDirasakan?.readableMag}
+                  </div>
+                  <div class="text">MAG</div>
+                </div>
+                <div class="decal">
+                  <div
+                    class="w-full h-full stripe-bar-red-vertical loop-stripe-vertical anim-duration-20"
+                  ></div>
+                  <div
+                    class="w-full h-full stripe-bar-red-vertical loop-stripe-vertical anim-duration-20"
+                  ></div>
+                </div>
+              </div>
+              <p class=" font-bold">
+                DEPTH : {GempaDirasakan?.readableDepth} KM
+              </p>
+            </div>
+            <div class="bordered p-1 lg:p-2 w-full">
+              <table class="w-full">
+                <tbody>
+                  <tr
+                    ><td class="text-left p-0">TIME</td><td
+                      class="text-right p-0"
+                      >{GempaDirasakan?.infoGempa.time} WIB</td
+                    ></tr
+                  >
+                  <tr
+                    ><td class="text-left p-0">MAG</td><td
+                      class="text-right p-0"
+                      >{Number(GempaDirasakan?.infoGempa.mag).toFixed(1)}</td
+                    ></tr
+                  >
+                  <tr
+                    ><td class="text-left p-0">DEPTH</td><td
+                      class="text-right p-0"
+                      >{GempaDirasakan?.infoGempa.depth}</td
+                    ></tr
+                  >
+                  <tr
+                    ><td class="text-left p-0">LAT</td><td
+                      class="text-right p-0">{GempaDirasakan?.infoGempa.lat}</td
+                    ></tr
+                  >
+                  <tr
+                    ><td class="text-left p-0">LNG</td><td
+                      class="text-right p-0">{GempaDirasakan?.infoGempa.lng}</td
+                    ></tr
+                  >
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div class="mt-2 bordered hidden lg:block">
+            <p class=" p-2 break-words">
+              {GempaDirasakan?.infoGempa.message}
+            </p>
+          </div>
+        </div>
+      {/snippet}
+    </Card>
+  {/if}
+
+  <!-- LAST DETECTED EARTHQUAKE -->
+  {#if !loadingScreen && GempaTerakhir != undefined && GempaTerakhir != null && showGempaTerdeteksi}
+    <Card
+      className="block show-pop-up w-1/2 md:w-1/4 lg:w-1/6 pointer-events-auto"
+    >
+      {#snippet title()}
+        <div class="overflow-hidden">
+          <StripeBar loop={true} reverse={true}></StripeBar>
+          <div
+            class="absolute top-0 bottom-0 left-0 right-0 flex justify-center items-center"
           >
-            <Icon icon="ri:map-pin-fill" width="20" height="20" />
-          </button>
-        {/snippet}
-        {#snippet children()}
-          <div class=" text-sm w-full p-1 lg:p-2" style="font-size:10px">
+            <p class="bg-black font-bold p-1 ews-title text-xs lg:text-lg">
+              LAST DETECTED EARTHQUAKE
+            </p>
+          </div>
+        </div>
+      {/snippet}
+      {#snippet footer()}
+        <button
+          class="flex justify-center w-full cursor-pointer"
+          onclick={() => GempaTerakhir && selectEvent(GempaTerakhir.infoGempa)}
+        >
+          <Icon icon="ri:map-pin-fill" width="20" height="20" />
+        </button>
+      {/snippet}
+      {#snippet children()}
+        <div class=" text-sm w-full p-1 lg:p-2" style="font-size:10px">
+          <table class="w-full">
+            <tbody>
+              <tr
+                ><td class="text-left">PLACE</td><td class="text-right"
+                  >{GempaTerakhir?.infoGempa.place}</td
+                ></tr
+              >
+              <tr
+                ><td class="text-left">TIME</td><td class="text-right"
+                  >{GempaTerakhir?.readableTime} WIB</td
+                ></tr
+              >
+              <tr
+                ><td class="text-left">MAG</td><td class="text-right"
+                  >{Number(GempaTerakhir?.infoGempa.mag).toFixed(1)}</td
+                ></tr
+              >
+              <tr
+                ><td class="text-left">DEPTH</td><td class="text-right"
+                  >{GempaTerakhir?.readableDepth} KM</td
+                ></tr
+              >
+              <tr
+                ><td class="text-left">LAT</td><td class="text-right"
+                  >{GempaTerakhir?.infoGempa.lat}</td
+                ></tr
+              >
+              <tr
+                ><td class="text-left">LNG</td><td class="text-right"
+                  >{GempaTerakhir?.infoGempa.lng}</td
+                ></tr
+              >
+            </tbody>
+          </table>
+        </div>
+      {/snippet}
+    </Card>
+  {/if}
+</div>
+
+<div
+  class="hidden md:flex right-0 bottom-0 left-0 md:left-auto md:bottom-6 md:right-3 fixed pointer-events-none gap-2 justify-end items-end"
+>
+  <!-- DETAIL INFO EARTHQUAKE & SHAKEMAP -->
+  {#if !loadingScreen && detailInfoGempa != undefined && detailInfoGempa != null && showDetailEvent}
+    <Card
+      className=" show-pop-up pointer-events-auto max-w-[100vw] md:max-w-100 "
+    >
+      {#snippet title()}
+        <div class="flex justify-between">
+          <p class="font-bold -red text-sm">DETAIL EVENT</p>
+          <button
+            onclick={() => {
+              if (selectedPopup) selectedPopup.remove();
+              detailInfoGempa = null;
+            }}>X</button
+          >
+        </div>
+      {/snippet}
+      {#snippet children()}
+        <div
+          class="flex flex-col w-full gap-2 text-sm w-full p-1 lg:p-2"
+          style="font-size:10px"
+        >
+          <div class="bordered p-1 md:p-2">
             <table class="w-full">
               <tbody>
                 <tr
-                  ><td class="text-left">PLACE</td><td class="text-right"
-                    >{GempaTerakhir?.infoGempa.place}</td
+                  ><td class="text-left flex">PLACE</td><td
+                    class="text-right break-words pl-1 md:pl-2"
+                    >{detailInfoGempa?.place}</td
                   ></tr
                 >
                 <tr
-                  ><td class="text-left">TIME</td><td class="text-right"
-                    >{GempaTerakhir?.readableTime} WIB</td
+                  ><td class="text-left flex">TIME</td><td
+                    class="text-right break-words pl-1 md:pl-2"
+                    data-time={detailInfoGempa?.time}
+                    >{detailInfoGempa?.time} WIB</td
                   ></tr
                 >
                 <tr
-                  ><td class="text-left">MAG</td><td class="text-right"
-                    >{Number(GempaTerakhir?.infoGempa.mag).toFixed(1)}</td
+                  ><td class="text-left flex">MAG</td><td
+                    class="text-right break-words pl-1 md:pl-2"
+                    >{Number(detailInfoGempa?.mag).toFixed(1)}</td
                   ></tr
                 >
                 <tr
-                  ><td class="text-left">DEPTH</td><td class="text-right"
-                    >{GempaTerakhir?.readableDepth} KM</td
+                  ><td class="text-left flex">DEPTH</td><td
+                    class="text-right break-words pl-1 md:pl-2"
+                    >{parseFloat(
+                      String(detailInfoGempa?.depth).replace("Km", ""),
+                    ).toFixed(2)} KM</td
                   ></tr
                 >
                 <tr
-                  ><td class="text-left">LAT</td><td class="text-right"
-                    >{GempaTerakhir?.infoGempa.lat}</td
+                  ><td class="text-left flex">LAT</td><td
+                    class="text-right break-words pl-1 md:pl-2"
+                    >{detailInfoGempa?.lat}</td
                   ></tr
                 >
                 <tr
-                  ><td class="text-left">LNG</td><td class="text-right"
-                    >{GempaTerakhir?.infoGempa.lng}</td
+                  ><td class="text-left flex">LNG</td><td
+                    class="text-right break-words pl-1 md:pl-2"
+                    >{detailInfoGempa?.lng}</td
                   ></tr
                 >
               </tbody>
             </table>
           </div>
-        {/snippet}
-      </Card>
-    {/if}
-  </div>
-
-  <div
-    class="hidden md:block right-0 bottom-0 left-0 md:left-auto md:bottom-6 md:right-3 fixed pointer-events-none flex gap-2 justify-end items-end"
-  >
-    <!-- DETAIL INFO EARTHQUAKE & SHAKEMAP -->
-    {#if !loadingScreen && detailInfoGempa != undefined && detailInfoGempa != null && showDetailEvent}
-      <Card
-        className=" show-pop-up pointer-events-auto max-w-[100vw] md:max-w-100 "
-      >
-        {#snippet title()}
-          <div class="flex justify-between">
-            <p class="font-bold -red text-sm">DETAIL EVENT</p>
-            <button
-              onclick={() => {
-                if (selectedPopup) selectedPopup.remove();
-                detailInfoGempa = null;
-              }}>X</button
-            >
-          </div>
-        {/snippet}
-        {#snippet children()}
           <div
-            class="flex flex-col w-full gap-2 text-sm w-full p-1 lg:p-2"
-            style="font-size:10px"
+            class="bordered pl-1 md:p-2 overflow-auto max-h-60 custom-scrollbar"
           >
-            <div class="bordered p-1 md:p-2">
-              <table class="w-full">
-                <tbody>
-                  <tr
-                    ><td class="text-left flex">PLACE</td><td
-                      class="text-right break-words pl-1 md:pl-2"
-                      >{detailInfoGempa?.place}</td
-                    ></tr
-                  >
-                  <tr
-                    ><td class="text-left flex">TIME</td><td
-                      class="text-right break-words pl-1 md:pl-2"
-                      data-time={detailInfoGempa?.time}
-                      >{detailInfoGempa?.time} WIB</td
-                    ></tr
-                  >
-                  <tr
-                    ><td class="text-left flex">MAG</td><td
-                      class="text-right break-words pl-1 md:pl-2"
-                      >{Number(detailInfoGempa?.mag).toFixed(1)}</td
-                    ></tr
-                  >
-                  <tr
-                    ><td class="text-left flex">DEPTH</td><td
-                      class="text-right break-words pl-1 md:pl-2"
-                      >{parseFloat(
-                        String(detailInfoGempa?.depth).replace("Km", ""),
-                      ).toFixed(2)} KM</td
-                    ></tr
-                  >
-                  <tr
-                    ><td class="text-left flex">LAT</td><td
-                      class="text-right break-words pl-1 md:pl-2"
-                      >{detailInfoGempa?.lat}</td
-                    ></tr
-                  >
-                  <tr
-                    ><td class="text-left flex">LNG</td><td
-                      class="text-right break-words pl-1 md:pl-2"
-                      >{detailInfoGempa?.lng}</td
-                    ></tr
-                  >
-                </tbody>
-              </table>
-            </div>
-            <div
-              class="bordered pl-1 md:p-2 overflow-auto max-h-60 custom-scrollbar"
+            <table
+              id="histori_tabel"
+              style="font-size:10px"
+              class="w-full text-right"
             >
-              <table
-                id="histori_tabel"
-                style="font-size:10px"
-                class="w-full text-right"
-              >
-                <thead>
-                  <tr
-                    ><th class="p-1">Time(UTC)</th><th class="p-1">+OT(min)</th
-                    ><th class="p-1">Lat</th><th class="p-1">Lng</th><th
-                      class="p-1">Depth</th
-                    ><th class="p-1">Phase</th><th class="p-1">MagType</th><th
-                      class="p-1">Mag</th
-                    ><th class="p-1">MagCount</th><th class="p-1">Status</th
-                    ></tr
-                  >
-                </thead>
-                <tbody>
-                  {#each historyRecords as row}
-                    <tr>
-                      {#each row as cell}
-                        <td class="p-1">{cell}</td>
-                      {/each}
-                    </tr>
-                  {/each}
-                </tbody>
-              </table>
-            </div>
+              <thead>
+                <tr
+                  ><th class="p-1">Time(UTC)</th><th class="p-1">+OT(min)</th
+                  ><th class="p-1">Lat</th><th class="p-1">Lng</th><th
+                    class="p-1">Depth</th
+                  ><th class="p-1">Phase</th><th class="p-1">MagType</th><th
+                    class="p-1">Mag</th
+                  ><th class="p-1">MagCount</th><th class="p-1">Status</th></tr
+                >
+              </thead>
+              <tbody>
+                {#each historyRecords as row}
+                  <tr>
+                    {#each row as cell}
+                      <td class="p-1">{cell}</td>
+                    {/each}
+                  </tr>
+                {/each}
+              </tbody>
+            </table>
           </div>
-        {/snippet}
-      </Card>
-    {/if}
+        </div>
+      {/snippet}
+    </Card>
+  {/if}
 
-    <!-- SHAKEMAP -->
-    {#if shakeMap && showShakeMap}
-      <Card className="show-pop-up pointer-events-auto">
-        {#snippet title()}
-          <div class="flex justify-between">
-            <p class="font-bold -red text-sm">SHAKEMAP</p>
-            <button
-              onclick={() => {
-                shakeMap = null;
-              }}>X</button
-            >
-          </div>
-        {/snippet}
-        {#snippet children()}
-          <div class="p-1 lg:p-2 w-full">
-            <a
-              href={"https://bmkg-content-inatews.storage.googleapis.com/" +
+  <!-- SHAKEMAP -->
+  {#if shakeMap && showShakeMap}
+    <Card className="show-pop-up pointer-events-auto">
+      {#snippet title()}
+        <div class="flex justify-between">
+          <p class="font-bold -red text-sm">SHAKEMAP</p>
+          <button
+            onclick={() => {
+              shakeMap = null;
+            }}>X</button
+          >
+        </div>
+      {/snippet}
+      {#snippet children()}
+        <div class="p-1 lg:p-2 w-full">
+          <a
+            href={"https://bmkg-content-inatews.storage.googleapis.com/" +
+              shakeMap}
+            target="_blank"
+          >
+            <img
+              src={"https://bmkg-content-inatews.storage.googleapis.com/" +
                 shakeMap}
-              target="_blank"
-            >
-              <img
-                src={"https://bmkg-content-inatews.storage.googleapis.com/" +
-                  shakeMap}
-                alt=""
-                width="300"
-                style="filter: invert(1)"
-              />
-            </a>
-          </div>
-        {/snippet}
-      </Card>
-    {/if}
-  </div>
+              alt=""
+              width="300"
+              style="filter: invert(1)"
+            />
+          </a>
+        </div>
+      {/snippet}
+    </Card>
+  {/if}
+
+
 
   <!-- MOBILE WARNING CARD -->
   {#if !loadingScreen && alertGempaBumi && GempaDirasakan != undefined && GempaDirasakan != null}
