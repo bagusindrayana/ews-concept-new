@@ -85,7 +85,7 @@
                             closeOnClick: true,
                         }).setHTML(`
                             <div class="bordered" style="background-color: black; padding: 5px;">
-                                <h3 style="margin: 0 0 5px 0; font-size: 16px;">${(stationNode as any)["@attributes"]["code"]}</h3>
+                                <h3 style="margin: 0 0 5px 0; font-size: 16px;"><a class="underline" href="/realtime?networkCode=${(networkNode as any)["@attributes"]["code"]}&stationCode=${(stationNode as any)["@attributes"]["code"]}" target="_blank">${(networkNode as any)["@attributes"]["code"]} - ${(stationNode as any)["@attributes"]["code"]}</a></h3>
                                 <p style="margin: 0; font-size: 14px;">${(stationNode as any).Site.Name}</p>
                             </div>
                         `);
