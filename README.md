@@ -27,7 +27,7 @@ Before running this project, ensure you have installed:
    
    For Windows (Command Prompt/PowerShell):
    ```cmd
-   copy .env.example .env
+   copy .env.example .env or .dev.vars
    ```
    
    For Mac/Linux:
