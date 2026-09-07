@@ -97,7 +97,7 @@
         position: absolute;
         height: 100%;
         background: var(--orange);
-        box-shadow: 0 0 10px var(--orange);
+        /* box-shadow: 0 0 10px var(--orange); */
     }
 
     .range-slider-handle {
