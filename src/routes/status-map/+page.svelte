@@ -80,7 +80,7 @@
                         markerEl.style.cursor = "pointer";
 
                         const customPopup = new mapboxgl.Popup({
-                            offset: 28,
+                            offset: 14,
                             closeButton: true,
                             closeOnClick: true,
                         }).setHTML(`
@@ -226,11 +226,11 @@
     });
 
     // Refetch stations when data source changes
-    $effect(() => {
-        if (map) {
-            fetchStations();
-        }
-    });
+    // $effect(() => {
+    //     if (map) {
+    //         fetchStations();
+    //     }
+    // });
 
     onDestroy(() => {
         if (map) map.remove();

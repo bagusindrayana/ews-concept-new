@@ -91,9 +91,9 @@
     });
 
     // Refetch statuses when data source changes
-    $effect(() => {
-        fetchStatuses();
-    });
+    // $effect(() => {
+    //     fetchStatuses();
+    // });
 
     onDestroy(() => {
         console.log("Component destroyed");
