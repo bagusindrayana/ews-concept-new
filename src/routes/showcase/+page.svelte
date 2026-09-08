@@ -17,6 +17,10 @@
   import ThreadedComments, {
     type ThreadTone,
   } from "$lib/components/ThreadedComments.svelte";
+  import MagiBusSwitch, { type MagiNodeItem } from "$lib/components/MagiBusSwitch.svelte";
+
+  let lastMagiNodeId = $state<string | null>(null);
+  let lastMagiNodeConnected = $state<boolean | null>(null);
 
   let showGempaBumiAlert = $state(false);
   let showTsunamiAlert = $state(false);
@@ -951,6 +955,88 @@
         Mental Toxicity Level
       </h2>
       <MentalToxicityLevel />
+    </section>
+
+    <!-- MAGI BUS SYNC SWITCH (NERVE LINK DATA TOGGLE) -->
+    <section class="col-span-1 md:col-span-2 lg:col-span-3">
+      <div class="flex items-center justify-between mb-4 border-b border-gray-700 pb-2">
+        <div>
+          <h2 class="text-xl font-semibold">
+            MAGI Bus Sync Switch (Nerve Link Data Toggle)
+          </h2>
+          <p class="text-xs text-gray-400 mt-1">
+            Visual bus sirkuit MAGI Evangelion: Node berupa blok kapsul hitam dengan ID numerik monospaced hijau neon.
+            Saat terputus (severed/off), node berpisah menjadi 2 bagian dengan konektor socket/plug dan benang/garis sirkuit mengendur melengkung (wavy S-curve).
+          </p>
+        </div>
+      </div>
+
+      <!-- Callback Feedback Banner -->
+      <div class="flex items-center justify-between px-3 py-2 bg-neutral-900 border border-neutral-700 rounded mb-4 font-mono text-xs">
+        <div class="flex items-center gap-2">
+          <span class="text-neutral-400">LAST TOGGLED:</span>
+          {#if lastMagiNodeId}
+            <span class="text-orange-400 font-bold">{lastMagiNodeId}</span>
+            <span class="text-neutral-500">→</span>
+            <span class="font-bold {lastMagiNodeConnected ? 'text-emerald-400' : 'text-rose-500'}">
+              {lastMagiNodeConnected ? "CONNECTED (ON)" : "SEVERED (OFF)"}
+            </span>
+          {:else}
+            <span class="text-neutral-500 italic">None (klik node di board atau switch di bawah)</span>
+          {/if}
+        </div>
+        <span class="text-[11px] text-neutral-500 hidden sm:inline">
+          Preset 1: Gambar 1 | Preset 2: Gambar 2
+        </span>
+      </div>
+
+      <!-- 1. Full Board Variant -->
+      <div class="mb-6">
+        <MagiBusSwitch
+          variant="board"
+          onToggle={(node, isConn) => {
+            lastMagiNodeId = node.id;
+            lastMagiNodeConnected = isConn;
+          }}
+        />
+      </div>
+
+      <!-- 2. Compact Variants: Single Switch & Data Rack -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
+        <!-- Single Toggle Switch -->
+        <div class="p-4 bg-neutral-900 border border-neutral-800 rounded flex flex-col gap-3">
+          <div>
+            <h3 class="font-bold text-sm text-neutral-200">Standalone Switch Variant</h3>
+            <p class="text-xs text-neutral-400 mt-0.5">
+              Komponen saklar ringkas untuk form setting atau panel kontrol data.
+            </p>
+          </div>
+          <MagiBusSwitch
+            variant="single"
+            onToggle={(node, isConn) => {
+              lastMagiNodeId = "STANDALONE-00130";
+              lastMagiNodeConnected = isConn;
+            }}
+          />
+        </div>
+
+        <!-- Data Rack Variant -->
+        <div class="p-4 bg-neutral-900 border border-neutral-800 rounded flex flex-col gap-3">
+          <div>
+            <h3 class="font-bold text-sm text-neutral-200">Rack Channels Variant</h3>
+            <p class="text-xs text-neutral-400 mt-0.5">
+              Daftar channel vertikal untuk toggle stream individual (BMKG, Buoy, FDSNWS).
+            </p>
+          </div>
+          <MagiBusSwitch
+            variant="rack"
+            onToggle={(node, isConn) => {
+              lastMagiNodeId = node.id;
+              lastMagiNodeConnected = isConn;
+            }}
+          />
+        </div>
+      </div>
     </section>
   </div>
 </div>
