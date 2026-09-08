@@ -868,7 +868,7 @@
                                     style="color: #fa0; opacity: 0.75;"
                                     title={miniseedFileName}
                                 >
-                                    📼 {miniseedFileName}
+                                    {miniseedFileName}
                                 </div>
                             {/if}
                             {#if miniseedError}
@@ -1021,7 +1021,7 @@
             </div>
 
             <div
-                class="bordered-red p-1 lg:p-2 overflow-y-auto h-24 text-primary text-xs"
+                class="bordered-red p-1 lg:p-2 overflow-y-auto custom-scrollbar h-24 text-primary text-xs"
                 style="text-box: trim-both cap alphabetic;"
             >
                 <pre>{logMessages}</pre>

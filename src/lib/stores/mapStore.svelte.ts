@@ -41,10 +41,11 @@ export const DATA_SOURCES: DataSource[] = [
 
 const DEFAULT_BBOX: BBox = [95, -11, 141, 6];
 const DEFAULT_DATA_SOURCE_ID = "geofon";
+const MAX_DATA_SOURCES = 3;
 
 class MapStore {
     #bbox = $state<BBox>(DEFAULT_BBOX);
-    #dataSourceId = $state<string>(DEFAULT_DATA_SOURCE_ID);
+    #dataSourceIds = $state<string[]>([DEFAULT_DATA_SOURCE_ID]);
 
     constructor() {
         if (browser) {
@@ -57,9 +58,17 @@ class MapStore {
                 }
             }
 
+            const savedDataSources = localStorage.getItem("data_source_ids");
             const savedDataSource = localStorage.getItem("data_source_id");
-            if (savedDataSource) {
-                this.#dataSourceId = savedDataSource;
+            if (savedDataSources) {
+                try {
+                    const ids = JSON.parse(savedDataSources);
+                    if (Array.isArray(ids)) this.dataSourceIds = ids;
+                } catch (e) {
+                    console.error("Failed to parse saved data sources", e);
+                }
+            } else if (savedDataSource) {
+                this.dataSourceIds = [savedDataSource];
             }
         }
     }
@@ -76,18 +85,51 @@ class MapStore {
     }
 
     get dataSourceId() {
-        return this.#dataSourceId;
+        return this.#dataSourceIds[0];
     }
 
     set dataSourceId(id: string) {
-        this.#dataSourceId = id;
+        this.dataSourceIds = [id];
+    }
+
+    get dataSourceIds() {
+        return this.#dataSourceIds;
+    }
+
+    set dataSourceIds(ids: string[]) {
+        const validIds = ids.filter((id, index) =>
+            DATA_SOURCES.some((ds) => ds.id === id) && ids.indexOf(id) === index,
+        ).slice(0, MAX_DATA_SOURCES);
+        this.#dataSourceIds = validIds.length > 0 ? validIds : [DEFAULT_DATA_SOURCE_ID];
         if (browser) {
-            localStorage.setItem("data_source_id", id);
+            localStorage.setItem("data_source_ids", JSON.stringify(this.#dataSourceIds));
+            localStorage.setItem("data_source_id", this.#dataSourceIds[0]);
         }
     }
 
+    toggleDataSource(id: string) {
+        if (this.#dataSourceIds.includes(id)) {
+            if (this.#dataSourceIds.length === 1) return;
+            this.dataSourceIds = this.#dataSourceIds.filter((sourceId) => sourceId !== id);
+            return;
+        }
+        if (this.#dataSourceIds.length < MAX_DATA_SOURCES) {
+            this.dataSourceIds = [...this.#dataSourceIds, id];
+        }
+    }
+
+    isDataSourceSelected(id: string) {
+        return this.#dataSourceIds.includes(id);
+    }
+
     get dataSource(): DataSource {
-        return DATA_SOURCES.find((ds) => ds.id === this.#dataSourceId) || DATA_SOURCES[0];
+        return DATA_SOURCES.find((ds) => ds.id === this.dataSourceId) || DATA_SOURCES[0];
+    }
+
+    get dataSources(): DataSource[] {
+        return this.#dataSourceIds
+            .map((id) => DATA_SOURCES.find((ds) => ds.id === id))
+            .filter((ds): ds is DataSource => Boolean(ds));
     }
 
     get urlParams() {

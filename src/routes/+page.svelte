@@ -36,6 +36,8 @@
   import Icon from "@iconify/svelte";
   import SerialStatus from "$lib/components/SerialStatus.svelte";
   import RangeSlider from "$lib/components/RangeSlider.svelte";
+  import HexGrid from "$lib/components/HexGrid.svelte";
+  import HexShape from "$lib/components/HexShape.svelte";
   import { mapStore, DATA_SOURCES } from "$lib/stores/mapStore.svelte.ts";
 
   let mapContainer: HTMLDivElement;
@@ -1271,31 +1273,35 @@
       <label class="font-bold uppercase text-xs" style="color:var(--orange)">
         FDSN DATA SOURCE
       </label>
-      <div class="grid grid-cols-3 gap-2">
-        {#each DATA_SOURCES as ds}
+      <HexGrid variant="flat" hexWidth={83*1.5} hexHeight={72*1.5} align="center">
+        {#each DATA_SOURCES as ds,dsIndex}
           <label
-            class="flex flex-col items-center justify-center py-2 px-2 text-center cursor-pointer transition-all duration-150 select-none relative min-h-[52px] {mapStore.dataSourceId === ds.id
-              ? 'bg-[#00FF80] text-black font-extrabold shadow-[0_0_10px_rgba(0,255,128,0.4)]'
-              : 'bg-[#E60003] text-primary font-bold hover:brightness-110'}"
+            class="ews-hex-hive flat opacity-0 show-pop-up cursor-pointer" style="animation-delay: {Math.min(
+                                            dsIndex * 25,
+                                            1000,
+                                        )}ms;"
           >
             <input
-              type="radio"
-              name="dataSource"
+              type="checkbox"
               value={ds.id}
-              bind:group={mapStore.dataSourceId}
+              checked={mapStore.isDataSourceSelected(ds.id)}
+              onchange={() => mapStore.toggleDataSource(ds.id)}
               class="sr-only"
             />
-            <span class="text-xs sm:text-sm font-black uppercase tracking-wide leading-tight truncate max-w-full">
-              {ds.name}
-            </span>
-            <span
-              class="text-[10px] mt-0.5 opacity-85 truncate max-w-full font-mono"
+            <HexShape
+              clipContent={true}
+              color={mapStore.isDataSourceSelected(ds.id) ? "fdsn-selected text-black" : "text-[#FFC358]"}
+              className="w-full h-full transition-all duration-150 hover:brightness-125"
             >
-              {ds.baseUrl}
-            </span>
+              <div class="w-full h-full flex flex-col items-center justify-center text-center  px-5" title="{ds.name} : {ds.baseUrl}">
+                <span class="text-[16px] font-black uppercase tracking-wide leading-tight truncate max-w-full">{ds.name}</span>
+                <!-- <span class="text-[9px] mt-0.5 opacity-85 truncate max-w-full font-mono">{ds.baseUrl}</span> -->
+              </div>
+            </HexShape>
+            
           </label>
         {/each}
-      </div>
+      </HexGrid>
     </div>
 
     <!-- Separator -->
@@ -1460,7 +1466,7 @@
           </div>
           {#if alertGempaBumi?.mag != undefined && alertGempaBumi?.mag >= 5}
             <div
-              class="bordered-red p-2 overflow-y-auto custom-scrollbar mt-2 pointer-events-auto"
+              class="bordered-red p-2 overflow-y-auto custom-scrollbar m-2 pointer-events-auto"
               style="max-height:20vh"
             >
               <ul>
@@ -1521,7 +1527,7 @@
           </div>
           {#if infoTsunami?.infoTsunami.level?.includes("PD-1") || infoTsunami?.infoTsunami.level?.includes("PD-2")}
             <div
-              class="bordered-red p-2 overflow-y-auto custom-scrollbar mt-2 pointer-events-auto"
+              class="bordered-red p-2 overflow-y-auto custom-scrollbar m-2 pointer-events-auto"
               style="max-height:20vh"
             >
               <ul>
@@ -1637,7 +1643,7 @@
             </div>
             {#if agi.mag >= 5}
               <div
-                class="bordered-red p-2 overflow-y-auto custom-scrollbar mt-2 pointer-events-auto"
+                class="bordered-red p-2 overflow-y-auto custom-scrollbar m-2 pointer-events-auto"
                 style="max-height:20vh"
               >
                 <ul>

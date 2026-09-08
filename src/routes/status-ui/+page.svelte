@@ -19,33 +19,39 @@
         }[]
     >([]);
 
-    function fetchStatuses() {
+    async function fetchStatuses() {
         // Clear existing statuses
         statuses = [];
         
         // URL with selected data source
-        const url = `${mapStore.dataSource.baseUrl}/fdsnws/station/1/query?${mapStore.urlParams}&level=station&nodata=404&channel=BH?,SH?`;
+        // const url = `${mapStore.dataSource.baseUrl}/fdsnws/station/1/query?${mapStore.urlParams}&level=station&nodata=404&channel=BH?,SH?`;
 
-        fdsnFetch(url, "/api/fdsn/station")
-            .then((response) => {
-                if (!response.ok)
-                    throw new Error("Gagal mengambil data jaringan");
-                return response.text();
-            })
-            .then((xmlString) => {
-                const el = document.getElementById("loading-screen");
-                if (el) el.style.display = "none";
-                const data = xmlToJson(xmlString);
-                const fdsn = data.FDSNStationXML as JsonNode;
-                const networksList = fdsn.Network as JsonNode[];
+        const stationResults = await Promise.allSettled(
+            mapStore.dataSources.map(async (source) => {
+                const url = `${source.baseUrl}/fdsnws/station/1/query?${mapStore.urlParams}&level=station&nodata=404&channel=BH?,SH?`;
+                const response = await fdsnFetch(url, "/api/fdsn/station");
+                if (!response.ok) throw new Error(`${source.name}: HTTP ${response.status}`);
+                return xmlToJson(await response.text());
+            }),
+        );
 
-                // Handle both single network and multiple networks
-                const networks = Array.isArray(networksList)
-                    ? networksList
-                    : [networksList];
+        const el = document.getElementById("loading-screen");
+        if (el) el.style.display = "none";
 
-                console.log("Ada hasil " + networks.length);
-                networks.forEach((networkNode) => {
+        stationResults.forEach((result) => {
+            if (result.status === "rejected") {
+                console.error("Gagal mengambil data station:", result.reason);
+                return;
+            }
+
+            const fdsn = result.value.FDSNStationXML as JsonNode;
+            const networksList = fdsn?.Network as JsonNode[];
+            const networks = Array.isArray(networksList)
+                ? networksList
+                : networksList
+                  ? [networksList]
+                  : [];
+            networks.forEach((networkNode) => {
                     const netCode =
                         (networkNode["@attributes"] as any)?.code || "UNKNOWN";
                     const stationsList = networkNode.Station as JsonNode[];
@@ -76,14 +82,67 @@
                         });
                     });
                 });
-            })
-            .catch((error) => {
-                console.error("Terjadi kesalahan:", error);
-                setTimeout(() => {
-                    const el = document.getElementById("loading-screen");
-                    if (el) el.style.display = "none";
-                }, 1000);
-            });
+        });
+        
+
+        // fdsnFetch(url, "/api/fdsn/station")
+        //     .then((response) => {
+        //         if (!response.ok)
+        //             throw new Error("Gagal mengambil data jaringan");
+        //         return response.text();
+        //     })
+        //     .then((xmlString) => {
+        //         const el = document.getElementById("loading-screen");
+        //         if (el) el.style.display = "none";
+        //         const data = xmlToJson(xmlString);
+        //         const fdsn = data.FDSNStationXML as JsonNode;
+        //         const networksList = fdsn.Network as JsonNode[];
+
+        //         // Handle both single network and multiple networks
+        //         const networks = Array.isArray(networksList)
+        //             ? networksList
+        //             : [networksList];
+
+        //         console.log("Ada hasil " + networks.length);
+        //         networks.forEach((networkNode) => {
+        //             const netCode =
+        //                 (networkNode["@attributes"] as any)?.code || "UNKNOWN";
+        //             const stationsList = networkNode.Station as JsonNode[];
+
+        //             // Handle both single station and multiple stations
+        //             const stations = Array.isArray(stationsList)
+        //                 ? stationsList
+        //                 : [stationsList];
+
+        //             stations.forEach((stationNode) => {
+        //                 // console.log(stationNode);
+        //                 const staCode =
+        //                     (stationNode["@attributes"] as any)?.code ||
+        //                     "UNKNOWN";
+        //                 const startDate = (stationNode["@attributes"] as any)
+        //                     ?.startDate;
+        //                 const endDate = (stationNode["@attributes"] as any)
+        //                     ?.endDate;
+
+        //                 statuses.push({
+        //                     id: `${netCode}-${staCode}`,
+        //                     title: `${netCode}-${staCode}`,
+        //                     status: endDate ? "OFFLINE" : "ACTIVE",
+        //                     type: endDate ? "danger" : "normal",
+        //                     stationCode: `${staCode}`,
+        //                     networkCode: `${netCode}`,
+        //                     site: `${(stationNode["Site"] as any)?.Name || "UNKNOWN"}`,
+        //                 });
+        //             });
+        //         });
+        //     })
+        //     .catch((error) => {
+        //         console.error("Terjadi kesalahan:", error);
+        //         setTimeout(() => {
+        //             const el = document.getElementById("loading-screen");
+        //             if (el) el.style.display = "none";
+        //         }, 1000);
+        //     });
     }
 
     onMount(() => {
@@ -119,6 +178,10 @@
             class="ews-btn ews-btn-primary scale-75 md:scale-100 pointer-events-auto"
             href="/status-map">STATION MAP</a
         >
+        <a
+        class="ews-btn ews-btn-primary scale-75 md:scale-100 pointer-events-auto"
+        href="/magi">MAGI</a
+      >
     </div>
 
     <div

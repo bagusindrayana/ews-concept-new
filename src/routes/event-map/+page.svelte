@@ -11,6 +11,8 @@
   import { createGempaPopupHTML } from "$lib/utils/mapUtils";
   import Modal from "$lib/components/Modal.svelte";
   import RangeSlider from "$lib/components/RangeSlider.svelte";
+  import HexGrid from "$lib/components/HexGrid.svelte";
+  import HexShape from "$lib/components/HexShape.svelte";
   import Icon from "@iconify/svelte";
   import { fdsnFetch } from "$lib/utils/fdsnFetch";
 
@@ -99,8 +101,7 @@
    * minmagnitude/maxmagnitude/mindepth/maxdepth are sent to the server
    * to reduce payload; time filtering is done client-side after parse.
    */
-  function buildFdsnUrl(): string {
-    const base = mapStore.dataSource.baseUrl;
+  function buildFdsnUrl(base: string): string {
     const endtime = new Date().toISOString();
     const starttime = new Date(Date.now() - 7 * 24 * 3_600_000).toISOString(); // always fetch max 7 days
 
@@ -209,18 +210,40 @@
     loadingError = null;
     loadingScreen = true;
     try {
-      const url = buildFdsnUrl();
-      const res = await fdsnFetch(url, "/api/fdsn/event");
-      if (!res.ok) throw new Error(`HTTP ${res.status}: ${res.statusText}`);
-      const xmlText = await res.text();
+      const results = await Promise.allSettled(
+        mapStore.dataSources.map(async (source) => {
+          const res = await fdsnFetch(buildFdsnUrl(source.baseUrl), "/api/fdsn/event");
+          if (!res.ok) throw new Error(`${source.name}: HTTP ${res.status}`);
+          return parseQuakeML(await res.text());
+        }),
+      );
+      const features: any[] = [];
+      const eventKeys = new Set<string>();
+      const errors: string[] = [];
 
-      const features = parseQuakeML(xmlText);
+      results.forEach((result) => {
+        if (result.status === "rejected") {
+          errors.push(result.reason instanceof Error ? result.reason.message : String(result.reason));
+          return;
+        }
+        result.value.forEach((feature) => {
+          const [lng, lat] = feature.geometry.coordinates;
+          const eventKey = `${feature.properties.time}|${Number(lat).toFixed(3)}|${Number(lng).toFixed(3)}|${Number(feature.properties.mag).toFixed(1)}`;
+          if (!eventKeys.has(eventKey)) {
+            eventKeys.add(eventKey);
+            features.push(feature);
+          }
+        });
+      });
+      if (features.length === 0 && errors.length > 0) {
+        throw new Error(errors.join("; "));
+      }
       allFeatures = features;
       eventCount = features.length;
       addEarthquakeLayer(features);
     } catch (err: any) {
       console.error("Failed to load FDSN XML data:", err);
-      loadingError = `Failed to load data from ${mapStore.dataSource.name}: ${err.message}`;
+      loadingError = `Failed to load data from ${mapStore.dataSources.map((source) => source.name).join(", ")}: ${err.message}`;
     } finally {
       loadingScreen = false;
     }
@@ -435,35 +458,35 @@
   <Modal bind:show={showSourceModal} title="DATA SOURCE" variant="large">
     <div class="flex flex-col gap-4 p-4">
       <p class="font-bold uppercase text-xs" style="color:var(--orange)">FDSN DATA SOURCE</p>
-      <div class="grid grid-cols-3 gap-2">
+      <HexGrid variant="flat" hexWidth={150} hexHeight={88} gap={6}>
         {#each DATA_SOURCES as ds}
           <label
-            class="flex flex-col items-center justify-center py-2 px-2 text-center cursor-pointer transition-all duration-150 select-none relative min-h-[52px] {mapStore.dataSourceId === ds.id
-              ? 'bg-[#00FF80] text-black font-extrabold shadow-[0_0_10px_rgba(0,255,128,0.4)]'
-              : 'bg-[#E60003] text-white font-bold hover:brightness-110'}"
+            class="w-full h-full cursor-pointer select-none relative"
           >
             <input
-              type="radio"
-              name="dataSource"
+              type="checkbox"
               value={ds.id}
-              bind:group={mapStore.dataSourceId}
+              checked={mapStore.isDataSourceSelected(ds.id)}
+              onchange={() => mapStore.toggleDataSource(ds.id)}
               class="sr-only"
             />
-            <span class="text-xs sm:text-sm font-black uppercase tracking-wide leading-tight truncate max-w-full">
-              {ds.name}
-            </span>
-            <span
-              class="text-[10px] mt-0.5 opacity-85 truncate max-w-full font-mono"
+            <HexShape
+              clipContent={true}
+              color={mapStore.isDataSourceSelected(ds.id) ? "fdsn-selected" : ""}
+              className="w-full h-full transition-all duration-150 hover:brightness-125"
             >
-              {ds.baseUrl}
-            </span>
+              <div class="w-full h-full flex flex-col items-center justify-center text-center text-black px-5">
+                <span class="text-[11px] sm:text-xs font-black uppercase tracking-wide leading-tight truncate max-w-full">{ds.name}</span>
+                <span class="text-[9px] mt-0.5 opacity-85 truncate max-w-full font-mono">{ds.baseUrl}</span>
+              </div>
+            </HexShape>
           </label>
         {/each}
-      </div>
+      </HexGrid>
 
       <p class="text-xs text-gray-500 uppercase leading-relaxed">
         Data is fetched directly from the selected FDSN provider at<br />
-        <span class="text-orange-500">{mapStore.dataSource.baseUrl}/fdsnws/event/1/query</span>
+        <span class="text-orange-500">{mapStore.dataSources.map((source) => source.baseUrl).join(", ")}/fdsnws/event/1/query</span>
       </p>
     </div>
 
@@ -483,7 +506,7 @@
       id="loading-screen"
     >
       <span class="loader"></span>
-      <p class="my-2 red-color p-2">LOADING FDSN EVENT DATA — {mapStore.dataSource.name}</p>
+      <p class="my-2 red-color p-2">LOADING FDSN EVENT DATA — {mapStore.dataSources.map((source) => source.name).join(", ")}</p>
     </div>
   {/if}
 
@@ -531,8 +554,8 @@
     style="font-size:10px; width:fit-content"
   >
     <span class="font-bold" style="color:var(--orange)">FDSN:</span>
-    <span>{mapStore.dataSource.name}</span>
-    <span class="text-gray-500">{mapStore.dataSource.baseUrl}</span>
+    <span>{mapStore.dataSources.map((source) => source.name).join(", ")}</span>
+    <span class="text-gray-500">{mapStore.dataSources.map((source) => source.baseUrl).join(", ")}</span>
     {#if eventCount > 0}
       <span style="color:var(--orange)">· {eventCount} events</span>
     {/if}

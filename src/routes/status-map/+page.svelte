@@ -21,109 +21,6 @@
 
     let networkStats = $state<any[]>([]);
 
-    function fetchStations() {
-        // Clear existing markers
-        markers.forEach((m) => m.remove());
-        markers = [];
-        networkStats = [];
-
-        const url = `${mapStore.dataSource.baseUrl}/fdsnws/station/1/query?${mapStore.urlParams}&level=station&nodata=404&channel=BH?,SH?`;
-
-        fdsnFetch(url, "/api/fdsn/station")
-            .then((response) => {
-                if (!response.ok)
-                    throw new Error("Gagal mengambil data jaringan");
-                return response.text();
-            })
-            .then((xmlString) => {
-                const el = document.getElementById("loading-screen");
-                if (el) el.style.display = "none";
-                const data = xmlToJson(xmlString);
-                const fdsn = data.FDSNStationXML as JsonNode;
-                const networksList = fdsn.Network as JsonNode[];
-
-                // Handle both single network and multiple networks
-                const networks = Array.isArray(networksList)
-                    ? networksList
-                    : networksList
-                      ? [networksList]
-                      : [];
-
-                networks.forEach((networkNode) => {
-                    let _totalStations = 0;
-                    let _activeStations = 0;
-                    let _inactiveStations = 0;
-                    const stationsList = networkNode.Station as JsonNode[];
-                    const stations = Array.isArray(stationsList)
-                        ? stationsList
-                        : stationsList
-                          ? [stationsList]
-                          : [];
-
-                    stations.forEach((stationNode) => {
-                        _totalStations++;
-                        const endDate = (stationNode["@attributes"] as any)
-                            ?.endDate;
-                        if (endDate) {
-                            _inactiveStations++;
-                        } else {
-                            _activeStations++;
-                        }
-
-                        const markerEl = document.createElement("div");
-                        markerEl.className = "custom-marker";
-                        markerEl.innerHTML = `
-                            <svg width="12" height="12" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M12 24L0 0H24L12 24Z" fill="#${endDate ? "ff0000" : "fa0"}" />
-                            </svg>
-                        `;
-                        markerEl.style.cursor = "pointer";
-
-                        const customPopup = new mapboxgl.Popup({
-                            offset: 14,
-                            closeButton: true,
-                            closeOnClick: true,
-                        }).setHTML(`
-                            <div class="bordered" style="background-color: black; padding: 5px;">
-                                <h3 style="margin: 0 0 5px 0; font-size: 16px;"><a class="underline" href="/realtime?networkCode=${(networkNode as any)["@attributes"]["code"]}&stationCode=${(stationNode as any)["@attributes"]["code"]}" target="_blank">${(networkNode as any)["@attributes"]["code"]} - ${(stationNode as any)["@attributes"]["code"]}</a></h3>
-                                <p style="margin: 0; font-size: 14px;">${(stationNode as any).Site.Name}</p>
-                            </div>
-                        `);
-
-                        const marker = new mapboxgl.Marker({
-                            element: markerEl,
-                            anchor: "bottom",
-                        })
-                            .setLngLat([
-                                parseFloat((stationNode as any).Longitude),
-                                parseFloat((stationNode as any).Latitude),
-                            ])
-                            .setPopup(customPopup)
-                            .addTo(map);
-
-                        markers.push(marker);
-                    });
-
-                    networkStats.push({
-                        id:
-                            (networkNode["@attributes"] as any)?.code ||
-                            "UNKNOWN",
-                        name:
-                            (networkNode["@attributes"] as any)?.code ||
-                            "UNKNOWN",
-                        total_channel: _totalStations,
-                        active_channel: _activeStations,
-                        inactive_channel: _inactiveStations,
-                    });
-                });
-            })
-            .catch((error) => {
-                console.error("Terjadi kesalahan:", error);
-                const el = document.getElementById("loading-screen");
-                if (el) el.style.display = "none";
-            });
-    }
-
     function toggleLock() {
         isLocked = !isLocked;
         if (map) {
@@ -139,6 +36,91 @@
                 map.touchZoomRotate.enable();
             }
         }
+    }
+
+    async function fetchStations() {
+        markers.forEach((marker) => marker.remove());
+        markers = [];
+        networkStats = [];
+
+        const stationResults = await Promise.allSettled(
+            mapStore.dataSources.map(async (source) => {
+                const url = `${source.baseUrl}/fdsnws/station/1/query?${mapStore.urlParams}&level=station&nodata=404&channel=BH?,SH?`;
+                const response = await fdsnFetch(url, "/api/fdsn/station");
+                if (!response.ok) throw new Error(`${source.name}: HTTP ${response.status}`);
+                return xmlToJson(await response.text());
+            }),
+        );
+        const stationKeys = new Set<string>();
+        const statsByNetwork = new Map<string, any>();
+
+        stationResults.forEach((result) => {
+            if (result.status === "rejected") {
+                console.error("Gagal mengambil data station:", result.reason);
+                return;
+            }
+            const fdsn = result.value.FDSNStationXML as JsonNode;
+            const networksList = fdsn?.Network as JsonNode[];
+            const networks = Array.isArray(networksList)
+                ? networksList
+                : networksList
+                  ? [networksList]
+                  : [];
+
+            networks.forEach((networkNode) => {
+                const networkCode = (networkNode["@attributes"] as any)?.code || "UNKNOWN";
+                const stationsList = networkNode.Station as JsonNode[];
+                const stations = Array.isArray(stationsList)
+                    ? stationsList
+                    : stationsList
+                      ? [stationsList]
+                      : [];
+                const stats = statsByNetwork.get(networkCode) || {
+                    id: networkCode,
+                    name: networkCode,
+                    total_channel: 0,
+                    active_channel: 0,
+                    inactive_channel: 0,
+                };
+
+                stations.forEach((stationNode) => {
+                    const stationCode = (stationNode["@attributes"] as any)?.code || "UNKNOWN";
+                    const stationKey = `${networkCode}-${stationCode}`;
+                    if (stationKeys.has(stationKey)) return;
+                    stationKeys.add(stationKey);
+
+                    const endDate = (stationNode["@attributes"] as any)?.endDate;
+                    stats.total_channel++;
+                    if (endDate) stats.inactive_channel++;
+                    else stats.active_channel++;
+
+                    const markerEl = document.createElement("div");
+                    markerEl.className = "custom-marker";
+                    markerEl.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 24L0 0H24L12 24Z" fill="#${endDate ? "ff0000" : "fa0"}" /></svg>`;
+                    markerEl.style.cursor = "pointer";
+
+                    const customPopup = new mapboxgl.Popup({
+                        offset: 14,
+                        closeButton: true,
+                        closeOnClick: true,
+                    }).setHTML(`<div class="bordered" style="background-color: black; padding: 5px;"><h3 style="margin: 0 0 5px 0; font-size: 16px;"><a class="underline" href="/realtime?networkCode=${networkCode}&stationCode=${stationCode}" target="_blank">${networkCode} - ${stationCode}</a></h3><p style="margin: 0; font-size: 14px;">${(stationNode as any).Site?.Name || "UNKNOWN"}</p></div>`);
+
+                    const marker = new mapboxgl.Marker({ element: markerEl, anchor: "bottom" })
+                        .setLngLat([
+                            parseFloat((stationNode as any).Longitude),
+                            parseFloat((stationNode as any).Latitude),
+                        ])
+                        .setPopup(customPopup)
+                        .addTo(map);
+                    markers.push(marker);
+                });
+                statsByNetwork.set(networkCode, stats);
+            });
+        });
+
+        networkStats = [...statsByNetwork.values()];
+        const loadingElement = document.getElementById("loading-screen");
+        if (loadingElement) loadingElement.style.display = "none";
     }
 
     function saveArea() {
@@ -159,6 +141,7 @@
         map.touchZoomRotate.disable();
         fetchStations();
     }
+
 
     onMount(() => {
         const mapboxAccessToken = env.PUBLIC_MAPBOX_ACCESS_TOKEN ?? "";
@@ -225,13 +208,12 @@
         });
     });
 
-    // Refetch stations when data source changes
-    // $effect(() => {
-    //     if (map) {
-    //         fetchStations();
-    //     }
-    // });
-
+        // Refetch stations when data source changes
+        // $effect(() => {
+        //     if (map) {
+        //         fetchStations();
+        //     }
+        // });
     onDestroy(() => {
         if (map) map.remove();
     });
@@ -256,6 +238,10 @@
             class="ews-btn ews-btn-primary scale-75 md:scale-100 pointer-events-auto"
             href="/status-ui">STATION STATUS</a
         >
+        <a
+        class="ews-btn ews-btn-primary scale-75 md:scale-100 pointer-events-autp"
+        href="/magi">MAGI</a
+      >
     </div>
     <div
         class="mb-2 text-center p-2 z-10 w-full bordered flex justify-center items-center relative show-pop-up mt-6"
@@ -397,7 +383,7 @@
 >
     <span class="loader"></span>
     <p class="my-2 red-color p-2">
-        THIS IS A CONCEPT DESIGN - DATA STATION DARI GEOFON
+        THIS IS A CONCEPT DESIGN - DATA STATION DARI {mapStore.dataSources.map((source) => source.name).join(", ")}
     </p>
 </div>
 

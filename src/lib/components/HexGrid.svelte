@@ -6,6 +6,7 @@
         children,
         className = "",
         variant = "pointy",
+        align = "left",
         hexWidth,
         hexHeight,
         gap = 4,
@@ -13,6 +14,7 @@
         children: Snippet;
         className?: string;
         variant?: "pointy" | "flat";
+        align?: "left" | "center" | "right";
         hexWidth?: number;
         hexHeight?: number;
         gap?: number;
@@ -37,6 +39,18 @@
             const w = hexWidth ?? (isFlat ? 83 : 72);
             const h = hexHeight ?? (isFlat ? 72 : 83);
 
+            function getAlignOffset(rowWidth: number) {
+                if (align === "center") {
+                    return Math.max(0, (containerWidth - rowWidth) / 2);
+                }
+
+                if (align === "right") {
+                    return Math.max(0, containerWidth - rowWidth);
+                }
+
+                return 0;
+            }
+
             if (!isFlat) {
                 // Pointy (Variant 1)
                 const rowOffsetTop = gap + -20;
@@ -50,6 +64,7 @@
                 let isOffset = false;
                 let currentCol = 0;
                 let currentRow = 0;
+                let rowAlignOffset = 0;
 
                 for (let i = 0; i < childElements.length; i++) {
                     let child = childElements[i];
@@ -57,7 +72,15 @@
                         ? Math.max(1, maxCols - 1)
                         : maxCols;
 
-                    let x = currentCol * itemFullWidth;
+                    if (currentCol === 0) {
+                        const rowWidth =
+                            (colsInThisRow - 1) * itemFullWidth + w +
+                            (isOffset ? w / 2 + gap / 2 : 0);
+                        rowAlignOffset = getAlignOffset(rowWidth);
+                    }
+
+                    let x = currentCol * itemFullWidth +
+                        rowAlignOffset;
                     if (isOffset) {
                         x += w / 2 + gap / 2;
                     }
@@ -98,11 +121,18 @@
                 let currentCol = 0;
                 let currentRow = 0;
                 let maxBottom = 0;
+                let rowAlignOffset = 0;
 
                 for (let i = 0; i < childElements.length; i++) {
                     let child = childElements[i];
 
-                    let x = currentCol * colAdvanceX;
+                    if (currentCol === 0) {
+                        const rowWidth = (maxCols - 1) * colAdvanceX + w;
+                        rowAlignOffset = getAlignOffset(rowWidth);
+                    }
+
+                    let x = currentCol * colAdvanceX +
+                        rowAlignOffset;
                     let y = currentRow * rowAdvanceY;
 
                     // Offset odd columns down

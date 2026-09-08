@@ -98,6 +98,7 @@ A responsive honeycomb/hexagonal grid layout.
 - `children`: `Snippet` (hex components).
 - `className?`: `string`.
 - `variant?`: `"pointy" | "flat"` (default: `"pointy"`).
+- `align?`: `"left" | "center" | "right"` (default: `"left"`).
 - `hexWidth?`: `number`.
 - `hexHeight?`: `number`.
 - `gap?`: `number` (default: 4).
