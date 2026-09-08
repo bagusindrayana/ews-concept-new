@@ -18,6 +18,10 @@
     type ThreadTone,
   } from "$lib/components/ThreadedComments.svelte";
   import MagiBusSwitch, { type MagiNodeItem } from "$lib/components/MagiBusSwitch.svelte";
+  import MagiBusSingle from "$lib/components/MagiBusSingle.svelte";
+  import MagiBusBoard from "$lib/components/MagiBusBoard.svelte";
+  import MagiBusRack from "$lib/components/MagiBusRack.svelte";
+  import MagiBusControls from "$lib/components/MagiBusControls.svelte";
 
   let lastMagiNodeId = $state<string | null>(null);
   let lastMagiNodeConnected = $state<boolean | null>(null);
@@ -1011,9 +1015,10 @@
               Komponen saklar ringkas untuk form setting atau panel kontrol data.
             </p>
           </div>
-          <MagiBusSwitch
-            variant="single"
-            onToggle={(node, isConn) => {
+          <MagiBusSingle
+            label="00130"
+            sublabel="NERV-OPT-130 // SYNC"
+            onToggle={(isConn) => {
               lastMagiNodeId = "STANDALONE-00130";
               lastMagiNodeConnected = isConn;
             }}
@@ -1023,15 +1028,14 @@
         <!-- Data Rack Variant -->
         <div class="p-4 bg-neutral-900 border border-neutral-800 rounded flex flex-col gap-3">
           <div>
-            <h3 class="font-bold text-sm text-neutral-200">Rack Channels Variant</h3>
+            <h3 class="font-bold text-sm text-neutral-200">Rack Channels Variant (MagiBusRack)</h3>
             <p class="text-xs text-neutral-400 mt-0.5">
               Daftar channel vertikal untuk toggle stream individual (BMKG, Buoy, FDSNWS).
             </p>
           </div>
-          <MagiBusSwitch
-            variant="rack"
-            onToggle={(node, isConn) => {
-              lastMagiNodeId = node.id;
+          <MagiBusRack
+            onToggle={(item, isConn) => {
+              lastMagiNodeId = item.id;
               lastMagiNodeConnected = isConn;
             }}
           />

@@ -347,7 +347,6 @@
         class="threaded-connectors"
         height="100%"
         width="100%"
-        viewBox={`0 0 100% ${canvasHeight}`}
         role="presentation"
         aria-hidden="true"
       >
