@@ -58,41 +58,258 @@
   const DEFAULT_CONFIG = [
     // --- Bank 1: Diagonal Nodes (Lane 1 & Lane 2 along traces 4 to 16) ---
     // Lane 1 (Even traces: 4, 6, 8, 10, 12, 14, 16):
-    { id: "00126", label: "00126", bank: "diagonal" as const, traceIndex: 4, channelName: "NERV-OPT-126", category: "Core Synapse" },
-    { id: "00128", label: "00128", bank: "diagonal" as const, traceIndex: 6, channelName: "NERV-OPT-128", category: "Core Synapse" },
-    { id: "00130", label: "00130", bank: "diagonal" as const, traceIndex: 8, channelName: "NERV-OPT-130", category: "Data Bus A" },
-    { id: "00132", label: "00132", bank: "diagonal" as const, traceIndex: 10, channelName: "NERV-OPT-132", category: "Telemetry Link" },
-    { id: "00134", label: "00134", bank: "diagonal" as const, traceIndex: 12, channelName: "NERV-OPT-134", category: "Telemetry Link" },
-    { id: "00136", label: "00136", bank: "diagonal" as const, traceIndex: 14, channelName: "NERV-OPT-136", category: "Aux Relay" },
-    { id: "00138", label: "00138", bank: "diagonal" as const, traceIndex: 16, channelName: "NERV-OPT-138", category: "Aux Relay" },
+    {
+      id: "00126",
+      label: "00126",
+      bank: "diagonal" as const,
+      traceIndex: 4,
+      channelName: "NERV-OPT-126",
+      category: "Core Synapse",
+    },
+    {
+      id: "00128",
+      label: "00128",
+      bank: "diagonal" as const,
+      traceIndex: 6,
+      channelName: "NERV-OPT-128",
+      category: "Core Synapse",
+    },
+    {
+      id: "00130",
+      label: "00130",
+      bank: "diagonal" as const,
+      traceIndex: 8,
+      channelName: "NERV-OPT-130",
+      category: "Data Bus A",
+    },
+    {
+      id: "00132",
+      label: "00132",
+      bank: "diagonal" as const,
+      traceIndex: 10,
+      channelName: "NERV-OPT-132",
+      category: "Telemetry Link",
+    },
+    {
+      id: "00134",
+      label: "00134",
+      bank: "diagonal" as const,
+      traceIndex: 12,
+      channelName: "NERV-OPT-134",
+      category: "Telemetry Link",
+    },
+    {
+      id: "00136",
+      label: "00136",
+      bank: "diagonal" as const,
+      traceIndex: 14,
+      channelName: "NERV-OPT-136",
+      category: "Aux Relay",
+    },
+    {
+      id: "00138",
+      label: "00138",
+      bank: "diagonal" as const,
+      traceIndex: 16,
+      channelName: "NERV-OPT-138",
+      category: "Aux Relay",
+    },
 
     // Lane 2 (Odd traces: 5, 7, 9, 11, 13, 15):
-    { id: "00127", label: "00127", bank: "diagonal" as const, traceIndex: 5, channelName: "NERV-OPT-127", category: "Core Synapse" },
-    { id: "00129", label: "00129", bank: "diagonal" as const, traceIndex: 7, channelName: "NERV-OPT-129", category: "Data Bus A" },
-    { id: "00131", label: "00131", bank: "diagonal" as const, traceIndex: 9, channelName: "NERV-OPT-131", category: "Data Bus A" },
-    { id: "00133", label: "00133", bank: "diagonal" as const, traceIndex: 11, channelName: "NERV-OPT-133", category: "Telemetry Link" },
-    { id: "00135", label: "00135", bank: "diagonal" as const, traceIndex: 13, channelName: "NERV-OPT-135", category: "Aux Relay" },
-    { id: "00137", label: "00137", bank: "diagonal" as const, traceIndex: 15, channelName: "NERV-OPT-137", category: "Aux Relay" },
+    {
+      id: "00127",
+      label: "00127",
+      bank: "diagonal" as const,
+      traceIndex: 5,
+      channelName: "NERV-OPT-127",
+      category: "Core Synapse",
+    },
+    {
+      id: "00129",
+      label: "00129",
+      bank: "diagonal" as const,
+      traceIndex: 7,
+      channelName: "NERV-OPT-129",
+      category: "Data Bus A",
+    },
+    {
+      id: "00131",
+      label: "00131",
+      bank: "diagonal" as const,
+      traceIndex: 9,
+      channelName: "NERV-OPT-131",
+      category: "Data Bus A",
+    },
+    {
+      id: "00133",
+      label: "00133",
+      bank: "diagonal" as const,
+      traceIndex: 11,
+      channelName: "NERV-OPT-133",
+      category: "Telemetry Link",
+    },
+    {
+      id: "00135",
+      label: "00135",
+      bank: "diagonal" as const,
+      traceIndex: 13,
+      channelName: "NERV-OPT-135",
+      category: "Aux Relay",
+    },
+    {
+      id: "00137",
+      label: "00137",
+      bank: "diagonal" as const,
+      traceIndex: 15,
+      channelName: "NERV-OPT-137",
+      category: "Aux Relay",
+    },
 
     // --- Bank 2: Horizontal Nodes (00223 - 00240 on traces 0 to 17) ---
-    { id: "00223", label: "00223", bank: "horizontal" as const, traceIndex: 0, channelName: "SEIS-BMKG-223", category: "Primary Seismic" },
-    { id: "00224", label: "00224", bank: "horizontal" as const, traceIndex: 1, channelName: "SEIS-BMKG-224", category: "Primary Seismic" },
-    { id: "00225", label: "00225", bank: "horizontal" as const, traceIndex: 2, channelName: "SEIS-BMKG-225", category: "Primary Seismic" },
-    { id: "00226", label: "00226", bank: "horizontal" as const, traceIndex: 3, channelName: "SEIS-BMKG-226", category: "Primary Seismic" },
-    { id: "00227", label: "00227", bank: "horizontal" as const, traceIndex: 4, channelName: "SEIS-BMKG-227", category: "Subduction Array" },
-    { id: "00228", label: "00228", bank: "horizontal" as const, traceIndex: 5, channelName: "SEIS-BMKG-228", category: "Subduction Array" },
-    { id: "00229", label: "00229", bank: "horizontal" as const, traceIndex: 6, channelName: "SEIS-BMKG-229", category: "Subduction Array" },
-    { id: "00230", label: "00230", bank: "horizontal" as const, traceIndex: 7, channelName: "SEIS-BMKG-230", category: "Subduction Array" },
-    { id: "00231", label: "00231", bank: "horizontal" as const, traceIndex: 8, channelName: "SEIS-BMKG-231", category: "Infrasound Grid" },
-    { id: "00232", label: "00232", bank: "horizontal" as const, traceIndex: 9, channelName: "SEIS-BMKG-232", category: "Infrasound Grid" },
-    { id: "00233", label: "00233", bank: "horizontal" as const, traceIndex: 10, channelName: "SEIS-BMKG-233", category: "Tsunami Gauge" },
-    { id: "00234", label: "00234", bank: "horizontal" as const, traceIndex: 11, channelName: "SEIS-BMKG-234", category: "Tsunami Gauge" },
-    { id: "00235", label: "00235", bank: "horizontal" as const, traceIndex: 12, channelName: "SEIS-BMKG-235", category: "Tsunami Gauge" },
-    { id: "00236", label: "00236", bank: "horizontal" as const, traceIndex: 13, channelName: "SEIS-BMKG-236", category: "Tsunami Gauge" },
-    { id: "00237", label: "00237", bank: "horizontal" as const, traceIndex: 14, channelName: "SEIS-BMKG-237", category: "Ocean Buoy Link" },
-    { id: "00238", label: "00238", bank: "horizontal" as const, traceIndex: 15, channelName: "SEIS-BMKG-238", category: "Ocean Buoy Link" },
-    { id: "00239", label: "00239", bank: "horizontal" as const, traceIndex: 16, channelName: "SEIS-BMKG-239", category: "Ocean Buoy Link" },
-    { id: "00240", label: "00240", bank: "horizontal" as const, traceIndex: 17, channelName: "SEIS-BMKG-240", category: "Ocean Buoy Link" },
+    {
+      id: "00223",
+      label: "00223",
+      bank: "horizontal" as const,
+      traceIndex: 0,
+      channelName: "SEIS-BMKG-223",
+      category: "Primary Seismic",
+    },
+    {
+      id: "00224",
+      label: "00224",
+      bank: "horizontal" as const,
+      traceIndex: 1,
+      channelName: "SEIS-BMKG-224",
+      category: "Primary Seismic",
+    },
+    {
+      id: "00225",
+      label: "00225",
+      bank: "horizontal" as const,
+      traceIndex: 2,
+      channelName: "SEIS-BMKG-225",
+      category: "Primary Seismic",
+    },
+    {
+      id: "00226",
+      label: "00226",
+      bank: "horizontal" as const,
+      traceIndex: 3,
+      channelName: "SEIS-BMKG-226",
+      category: "Primary Seismic",
+    },
+    {
+      id: "00227",
+      label: "00227",
+      bank: "horizontal" as const,
+      traceIndex: 4,
+      channelName: "SEIS-BMKG-227",
+      category: "Subduction Array",
+    },
+    {
+      id: "00228",
+      label: "00228",
+      bank: "horizontal" as const,
+      traceIndex: 5,
+      channelName: "SEIS-BMKG-228",
+      category: "Subduction Array",
+    },
+    {
+      id: "00229",
+      label: "00229",
+      bank: "horizontal" as const,
+      traceIndex: 6,
+      channelName: "SEIS-BMKG-229",
+      category: "Subduction Array",
+    },
+    {
+      id: "00230",
+      label: "00230",
+      bank: "horizontal" as const,
+      traceIndex: 7,
+      channelName: "SEIS-BMKG-230",
+      category: "Subduction Array",
+    },
+    {
+      id: "00231",
+      label: "00231",
+      bank: "horizontal" as const,
+      traceIndex: 8,
+      channelName: "SEIS-BMKG-231",
+      category: "Infrasound Grid",
+    },
+    {
+      id: "00232",
+      label: "00232",
+      bank: "horizontal" as const,
+      traceIndex: 9,
+      channelName: "SEIS-BMKG-232",
+      category: "Infrasound Grid",
+    },
+    {
+      id: "00233",
+      label: "00233",
+      bank: "horizontal" as const,
+      traceIndex: 10,
+      channelName: "SEIS-BMKG-233",
+      category: "Tsunami Gauge",
+    },
+    {
+      id: "00234",
+      label: "00234",
+      bank: "horizontal" as const,
+      traceIndex: 11,
+      channelName: "SEIS-BMKG-234",
+      category: "Tsunami Gauge",
+    },
+    {
+      id: "00235",
+      label: "00235",
+      bank: "horizontal" as const,
+      traceIndex: 12,
+      channelName: "SEIS-BMKG-235",
+      category: "Tsunami Gauge",
+    },
+    {
+      id: "00236",
+      label: "00236",
+      bank: "horizontal" as const,
+      traceIndex: 13,
+      channelName: "SEIS-BMKG-236",
+      category: "Tsunami Gauge",
+    },
+    {
+      id: "00237",
+      label: "00237",
+      bank: "horizontal" as const,
+      traceIndex: 14,
+      channelName: "SEIS-BMKG-237",
+      category: "Ocean Buoy Link",
+    },
+    {
+      id: "00238",
+      label: "00238",
+      bank: "horizontal" as const,
+      traceIndex: 15,
+      channelName: "SEIS-BMKG-238",
+      category: "Ocean Buoy Link",
+    },
+    {
+      id: "00239",
+      label: "00239",
+      bank: "horizontal" as const,
+      traceIndex: 16,
+      channelName: "SEIS-BMKG-239",
+      category: "Ocean Buoy Link",
+    },
+    {
+      id: "00240",
+      label: "00240",
+      bank: "horizontal" as const,
+      traceIndex: 17,
+      channelName: "SEIS-BMKG-240",
+      category: "Ocean Buoy Link",
+    },
   ];
 
   // Board Architecture Constants (Dimensions per 2-column block module)
@@ -110,8 +327,12 @@
   // 1 block = 2 columns (1 diagonal column + 1 horizontal column = 31 nodes)
   let blocksPerRow = $derived(Math.max(1, Math.floor(maxColumns / 2)));
   const itemsPerBlock = 31;
-  let effectiveItems = $derived(items && items.length > 0 ? items : DEFAULT_CONFIG);
-  let totalBlocks = $derived(Math.max(1, Math.ceil(effectiveItems.length / itemsPerBlock)));
+  let effectiveItems = $derived(
+    items && items.length > 0 ? items : DEFAULT_CONFIG,
+  );
+  let totalBlocks = $derived(
+    Math.max(1, Math.ceil(effectiveItems.length / itemsPerBlock)),
+  );
   let totalRows = $derived(Math.max(1, Math.ceil(totalBlocks / blocksPerRow)));
   let activeBlocksPerRow = $derived(Math.min(blocksPerRow, totalBlocks));
   let totalWidth = $derived(activeBlocksPerRow * W_BLOCK);
@@ -165,7 +386,10 @@
       const xOffset = b * W_BLOCK;
       const yOffset = r * H_ROW;
 
-      const blockItems = effectiveItems.slice(g * itemsPerBlock, (g + 1) * itemsPerBlock);
+      const blockItems = effectiveItems.slice(
+        g * itemsPerBlock,
+        (g + 1) * itemsPerBlock,
+      );
 
       // Iterate through 31 slots of block g:
       // Slots 0..12: Diagonal nodes
@@ -180,15 +404,21 @@
         const defaultCfg = DEFAULT_CONFIG[slot];
 
         const isConnected = matchedItem
-          ? (matchedItem.status ? matchedItem.status === "ACTIVE" : matchedItem.connected ?? true)
+          ? matchedItem.status
+            ? matchedItem.status === "ACTIVE"
+            : (matchedItem.connected ?? true)
           : true;
 
         const label = matchedItem
-          ? (matchedItem.stationCode || matchedItem.label || matchedItem.title || defaultCfg.label)
+          ? matchedItem.stationCode ||
+            matchedItem.label ||
+            matchedItem.title ||
+            defaultCfg.label
           : defaultCfg.label;
 
         const channelName = matchedItem
-          ? (matchedItem.title || `${matchedItem.networkCode || "NERV"}-${matchedItem.stationCode || label}`)
+          ? matchedItem.title ||
+            `${matchedItem.networkCode || "NERV"}-${matchedItem.stationCode || label}`
           : defaultCfg.channelName;
 
         const site = matchedItem?.site ?? "";
@@ -241,7 +471,7 @@
           };
 
           const topMargin = topFixed.y - (yOffset + coords.yEntry);
-          const botMargin = (yOffset + coords.yNode) - bottomFixed.y;
+          const botMargin = yOffset + coords.yNode - bottomFixed.y;
 
           res.push({
             ...defaultCfg,
@@ -298,10 +528,14 @@
 
           // Find nodes on this trace in block g
           const diagNode = nodes.find(
-            (n) => n.blockIndex === g && n.bank === "diagonal" && n.traceIndex === i
+            (n) =>
+              n.blockIndex === g && n.bank === "diagonal" && n.traceIndex === i,
           );
           const horizNode = nodes.find(
-            (n) => n.blockIndex === g && n.bank === "horizontal" && n.traceIndex === i
+            (n) =>
+              n.blockIndex === g &&
+              n.bank === "horizontal" &&
+              n.traceIndex === i,
           );
 
           const isFirstBlockInRow = b === 0;
@@ -310,7 +544,7 @@
           // Staggered 45-degree straight-line planar interconnect (NO CURVES)
           // Lower traces (larger i) turn earlier/lower down, utilizing open substrate space
           const dy = yNode - yEntry; // vertical climb: 40 + 17 * i
-          const xInterStart = xOffset + 1115 + i * (-16);
+          const xInterStart = xOffset + 1115 + i * -16;
           const xInterEnd = xInterStart + dy; // 45° straight climb, reaches yEntry
 
           // Midpoint of the 45° straight climb for ferrite bead
@@ -318,7 +552,7 @@
           const yMid = (yNode + yEntry) * 0.5;
 
           // Arrival point for Segment 1 in block b from preceding block b-1
-          const prevInterEnd = (b - 1) * W_BLOCK + 1115 + i * (-16) + dy;
+          const prevInterEnd = (b - 1) * W_BLOCK + 1115 + i * -16 + dy;
 
           res.push({
             key: `r${r}-b${b}-t${i}`,
@@ -419,7 +653,7 @@
     p0: { x: number; y: number },
     p1: { x: number; y: number },
     isWavy: boolean,
-    amplitude: number = 10
+    amplitude: number = 10,
   ): string {
     const midX = (p0.x + p1.x) / 2;
     const midY = (p0.y + p1.y) / 2;
@@ -459,57 +693,65 @@
   const malePath = getMalePiecePath(W_HALF, NODE_H);
 </script>
 
-<div
-  class="magi-board-view relative w-full rounded-md border border-neutral-800 bg-[#ff4e00] overflow-hidden text-neutral-900 shadow-2xl select-none {className}"
->
-  <!-- Mainframe Sub-Bar: Architecture stats & View Mode Switcher -->
-  <div class="flex flex-wrap items-center justify-between gap-2 px-3.5 py-1.5 bg-black/95 text-orange-400 border-b border-neutral-800 font-mono text-[11px] shadow-sm">
-    <div class="flex items-center gap-2">
-      <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-      <span class="font-bold tracking-wider">BOARD ARCHITECTURE:</span>
-      <span class="text-neutral-300">
-        {activeBlocksPerRow * 2} COLUMNS ({activeBlocksPerRow} BANKS/ROW) × {totalRows} ROWS // {nodes.length} ACTIVE NODES
-      </span>
-    </div>
-    <div class="flex items-center gap-3">
-      <span class="text-neutral-500 text-[10px] hidden sm:inline">
-        CANVAS: {totalWidth}×{totalHeight}PX
-      </span>
-      <button
-        type="button"
-        class="px-2.5 py-0.5 rounded bg-neutral-900 hover:bg-neutral-800 text-neutral-200 hover:text-white text-[10px] font-bold border border-neutral-700 transition-colors"
-        onclick={() => (viewMode = viewMode === "fit" ? "scroll" : "fit")}
-        title={viewMode === "fit" ? "Beralih ke mode scroll resolusi penuh 100%" : "Beralih ke mode pas lebar layar (fit)"}
-      >
-        {viewMode === "fit" ? "ZOOM 100% (SCROLL)" : "FIT SCREEN WIDTH"}
-      </button>
-    </div>
-  </div>
-
+<div class="magi-board-view relative w-full bg-[#ff4e00] {className}">
   <!-- Main SVG MAGI Circuit Canvas with Dynamic Multi-Column & Multi-Row Grid -->
-  <div
-    class="relative w-full overflow-auto bg-[#ff4e00] transition-all {viewMode === 'fit' ? 'max-h-[82vh]' : 'max-h-[85vh]'}"
-  >
+  <div class="relative w-full overflow-auto bg-[#ff4e00] transition-all">
     <svg
       class="block cursor-default {viewMode === 'fit' ? 'w-full h-auto' : ''}"
-      style={viewMode === "scroll" ? `width: ${totalWidth}px; height: ${totalHeight}px; min-width: ${totalWidth}px;` : "width: 100%;"}
+      style={viewMode === "scroll"
+        ? `width: ${totalWidth}px; height: ${totalHeight}px; min-width: ${totalWidth}px;`
+        : "width: 100%;"}
       viewBox="0 0 {totalWidth} {totalHeight}"
       preserveAspectRatio="xMidYMin meet"
     >
       <defs>
         <!-- Fine engineering background grid -->
-        <pattern id="boardGrid" width="40" height="40" patternUnits="userSpaceOnUse">
-          <path d="M 40 0 L 0 0 0 40" fill="none" stroke="rgba(0, 0, 0, 0.05)" stroke-width="0.75" />
+        <pattern
+          id="boardGrid"
+          width="40"
+          height="40"
+          patternUnits="userSpaceOnUse"
+        >
+          <path
+            d="M 40 0 L 0 0 0 40"
+            fill="none"
+            stroke="rgba(0, 0, 0, 0.05)"
+            stroke-width="0.75"
+          />
         </pattern>
 
         <!-- Phosphor green glow for connected nodes -->
-        <filter id="boardGreenGlow" x="-20%" y="-20%" width="140%" height="140%">
-          <feDropShadow dx="0" dy="0" stdDeviation="1.5" flood-color="#34d399" flood-opacity="0.8" />
+        <filter
+          id="boardGreenGlow"
+          x="-20%"
+          y="-20%"
+          width="140%"
+          height="140%"
+        >
+          <feDropShadow
+            dx="0"
+            dy="0"
+            stdDeviation="1.5"
+            flood-color="#34d399"
+            flood-opacity="0.8"
+          />
         </filter>
 
         <!-- Amber glow for severed nodes -->
-        <filter id="boardAmberGlow" x="-20%" y="-20%" width="140%" height="140%">
-          <feDropShadow dx="0" dy="0" stdDeviation="2" flood-color="#fb923c" flood-opacity="0.9" />
+        <filter
+          id="boardAmberGlow"
+          x="-20%"
+          y="-20%"
+          width="140%"
+          height="140%"
+        >
+          <feDropShadow
+            dx="0"
+            dy="0"
+            stdDeviation="2"
+            flood-color="#fb923c"
+            flood-opacity="0.9"
+          />
         </filter>
       </defs>
 
@@ -522,10 +764,16 @@
       {#each { length: totalRows } as _, r}
         {@const yRow = r * H_ROW}
         {@const startCh = r * blocksPerRow * itemsPerBlock + 1}
-        {@const endCh = Math.min(effectiveItems.length, (r + 1) * blocksPerRow * itemsPerBlock)}
+        {@const endCh = Math.min(
+          effectiveItems.length,
+          (r + 1) * blocksPerRow * itemsPerBlock,
+        )}
 
         <!-- Row Header Telemetry Legend -->
-        <g transform="translate(24, {yRow + 24})" class="pointer-events-none select-none opacity-85">
+        <g
+          transform="translate(24, {yRow + 24})"
+          class="pointer-events-none select-none opacity-85"
+        >
           <text
             x="0"
             y="0"
@@ -535,7 +783,9 @@
             letter-spacing="2"
             fill="rgba(0, 0, 0, 0.45)"
           >
-            MAGI PROCESSOR BACKPLANE // BUS ROW 0{r + 1} // [CH {String(startCh).padStart(3, "0")} - {String(endCh).padStart(3, "0")}]
+            MAGI PROCESSOR BACKPLANE // BUS ROW 0{r + 1} // [CH {String(
+              startCh,
+            ).padStart(3, "0")} - {String(endCh).padStart(3, "0")}]
           </text>
         </g>
 
@@ -555,7 +805,10 @@
         <!-- Continuous inter-column bus indicators (silkscreen text only, no vertical cuts) -->
         {#each { length: activeBlocksPerRow - 1 } as _, b}
           {@const xSep = (b + 1) * W_BLOCK}
-          <g transform="translate({xSep}, {yRow + 24})" class="pointer-events-none select-none opacity-40">
+          <g
+            transform="translate({xSep}, {yRow + 24})"
+            class="pointer-events-none select-none opacity-40"
+          >
             <text
               x="0"
               y="0"
@@ -610,8 +863,19 @@
 
           <!-- Ferrite bead on Segment 2A if space permits -->
           {#if (tr.diagNode.topMargin ?? 0) > 20}
-            <g transform="translate({tr.xTurnIn + (tr.diagNode.topFixed.x - tr.xTurnIn) * 0.5}, {tr.yEntry + (tr.diagNode.topFixed.y - tr.yEntry) * 0.5}) rotate(45)">
-              <rect x="-5" y="-2.5" width="10" height="5" rx="2" fill="#0c0c0c" />
+            <g
+              transform="translate({tr.xTurnIn +
+                (tr.diagNode.topFixed.x - tr.xTurnIn) * 0.5}, {tr.yEntry +
+                (tr.diagNode.topFixed.y - tr.yEntry) * 0.5}) rotate(45)"
+            >
+              <rect
+                x="-5"
+                y="-2.5"
+                width="10"
+                height="5"
+                rx="2"
+                fill="#0c0c0c"
+              />
             </g>
           {/if}
 
@@ -627,8 +891,20 @@
 
           <!-- Ferrite bead on Segment 2B if space permits -->
           {#if (tr.diagNode.botMargin ?? 0) > 20}
-            <g transform="translate({tr.diagNode.bottomFixed.x + (tr.xBendIn - tr.diagNode.bottomFixed.x) * 0.5}, {tr.diagNode.bottomFixed.y + (tr.yNode - tr.diagNode.bottomFixed.y) * 0.5}) rotate(45)">
-              <rect x="-5" y="-2.5" width="10" height="5" rx="2" fill="#0c0c0c" />
+            <g
+              transform="translate({tr.diagNode.bottomFixed.x +
+                (tr.xBendIn - tr.diagNode.bottomFixed.x) * 0.5}, {tr.diagNode
+                .bottomFixed.y +
+                (tr.yNode - tr.diagNode.bottomFixed.y) * 0.5}) rotate(45)"
+            >
+              <rect
+                x="-5"
+                y="-2.5"
+                width="10"
+                height="5"
+                rx="2"
+                fill="#0c0c0c"
+              />
             </g>
           {/if}
         {:else}
@@ -643,7 +919,9 @@
           />
 
           <!-- Ferrite Beads along diagonal in-track -->
-          <g transform="translate({tr.xBendIn - 24}, {tr.yNode - 24}) rotate(45)">
+          <g
+            transform="translate({tr.xBendIn - 24}, {tr.yNode - 24}) rotate(45)"
+          >
             <rect x="-5" y="-2.5" width="10" height="5" rx="2" fill="#0c0c0c" />
           </g>
         {/if}
@@ -670,9 +948,19 @@
               stroke-width="1.8"
             />
             <!-- Ferrite bead on long horizontal run past node if wide enough -->
-            {#if (tr.xInterStart - tr.xBendOut) > 60}
-              <g transform="translate({tr.xBendOut + (tr.xInterStart - tr.xBendOut) * 0.5}, {tr.yNode})">
-                <rect x="-5" y="-2.5" width="10" height="5" rx="2" fill="#0c0c0c" />
+            {#if tr.xInterStart - tr.xBendOut > 60}
+              <g
+                transform="translate({tr.xBendOut +
+                  (tr.xInterStart - tr.xBendOut) * 0.5}, {tr.yNode})"
+              >
+                <rect
+                  x="-5"
+                  y="-2.5"
+                  width="10"
+                  height="5"
+                  rx="2"
+                  fill="#0c0c0c"
+                />
               </g>
             {/if}
           {/if}
@@ -715,7 +1003,10 @@
           />
 
           <!-- Ferrite Beads along diagonal out-track -->
-          <g transform="translate({tr.xBendOut + 22}, {tr.yNode + 22}) rotate(45)">
+          <g
+            transform="translate({tr.xBendOut + 22}, {tr.yNode +
+              22}) rotate(45)"
+          >
             <rect x="-5" y="-2.5" width="10" height="5" rx="2" fill="#0c0c0c" />
           </g>
 
@@ -734,13 +1025,16 @@
       <!-- ============================================================== -->
       <!-- BANK 1: DIAGONAL BUS NODES (LANE 1 & LANE 2 AT 45 DEG TILT)    -->
       <!-- ============================================================== -->
-      {#each nodes.filter((n) => n.bank === "diagonal") as node (node.id + '-b' + node.blockIndex + '-t' + node.traceIndex)}
+      {#each nodes.filter((n) => n.bank === "diagonal") as node (node.id + "-b" + node.blockIndex + "-t" + node.traceIndex)}
         {@const isSevered = !node.connected}
-        {@const isSelected = activeNodeId === node.id || activeNodeId === node.stationCode}
+        {@const isSelected =
+          activeNodeId === node.id || activeNodeId === node.stationCode}
         {@const isHighlighted =
           highlightQuery.trim().length > 0 &&
           (node.label.toLowerCase().includes(highlightQuery.toLowerCase()) ||
-            node.channelName?.toLowerCase().includes(highlightQuery.toLowerCase()))}
+            node.channelName
+              ?.toLowerCase()
+              .includes(highlightQuery.toLowerCase()))}
 
         <!-- Direction along +45 deg tilt (dx = 0.7071, dy = 0.7071) -->
         {@const cosA = 0.7071}
@@ -818,7 +1112,9 @@
           <path
             d={femalePath}
             class="node-piece"
-            style="transform: translate({isSevered ? -SEPARATE_SHIFT : 0}px, 0);"
+            style="transform: translate({isSevered
+              ? -SEPARATE_SHIFT
+              : 0}px, 0);"
             fill={isSevered ? "#220505" : "#050505"}
             stroke={isSevered ? "#520e0e" : "#000000"}
             stroke-width="1.2"
@@ -872,24 +1168,36 @@
       <!-- ============================================================== -->
       <!-- BANK 2: HORIZONTAL BUS NODES (STAGGERED CASCADE)               -->
       <!-- ============================================================== -->
-      {#each nodes.filter((n) => n.bank === "horizontal") as node (node.id + '-b' + node.blockIndex + '-t' + node.traceIndex)}
+      {#each nodes.filter((n) => n.bank === "horizontal") as node (node.id + "-b" + node.blockIndex + "-t" + node.traceIndex)}
         {@const isSevered = !node.connected}
-        {@const isSelected = activeNodeId === node.id || activeNodeId === node.stationCode}
+        {@const isSelected =
+          activeNodeId === node.id || activeNodeId === node.stationCode}
         {@const isHighlighted =
           highlightQuery.trim().length > 0 &&
           (node.label.toLowerCase().includes(highlightQuery.toLowerCase()) ||
-            node.channelName?.toLowerCase().includes(highlightQuery.toLowerCase()))}
+            node.channelName
+              ?.toLowerCase()
+              .includes(highlightQuery.toLowerCase()))}
 
         {@const coords = getBaseTraceCoords(node.traceIndex)}
         {@const xOffset = (node.blockInRow ?? 0) * W_BLOCK}
-        {@const leftCapX = isSevered ? node.x - W_HALF - SEPARATE_SHIFT : node.x - W_HALF}
-        {@const rightCapX = isSevered ? node.x + W_HALF + SEPARATE_SHIFT : node.x + W_HALF}
+        {@const leftCapX = isSevered
+          ? node.x - W_HALF - SEPARATE_SHIFT
+          : node.x - W_HALF}
+        {@const rightCapX = isSevered
+          ? node.x + W_HALF + SEPARATE_SHIFT
+          : node.x + W_HALF}
         {@const inBendX = xOffset + coords.xBendIn}
         {@const outBendX = xOffset + coords.xBendOut}
 
         <!-- Flexible wire: from in-bend to node left cap -->
         <path
-          d={getWirePath({ x: inBendX, y: node.y }, { x: leftCapX, y: node.y }, isSevered, 10)}
+          d={getWirePath(
+            { x: inBendX, y: node.y },
+            { x: leftCapX, y: node.y },
+            isSevered,
+            10,
+          )}
           fill="none"
           stroke="#0c0c0c"
           stroke-width="1.8"
@@ -899,7 +1207,12 @@
 
         <!-- Flexible wire: from node right cap to out-bend -->
         <path
-          d={getWirePath({ x: rightCapX, y: node.y }, { x: outBendX, y: node.y }, isSevered, 10)}
+          d={getWirePath(
+            { x: rightCapX, y: node.y },
+            { x: outBendX, y: node.y },
+            isSevered,
+            10,
+          )}
           fill="none"
           stroke="#0c0c0c"
           stroke-width="1.8"
@@ -936,7 +1249,9 @@
           <path
             d={femalePath}
             class="node-piece"
-            style="transform: translate({isSevered ? -SEPARATE_SHIFT : 0}px, 0);"
+            style="transform: translate({isSevered
+              ? -SEPARATE_SHIFT
+              : 0}px, 0);"
             fill={isSevered ? "#220505" : "#050505"}
             stroke={isSevered ? "#520e0e" : "#000000"}
             stroke-width="1.2"
@@ -995,7 +1310,9 @@
       >
         <div class="flex items-center justify-between gap-4">
           <div class="flex items-center gap-1.5">
-            <span class="text-orange-400 font-bold">NODE: {hoveredNode.label}</span>
+            <span class="text-orange-400 font-bold"
+              >NODE: {hoveredNode.label}</span
+            >
             <span class="text-neutral-500 text-[10px]">({hoveredNode.id})</span>
           </div>
           <span
@@ -1009,7 +1326,9 @@
 
         {#if hoveredNode.channelName}
           <div class="text-neutral-400 text-[11px]">
-            CHANNEL: <span class="text-neutral-200">{hoveredNode.channelName}</span>
+            CHANNEL: <span class="text-neutral-200"
+              >{hoveredNode.channelName}</span
+            >
           </div>
         {/if}
 
@@ -1020,11 +1339,18 @@
         {/if}
 
         <div class="text-neutral-400 text-[11px]">
-          LOCATION: <span class="text-neutral-200">ROW 0{(hoveredNode.rowIndex ?? 0) + 1} // BANK 0{(hoveredNode.blockIndex ?? 0) + 1} // {hoveredNode.bank.toUpperCase()}</span>
+          LOCATION: <span class="text-neutral-200"
+            >ROW 0{(hoveredNode.rowIndex ?? 0) + 1} // BANK 0{(hoveredNode.blockIndex ??
+              0) + 1} // {hoveredNode.bank.toUpperCase()}</span
+          >
         </div>
 
-        <div class="text-[10px] text-neutral-400 border-t border-neutral-800 pt-1 mt-0.5 italic">
-          Klik node untuk {hoveredNode.connected ? "memutuskan (sever)" : "menghubungkan (connect)"}
+        <div
+          class="text-[10px] text-neutral-400 border-t border-neutral-800 pt-1 mt-0.5 italic"
+        >
+          Klik node untuk {hoveredNode.connected
+            ? "memutuskan (sever)"
+            : "menghubungkan (connect)"}
         </div>
       </div>
     {/if}
@@ -1033,11 +1359,16 @@
 
 <style>
   :global(.magi-wire) {
-    transition: d 0.45s cubic-bezier(0.2, 0.9, 0.3, 1), stroke 0.3s;
+    transition:
+      d 0.45s cubic-bezier(0.2, 0.9, 0.3, 1),
+      stroke 0.3s;
   }
 
   .node-piece {
-    transition: transform 0.45s cubic-bezier(0.2, 0.9, 0.3, 1), fill 0.3s, stroke 0.3s;
+    transition:
+      transform 0.45s cubic-bezier(0.2, 0.9, 0.3, 1),
+      fill 0.3s,
+      stroke 0.3s;
   }
 
   .node-group:hover .node-piece {
