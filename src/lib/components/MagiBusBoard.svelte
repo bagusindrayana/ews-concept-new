@@ -1,8 +1,11 @@
 <script lang="ts">
+  import { onDestroy } from "svelte";
+
   export interface MagiNodeItem {
     id: string;
     label: string;
     connected: boolean;
+    isResolved?: boolean;
     bank: "diagonal" | "horizontal";
     traceIndex: number;
     // Positioning
@@ -37,6 +40,8 @@
     activeNodeId = null,
     highlightQuery = "",
     className = "",
+    revealDelayMs = 25,
+    resolveDelayMs = 600,
     onToggle,
     onSelectNode,
   }: {
@@ -46,270 +51,42 @@
     activeNodeId?: string | null;
     highlightQuery?: string;
     className?: string;
+    revealDelayMs?: number;
+    resolveDelayMs?: number;
     onToggle?: (item: any, isConnected: boolean) => void;
     onSelectNode?: (item: any) => void;
   } = $props();
 
   // -------------------------------------------------------------
-  // Default authentic 31-node configuration (Single Module Unit)
-  // 18 Horizontal Traces (i=0..17) with 18 horizontal nodes
-  // + 13 Diagonal Nodes placed along traces 4..16
+  // Pure slot template layout (31 slots per block unit)
+  // Slots 0..12: Diagonal Nodes placed along traces 4..16
+  // Slots 13..30: Horizontal Nodes placed along traces 0..17
+  // No fake station data - empty lines remain when no item exists
   // -------------------------------------------------------------
-  const DEFAULT_CONFIG = [
-    // --- Bank 1: Diagonal Nodes (Lane 1 & Lane 2 along traces 4 to 16) ---
-    // Lane 1 (Even traces: 4, 6, 8, 10, 12, 14, 16):
-    {
-      id: "00126",
-      label: "00126",
-      bank: "diagonal" as const,
-      traceIndex: 4,
-      channelName: "NERV-OPT-126",
-      category: "Core Synapse",
-    },
-    {
-      id: "00128",
-      label: "00128",
-      bank: "diagonal" as const,
-      traceIndex: 6,
-      channelName: "NERV-OPT-128",
-      category: "Core Synapse",
-    },
-    {
-      id: "00130",
-      label: "00130",
-      bank: "diagonal" as const,
-      traceIndex: 8,
-      channelName: "NERV-OPT-130",
-      category: "Data Bus A",
-    },
-    {
-      id: "00132",
-      label: "00132",
-      bank: "diagonal" as const,
-      traceIndex: 10,
-      channelName: "NERV-OPT-132",
-      category: "Telemetry Link",
-    },
-    {
-      id: "00134",
-      label: "00134",
-      bank: "diagonal" as const,
-      traceIndex: 12,
-      channelName: "NERV-OPT-134",
-      category: "Telemetry Link",
-    },
-    {
-      id: "00136",
-      label: "00136",
-      bank: "diagonal" as const,
-      traceIndex: 14,
-      channelName: "NERV-OPT-136",
-      category: "Aux Relay",
-    },
-    {
-      id: "00138",
-      label: "00138",
-      bank: "diagonal" as const,
-      traceIndex: 16,
-      channelName: "NERV-OPT-138",
-      category: "Aux Relay",
-    },
-
-    // Lane 2 (Odd traces: 5, 7, 9, 11, 13, 15):
-    {
-      id: "00127",
-      label: "00127",
-      bank: "diagonal" as const,
-      traceIndex: 5,
-      channelName: "NERV-OPT-127",
-      category: "Core Synapse",
-    },
-    {
-      id: "00129",
-      label: "00129",
-      bank: "diagonal" as const,
-      traceIndex: 7,
-      channelName: "NERV-OPT-129",
-      category: "Data Bus A",
-    },
-    {
-      id: "00131",
-      label: "00131",
-      bank: "diagonal" as const,
-      traceIndex: 9,
-      channelName: "NERV-OPT-131",
-      category: "Data Bus A",
-    },
-    {
-      id: "00133",
-      label: "00133",
-      bank: "diagonal" as const,
-      traceIndex: 11,
-      channelName: "NERV-OPT-133",
-      category: "Telemetry Link",
-    },
-    {
-      id: "00135",
-      label: "00135",
-      bank: "diagonal" as const,
-      traceIndex: 13,
-      channelName: "NERV-OPT-135",
-      category: "Aux Relay",
-    },
-    {
-      id: "00137",
-      label: "00137",
-      bank: "diagonal" as const,
-      traceIndex: 15,
-      channelName: "NERV-OPT-137",
-      category: "Aux Relay",
-    },
-
-    // --- Bank 2: Horizontal Nodes (00223 - 00240 on traces 0 to 17) ---
-    {
-      id: "00223",
-      label: "00223",
+  const SLOT_LAYOUT: Array<{
+    bank: "diagonal" | "horizontal";
+    traceIndex: number;
+  }> = [
+    // Bank 1: Diagonal Nodes (Lane 1: even traces 4, 6, 8, 10, 12, 14, 16)
+    { bank: "diagonal", traceIndex: 4 },
+    { bank: "diagonal", traceIndex: 6 },
+    { bank: "diagonal", traceIndex: 8 },
+    { bank: "diagonal", traceIndex: 10 },
+    { bank: "diagonal", traceIndex: 12 },
+    { bank: "diagonal", traceIndex: 14 },
+    { bank: "diagonal", traceIndex: 16 },
+    // Lane 2: odd traces 5, 7, 9, 11, 13, 15
+    { bank: "diagonal", traceIndex: 5 },
+    { bank: "diagonal", traceIndex: 7 },
+    { bank: "diagonal", traceIndex: 9 },
+    { bank: "diagonal", traceIndex: 11 },
+    { bank: "diagonal", traceIndex: 13 },
+    { bank: "diagonal", traceIndex: 15 },
+    // Bank 2: Horizontal Nodes (traces 0..17)
+    ...Array.from({ length: 18 }, (_, i) => ({
       bank: "horizontal" as const,
-      traceIndex: 0,
-      channelName: "SEIS-BMKG-223",
-      category: "Primary Seismic",
-    },
-    {
-      id: "00224",
-      label: "00224",
-      bank: "horizontal" as const,
-      traceIndex: 1,
-      channelName: "SEIS-BMKG-224",
-      category: "Primary Seismic",
-    },
-    {
-      id: "00225",
-      label: "00225",
-      bank: "horizontal" as const,
-      traceIndex: 2,
-      channelName: "SEIS-BMKG-225",
-      category: "Primary Seismic",
-    },
-    {
-      id: "00226",
-      label: "00226",
-      bank: "horizontal" as const,
-      traceIndex: 3,
-      channelName: "SEIS-BMKG-226",
-      category: "Primary Seismic",
-    },
-    {
-      id: "00227",
-      label: "00227",
-      bank: "horizontal" as const,
-      traceIndex: 4,
-      channelName: "SEIS-BMKG-227",
-      category: "Subduction Array",
-    },
-    {
-      id: "00228",
-      label: "00228",
-      bank: "horizontal" as const,
-      traceIndex: 5,
-      channelName: "SEIS-BMKG-228",
-      category: "Subduction Array",
-    },
-    {
-      id: "00229",
-      label: "00229",
-      bank: "horizontal" as const,
-      traceIndex: 6,
-      channelName: "SEIS-BMKG-229",
-      category: "Subduction Array",
-    },
-    {
-      id: "00230",
-      label: "00230",
-      bank: "horizontal" as const,
-      traceIndex: 7,
-      channelName: "SEIS-BMKG-230",
-      category: "Subduction Array",
-    },
-    {
-      id: "00231",
-      label: "00231",
-      bank: "horizontal" as const,
-      traceIndex: 8,
-      channelName: "SEIS-BMKG-231",
-      category: "Infrasound Grid",
-    },
-    {
-      id: "00232",
-      label: "00232",
-      bank: "horizontal" as const,
-      traceIndex: 9,
-      channelName: "SEIS-BMKG-232",
-      category: "Infrasound Grid",
-    },
-    {
-      id: "00233",
-      label: "00233",
-      bank: "horizontal" as const,
-      traceIndex: 10,
-      channelName: "SEIS-BMKG-233",
-      category: "Tsunami Gauge",
-    },
-    {
-      id: "00234",
-      label: "00234",
-      bank: "horizontal" as const,
-      traceIndex: 11,
-      channelName: "SEIS-BMKG-234",
-      category: "Tsunami Gauge",
-    },
-    {
-      id: "00235",
-      label: "00235",
-      bank: "horizontal" as const,
-      traceIndex: 12,
-      channelName: "SEIS-BMKG-235",
-      category: "Tsunami Gauge",
-    },
-    {
-      id: "00236",
-      label: "00236",
-      bank: "horizontal" as const,
-      traceIndex: 13,
-      channelName: "SEIS-BMKG-236",
-      category: "Tsunami Gauge",
-    },
-    {
-      id: "00237",
-      label: "00237",
-      bank: "horizontal" as const,
-      traceIndex: 14,
-      channelName: "SEIS-BMKG-237",
-      category: "Ocean Buoy Link",
-    },
-    {
-      id: "00238",
-      label: "00238",
-      bank: "horizontal" as const,
-      traceIndex: 15,
-      channelName: "SEIS-BMKG-238",
-      category: "Ocean Buoy Link",
-    },
-    {
-      id: "00239",
-      label: "00239",
-      bank: "horizontal" as const,
-      traceIndex: 16,
-      channelName: "SEIS-BMKG-239",
-      category: "Ocean Buoy Link",
-    },
-    {
-      id: "00240",
-      label: "00240",
-      bank: "horizontal" as const,
-      traceIndex: 17,
-      channelName: "SEIS-BMKG-240",
-      category: "Ocean Buoy Link",
-    },
+      traceIndex: i,
+    })),
   ];
 
   // Board Architecture Constants (Dimensions per 2-column block module)
@@ -324,19 +101,116 @@
   let viewMode = $state<"fit" | "scroll">("fit");
 
   // Multi-column and Multi-row calculations
-  // 1 block = 2 columns (1 diagonal column + 1 horizontal column = 31 nodes)
+  // 1 block = 2 columns (1 diagonal column + 1 horizontal column = 31 nodes capacity)
   let blocksPerRow = $derived(Math.max(1, Math.floor(maxColumns / 2)));
   const itemsPerBlock = 31;
-  let effectiveItems = $derived(
-    items && items.length > 0 ? items : DEFAULT_CONFIG,
-  );
+  let effectiveItems = $derived(items || []);
+  // Ensure at least 1 row with full blocksPerRow blocks is generated so all maxColumns show:
   let totalBlocks = $derived(
-    Math.max(1, Math.ceil(effectiveItems.length / itemsPerBlock)),
+    Math.max(blocksPerRow, Math.ceil(effectiveItems.length / itemsPerBlock)),
   );
-  let totalRows = $derived(Math.max(1, Math.ceil(totalBlocks / blocksPerRow)));
-  let activeBlocksPerRow = $derived(Math.min(blocksPerRow, totalBlocks));
+  let totalRows = $derived(Math.max(2, Math.ceil(totalBlocks / blocksPerRow)));
+  // Every row renders all maxColumns (blocksPerRow modules):
+  let activeBlocksPerRow = $derived(blocksPerRow);
   let totalWidth = $derived(activeBlocksPerRow * W_BLOCK);
   let totalHeight = $derived(totalRows * H_ROW);
+
+  // -------------------------------------------------------------
+  // Node Reveal & Delayed Status Resolve State Management
+  // -------------------------------------------------------------
+  interface NodeRevealState {
+    revealed: boolean;
+    resolved: boolean;
+    connected: boolean;
+  }
+  let nodeRevealStates = $state<Record<string, NodeRevealState>>({});
+  let lastItemsFingerprint = $state("");
+  let scheduledTimers: Array<ReturnType<typeof setTimeout>> = [];
+
+  function clearAllTimers() {
+    scheduledTimers.forEach(clearTimeout);
+    scheduledTimers = [];
+  }
+
+  $effect(() => {
+    const currentItems = items || [];
+    const fingerprint = currentItems
+      .map((it, idx) => it.id || it.stationCode || idx)
+      .join("|");
+
+    if (currentItems.length === 0) {
+      clearAllTimers();
+      nodeRevealStates = {};
+      lastItemsFingerprint = "";
+      return;
+    }
+
+    if (fingerprint !== lastItemsFingerprint) {
+      // New or first non-empty dataset: start sequential reveal process
+      lastItemsFingerprint = fingerprint;
+      clearAllTimers();
+
+      const initialStates: Record<string, NodeRevealState> = {};
+      currentItems.forEach((item, idx) => {
+        const key = item.id || item.stationCode || String(idx);
+        initialStates[key] = {
+          revealed: false,
+          resolved: false,
+          connected: true, // initially connected during reveal
+        };
+      });
+      nodeRevealStates = initialStates;
+
+      currentItems.forEach((item, idx) => {
+        const key = item.id || item.stationCode || String(idx);
+        const targetConnected = item.status
+          ? item.status === "ACTIVE"
+          : (item.connected ?? true);
+
+        // Step 1: Reveal node one by one with millisecond stagger
+        const revealTimer = setTimeout(() => {
+          if (nodeRevealStates[key]) {
+            nodeRevealStates[key] = {
+              revealed: true,
+              resolved: false,
+              connected: true, // starts connected / standby
+            };
+          }
+        }, idx * revealDelayMs);
+        scheduledTimers.push(revealTimer);
+
+        // Step 2: Resolve to actual station status (ACTIVE/OFFLINE) after delay
+        const resolveTimer = setTimeout(
+          () => {
+            if (nodeRevealStates[key]) {
+              nodeRevealStates[key] = {
+                revealed: true,
+                resolved: true,
+                connected: targetConnected, // transitions to actual status
+              };
+            }
+          },
+          idx * revealDelayMs + resolveDelayMs,
+        );
+        scheduledTimers.push(resolveTimer);
+      });
+    } else {
+      // Same station items: update resolved connection state if parent mutated status (e.g. presets)
+      currentItems.forEach((item, idx) => {
+        const key = item.id || item.stationCode || String(idx);
+        if (nodeRevealStates[key] && nodeRevealStates[key].resolved) {
+          const targetConnected = item.status
+            ? item.status === "ACTIVE"
+            : (item.connected ?? true);
+          nodeRevealStates[key].connected = targetConnected;
+        }
+      });
+    }
+  });
+
+  onDestroy(() => {
+    clearAllTimers();
+  });
 
   // Base trace coordinates within 1 module
   function getBaseTraceCoords(i: number) {
@@ -379,6 +253,7 @@
   // Derive active nodes positioned across all blocks and rows
   let nodes = $derived.by(() => {
     const res: MagiNodeItem[] = [];
+    if (!items || items.length === 0) return res;
 
     for (let g = 0; g < totalBlocks; g++) {
       const r = Math.floor(g / blocksPerRow);
@@ -391,49 +266,54 @@
         (g + 1) * itemsPerBlock,
       );
 
-      // Iterate through 31 slots of block g:
-      // Slots 0..12: Diagonal nodes
-      // Slots 13..30: Horizontal nodes
+      // Iterate through 31 slots of block g
       for (let slot = 0; slot < 31; slot++) {
-        if (slot >= blockItems.length && items && items.length > 0) {
-          // If past total items, slot is unpopulated
+        if (slot >= blockItems.length) {
+          // If past items in this block, leave slot empty (pure circuit trace)
           continue;
         }
 
-        const matchedItem = blockItems[slot] || DEFAULT_CONFIG[slot];
-        const defaultCfg = DEFAULT_CONFIG[slot];
+        const matchedItem = blockItems[slot];
+        if (!matchedItem) continue;
 
-        const isConnected = matchedItem
-          ? matchedItem.status
-            ? matchedItem.status === "ACTIVE"
-            : (matchedItem.connected ?? true)
-          : true;
+        const itemKey =
+          matchedItem.id || matchedItem.stationCode || String(g * 31 + slot);
+        const revealInfo = nodeRevealStates[itemKey];
 
-        const label = matchedItem
-          ? matchedItem.stationCode ||
-            matchedItem.label ||
-            matchedItem.title ||
-            defaultCfg.label
-          : defaultCfg.label;
+        // If not yet revealed, DO NOT render node (trace remains unbroken)
+        if (!revealInfo || !revealInfo.revealed) {
+          continue;
+        }
 
-        const channelName = matchedItem
-          ? matchedItem.title ||
-            `${matchedItem.networkCode || "NERV"}-${matchedItem.stationCode || label}`
-          : defaultCfg.channelName;
+        const isConnected = revealInfo.connected;
+        const isResolved = revealInfo.resolved;
+        const layout = SLOT_LAYOUT[slot];
+
+        const label =
+          matchedItem.stationCode ||
+          matchedItem.label ||
+          matchedItem.title ||
+          "NODE";
+
+        const channelName =
+          matchedItem.title ||
+          `${matchedItem.networkCode || "NERV"}-${matchedItem.stationCode || label}`;
 
         const site = matchedItem?.site ?? "";
         const networkCode = matchedItem?.networkCode ?? "GE";
         const stationCode = matchedItem?.stationCode ?? label;
 
-        if (defaultCfg.bank === "horizontal") {
-          const traceIdx = defaultCfg.traceIndex;
+        if (layout.bank === "horizontal") {
+          const traceIdx = layout.traceIndex;
           const coords = getBaseTraceCoords(traceIdx);
 
           res.push({
-            ...defaultCfg,
-            id: matchedItem?.id || `${defaultCfg.id}-g${g}`,
+            id: matchedItem?.id || `node-g${g}-s${slot}`,
             label,
+            bank: "horizontal",
+            traceIndex: traceIdx,
             connected: isConnected,
+            isResolved,
             x: xOffset + coords.xNode,
             y: yOffset + coords.yNode,
             leadLeft: coords.leadL,
@@ -449,7 +329,7 @@
           });
         } else {
           // Diagonal node
-          const traceIdx = defaultCfg.traceIndex;
+          const traceIdx = layout.traceIndex;
           const coords = getBaseTraceCoords(traceIdx);
 
           const isLane1 = traceIdx % 2 === 0;
@@ -474,10 +354,12 @@
           const botMargin = yOffset + coords.yNode - bottomFixed.y;
 
           res.push({
-            ...defaultCfg,
-            id: matchedItem?.id || `${defaultCfg.id}-g${g}`,
+            id: matchedItem?.id || `node-g${g}-s${slot}`,
             label,
+            bank: "diagonal",
+            traceIndex: traceIdx,
             connected: isConnected,
+            isResolved,
             x: xOffset + localDiagX,
             y: yOffset + localDiagY,
             topFixed,
@@ -592,6 +474,14 @@
   function toggle(node: MagiNodeItem) {
     if (readonly) return;
     const newStatus = !node.connected;
+    const itemKey = node.stationCode || node.id;
+    if (nodeRevealStates[itemKey]) {
+      nodeRevealStates[itemKey] = {
+        revealed: true,
+        resolved: true,
+        connected: newStatus,
+      };
+    }
     if (node.rawItem) {
       if (node.rawItem.status !== undefined) {
         node.rawItem.status = newStatus ? "ACTIVE" : "OFFLINE";
@@ -770,7 +660,7 @@
         )}
 
         <!-- Row Header Telemetry Legend -->
-        <g
+        <!-- <g
           transform="translate(24, {yRow + 24})"
           class="pointer-events-none select-none opacity-85"
         >
@@ -787,10 +677,10 @@
               startCh,
             ).padStart(3, "0")} - {String(endCh).padStart(3, "0")}]
           </text>
-        </g>
+        </g> -->
 
         <!-- Horizontal boundary separator between rows -->
-        {#if r > 0}
+        <!-- {#if r > 0}
           <line
             x1="0"
             y1={yRow}
@@ -800,7 +690,7 @@
             stroke-width="1.5"
             stroke-dasharray="12,6"
           />
-        {/if}
+        {/if} -->
 
         <!-- Continuous inter-column bus indicators (silkscreen text only, no vertical cuts) -->
         {#each { length: activeBlocksPerRow - 1 } as _, b}
@@ -1027,6 +917,7 @@
       <!-- ============================================================== -->
       {#each nodes.filter((n) => n.bank === "diagonal") as node (node.id + "-b" + node.blockIndex + "-t" + node.traceIndex)}
         {@const isSevered = !node.connected}
+        {@const isResolved = node.isResolved !== false}
         {@const isSelected =
           activeNodeId === node.id || activeNodeId === node.stationCode}
         {@const isHighlighted =
@@ -1140,8 +1031,8 @@
               font-size="12"
               font-weight="700"
               letter-spacing="1.5"
-              fill="#44ff99"
-              filter="url(#boardGreenGlow)"
+              fill={!isResolved ? "#38bdf8" : "#44ff99"}
+              filter={!isResolved ? "" : "url(#boardGreenGlow)"}
               class="pointer-events-none"
             >
               {node.label}
@@ -1170,6 +1061,7 @@
       <!-- ============================================================== -->
       {#each nodes.filter((n) => n.bank === "horizontal") as node (node.id + "-b" + node.blockIndex + "-t" + node.traceIndex)}
         {@const isSevered = !node.connected}
+        {@const isResolved = node.isResolved !== false}
         {@const isSelected =
           activeNodeId === node.id || activeNodeId === node.stationCode}
         {@const isHighlighted =
@@ -1277,8 +1169,8 @@
               font-size="12"
               font-weight="700"
               letter-spacing="1.5"
-              fill="#44ff99"
-              filter="url(#boardGreenGlow)"
+              fill={!isResolved ? "#38bdf8" : "#44ff99"}
+              filter={!isResolved ? "" : "url(#boardGreenGlow)"}
               class="pointer-events-none"
             >
               {node.label}
@@ -1304,7 +1196,7 @@
     </svg>
 
     <!-- Detailed Node Tooltip HUD (on hover) -->
-    {#if hoveredNode}
+    <!-- {#if hoveredNode}
       <div
         class="fixed bottom-4 left-6 px-3.5 py-2.5 bg-black/95 border border-orange-500 text-white font-mono text-xs rounded shadow-2xl pointer-events-none z-50 flex flex-col gap-1 backdrop-blur max-w-sm"
       >
@@ -1353,7 +1245,7 @@
             : "menghubungkan (connect)"}
         </div>
       </div>
-    {/if}
+    {/if} -->
   </div>
 </div>
 
@@ -1369,6 +1261,19 @@
       transform 0.45s cubic-bezier(0.2, 0.9, 0.3, 1),
       fill 0.3s,
       stroke 0.3s;
+  }
+
+  .node-group {
+    animation: nodeAppear 0.25s ease-out forwards;
+  }
+
+  @keyframes nodeAppear {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
   }
 
   .node-group:hover .node-piece {

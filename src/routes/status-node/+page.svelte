@@ -304,8 +304,8 @@
     },
   ];
 
-  let statuses = $state<StationStatusItem[]>([...INITIAL_STATIONS]);
-  let selectedStation = $state<StationStatusItem | null>(INITIAL_STATIONS[0]);
+  let statuses = $state<StationStatusItem[]>([]);
+  let selectedStation = $state<StationStatusItem | null>(null);
   let searchQuery = $state("");
   let maxColumns = $state(4);
   let isSimulating = $state(false);
@@ -324,6 +324,9 @@
   // Fetch live FDSN station status
   async function fetchStatuses() {
     try {
+      // Brief pause to allow the clean 4-column empty board to initialize
+      await new Promise((r) => setTimeout(r, 400));
+
       const stationResults = await Promise.allSettled(
         mapStore.dataSources.map(async (source) => {
           const url = `${source.baseUrl}/fdsnws/station/1/query?${mapStore.urlParams}&level=station&nodata=404&channel=BH?,SH?`;
@@ -333,9 +336,6 @@
           return xmlToJson(await response.text());
         }),
       );
-
-      const el = document.getElementById("loading-screen");
-      if (el) el.style.display = "none";
 
       const seenIds = new Set<string>();
       const fetchedList: StationStatusItem[] = [];
@@ -390,21 +390,21 @@
         if (!selectedStation) {
           selectedStation = statuses[0];
         }
+      } else {
+        statuses = [...INITIAL_STATIONS];
+        selectedStation = statuses[0];
       }
     } catch (err) {
       console.warn("FDSN fetch error, using authentic station fallback:", err);
-      const el = document.getElementById("loading-screen");
-      if (el) el.style.display = "none";
+      if (statuses.length === 0) {
+        statuses = [...INITIAL_STATIONS];
+        selectedStation = statuses[0];
+      }
     }
   }
 
   onMount(() => {
     fetchStatuses();
-    const timer = setTimeout(() => {
-      const el = document.getElementById("loading-screen");
-      if (el) el.style.display = "none";
-    }, 600);
-    return () => clearTimeout(timer);
   });
 
   onDestroy(() => {
@@ -514,10 +514,10 @@
 </svelte:head>
 
 <div
-  class="min-h-screen py-1 md:py-4 flex flex-col items-center overflow-x-hidden overflow-y-auto font-mono bg-neutral-950 text-white"
+  class="min-h-screen flex flex-col items-center overflow-x-hidden overflow-y-auto font-mono bg-neutral-950 text-white"
 >
   <!-- Fixed Navigation Bar -->
-  <div
+  <!-- <div
     class="flex no-snapshot fixed right-2 translate-y-0 top-2 left-0 right-0 m-auto flex-row justify-center items-center z-50 gap-2 pointer-events-none"
     style="width:fit-content;"
   >
@@ -533,10 +533,10 @@
       class="ews-btn ews-btn-primary scale-75 md:scale-100 pointer-events-auto shadow-lg"
       href="/magi">MAGI</a
     >
-  </div>
+  </div> -->
 
   <!-- Header Section with Evangelion Hazard Stripes -->
-  <div
+  <!-- <div
     class="mb-2 text-center p-2 z-10 w-full bordered flex justify-center items-center relative show-pop-up mt-8"
   >
     <div class="overflow-hidden w-full">
@@ -551,28 +551,13 @@
         </h1>
       </div>
     </div>
-  </div>
-
-  <div class="w-full h-1 bg-red-600/80 mb-3"></div>
+  </div> -->
 
   <!-- Main Content Layout Spanning Screen Width with Edge-to-Edge Circuit -->
   <div class="w-full">
     <!-- Pure Authentic MAGI Bus Circuit Board (Continuous Multi-Row Multi-Column) -->
-    <div
-      class="relative w-full shadow-2xl rounded-md overflow-hidden border border-neutral-800"
-    >
-      <MagiBusBoard items={statuses} maxColumns={4} />
+    <div class="relative w-full overflow-hidden">
+      <MagiBusBoard items={statuses} maxColumns={4} revealDelayMs={10} />
     </div>
   </div>
-</div>
-
-<!-- LOADING SCREEN -->
-<div
-  class="fixed m-auto top-0 bottom-0 left-0 right-0 flex flex-col justify-center items-center overlay-bg text-center z-40 bg-black/85 backdrop-blur"
-  id="loading-screen"
->
-  <span class="loader"></span>
-  <p class="my-2 red-color p-2 font-mono text-xs tracking-wider">
-    SYNCHRONIZING WITH GEOFON & BMKG SEISMIC NETWORK...
-  </p>
 </div>
