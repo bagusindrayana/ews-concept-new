@@ -308,6 +308,7 @@
   let selectedStation = $state<StationStatusItem | null>(null);
   let searchQuery = $state("");
   let maxColumns = $state(4);
+  let animateReveal = $state(true);
   let isSimulating = $state(false);
   let simulationInterval: any = null;
 
@@ -554,10 +555,15 @@
   </div> -->
 
   <!-- Main Content Layout Spanning Screen Width with Edge-to-Edge Circuit -->
-  <div class="w-full">
+  <div class="w-full relative">
     <!-- Pure Authentic MAGI Bus Circuit Board (Continuous Multi-Row Multi-Column) -->
     <div class="relative w-full overflow-hidden">
-      <MagiBusBoard items={statuses} maxColumns={4} revealDelayMs={10} />
+      <MagiBusBoard
+        items={statuses}
+        maxColumns={4}
+        revealDelayMs={10}
+        animateReveal={animateReveal}
+      />
     </div>
   </div>
 </div>

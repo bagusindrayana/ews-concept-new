@@ -37,25 +37,26 @@
   >
     <div class="flex items-center gap-3">
       <div class="flex items-center gap-2">
-        <span class="inline-block w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+        <span
+          class="inline-block w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"
+        ></span>
         <span class="font-bold tracking-widest text-xs text-orange-400">
           MAGI // CIRCUIT BUS DECK
         </span>
       </div>
-      <span class="text-neutral-600 text-xs hidden sm:inline">|</span>
-      <span class="text-[11px] text-neutral-300 hidden sm:inline">
-        NERV COMMAND TELEMETRY
-      </span>
     </div>
 
     <!-- Actions & Presets -->
     <div class="flex items-center flex-wrap gap-1.5 text-xs">
       <!-- Layout Columns Selector -->
-      <div class="flex items-center gap-1 bg-neutral-950 px-1 py-0.5 rounded border border-neutral-700">
+      <div
+        class="flex items-center gap-1 bg-neutral-950 px-1 py-0.5 rounded border border-neutral-700"
+      >
         <span class="text-[10px] text-neutral-400 px-1 font-bold">COLS:</span>
         <button
           type="button"
-          class="px-2 py-0.5 rounded text-[10px] font-bold transition-all {columns === 2
+          class="px-2 py-0.5 rounded text-[10px] font-bold transition-all {columns ===
+          2
             ? 'bg-orange-500 text-black shadow'
             : 'text-neutral-400 hover:text-white'}"
           onclick={() => (columns = 2)}
@@ -65,7 +66,8 @@
         </button>
         <button
           type="button"
-          class="px-2 py-0.5 rounded text-[10px] font-bold transition-all {columns === 4
+          class="px-2 py-0.5 rounded text-[10px] font-bold transition-all {columns ===
+          4
             ? 'bg-orange-500 text-black shadow'
             : 'text-neutral-400 hover:text-white'}"
           onclick={() => (columns = 4)}
@@ -75,7 +77,8 @@
         </button>
         <button
           type="button"
-          class="px-2 py-0.5 rounded text-[10px] font-bold transition-all {columns === 6
+          class="px-2 py-0.5 rounded text-[10px] font-bold transition-all {columns ===
+          6
             ? 'bg-orange-500 text-black shadow'
             : 'text-neutral-400 hover:text-white'}"
           onclick={() => (columns = 6)}
@@ -189,11 +192,6 @@
           {syncPercentage}%
         </span>
       </div>
-    </div>
-
-    <div class="text-neutral-400 hidden md:block">
-      <span>INTERAKSI: </span>
-      <span class="text-orange-300 font-semibold">KLIK NODE UNTUK TOGGLE</span>
     </div>
   </div>
 </div>

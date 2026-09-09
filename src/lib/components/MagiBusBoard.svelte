@@ -42,8 +42,10 @@
     className = "",
     revealDelayMs = 25,
     resolveDelayMs = 600,
+    animateReveal = true,
     onToggle,
     onSelectNode,
+    minRows = 2,
   }: {
     items?: any[];
     maxColumns?: number;
@@ -53,8 +55,10 @@
     className?: string;
     revealDelayMs?: number;
     resolveDelayMs?: number;
+    animateReveal?: boolean;
     onToggle?: (item: any, isConnected: boolean) => void;
     onSelectNode?: (item: any) => void;
+    minRows?: number;
   } = $props();
 
   // -------------------------------------------------------------
@@ -109,27 +113,72 @@
   let totalBlocks = $derived(
     Math.max(blocksPerRow, Math.ceil(effectiveItems.length / itemsPerBlock)),
   );
-  let totalRows = $derived(Math.max(2, Math.ceil(totalBlocks / blocksPerRow)));
+  let totalRows = $derived(
+    Math.max(minRows, Math.ceil(totalBlocks / blocksPerRow)),
+  );
   // Every row renders all maxColumns (blocksPerRow modules):
   let activeBlocksPerRow = $derived(blocksPerRow);
   let totalWidth = $derived(activeBlocksPerRow * W_BLOCK);
   let totalHeight = $derived(totalRows * H_ROW);
 
   // -------------------------------------------------------------
-  // Node Reveal & Delayed Status Resolve State Management
+  // Performance Optimization (Solution 1):
+  // Single numeric counters driven by requestAnimationFrame (60 FPS)
+  // Replaces hundreds of setTimeouts and object mutations
   // -------------------------------------------------------------
-  interface NodeRevealState {
-    revealed: boolean;
-    resolved: boolean;
-    connected: boolean;
-  }
-  let nodeRevealStates = $state<Record<string, NodeRevealState>>({});
+  let revealedCount = $state(0);
+  let resolvedCount = $state(0);
+  let userOverrides = $state<Record<string, boolean>>({});
   let lastItemsFingerprint = $state("");
-  let scheduledTimers: Array<ReturnType<typeof setTimeout>> = [];
+  let animFrameId: number | null = null;
+  let animStartTime: number | null = null;
 
-  function clearAllTimers() {
-    scheduledTimers.forEach(clearTimeout);
-    scheduledTimers = [];
+  function stopRevealAnimation() {
+    if (animFrameId !== null) {
+      cancelAnimationFrame(animFrameId);
+      animFrameId = null;
+    }
+  }
+
+  function startRevealAnimation(totalItemsCount: number) {
+    stopRevealAnimation();
+    revealedCount = 0;
+    resolvedCount = 0;
+    animStartTime = null;
+
+    function step(now: number) {
+      if (animStartTime === null) animStartTime = now;
+      const elapsed = now - animStartTime;
+
+      // Reveal step advances smoothly at display refresh rate:
+      const stepMs = Math.max(2, revealDelayMs);
+      const newRevealed = Math.min(
+        totalItemsCount,
+        Math.floor(elapsed / stepMs),
+      );
+
+      // Resolve step lags behind by resolveDelayMs:
+      const resolveElapsed = Math.max(0, elapsed - resolveDelayMs);
+      const newResolved = Math.min(
+        totalItemsCount,
+        Math.floor(resolveElapsed / stepMs),
+      );
+
+      if (newRevealed !== revealedCount) {
+        revealedCount = newRevealed;
+      }
+      if (newResolved !== resolvedCount) {
+        resolvedCount = newResolved;
+      }
+
+      if (resolvedCount < totalItemsCount) {
+        animFrameId = requestAnimationFrame(step);
+      } else {
+        animFrameId = null;
+      }
+    }
+
+    animFrameId = requestAnimationFrame(step);
   }
 
   $effect(() => {
@@ -139,77 +188,30 @@
       .join("|");
 
     if (currentItems.length === 0) {
-      clearAllTimers();
-      nodeRevealStates = {};
+      stopRevealAnimation();
+      revealedCount = 0;
+      resolvedCount = 0;
       lastItemsFingerprint = "";
       return;
     }
 
-    if (fingerprint !== lastItemsFingerprint) {
-      // New or first non-empty dataset: start sequential reveal process
+    if (!animateReveal) {
+      stopRevealAnimation();
       lastItemsFingerprint = fingerprint;
-      clearAllTimers();
+      revealedCount = currentItems.length;
+      resolvedCount = currentItems.length;
+      return;
+    }
 
-      const initialStates: Record<string, NodeRevealState> = {};
-      currentItems.forEach((item, idx) => {
-        const key = item.id || item.stationCode || String(idx);
-        initialStates[key] = {
-          revealed: false,
-          resolved: false,
-          connected: true, // initially connected during reveal
-        };
-      });
-      nodeRevealStates = initialStates;
-
-      currentItems.forEach((item, idx) => {
-        const key = item.id || item.stationCode || String(idx);
-        const targetConnected = item.status
-          ? item.status === "ACTIVE"
-          : (item.connected ?? true);
-
-        // Step 1: Reveal node one by one with millisecond stagger
-        const revealTimer = setTimeout(() => {
-          if (nodeRevealStates[key]) {
-            nodeRevealStates[key] = {
-              revealed: true,
-              resolved: false,
-              connected: true, // starts connected / standby
-            };
-          }
-        }, idx * revealDelayMs);
-        scheduledTimers.push(revealTimer);
-
-        // Step 2: Resolve to actual station status (ACTIVE/OFFLINE) after delay
-        const resolveTimer = setTimeout(
-          () => {
-            if (nodeRevealStates[key]) {
-              nodeRevealStates[key] = {
-                revealed: true,
-                resolved: true,
-                connected: targetConnected, // transitions to actual status
-              };
-            }
-          },
-          idx * revealDelayMs + resolveDelayMs,
-        );
-        scheduledTimers.push(resolveTimer);
-      });
-    } else {
-      // Same station items: update resolved connection state if parent mutated status (e.g. presets)
-      currentItems.forEach((item, idx) => {
-        const key = item.id || item.stationCode || String(idx);
-        if (nodeRevealStates[key] && nodeRevealStates[key].resolved) {
-          const targetConnected = item.status
-            ? item.status === "ACTIVE"
-            : (item.connected ?? true);
-          nodeRevealStates[key].connected = targetConnected;
-        }
-      });
+    if (fingerprint !== lastItemsFingerprint) {
+      lastItemsFingerprint = fingerprint;
+      userOverrides = {};
+      startRevealAnimation(currentItems.length);
     }
   });
 
   onDestroy(() => {
-    clearAllTimers();
+    stopRevealAnimation();
   });
 
   // Base trace coordinates within 1 module
@@ -250,10 +252,32 @@
     };
   }
 
-  // Derive active nodes positioned across all blocks and rows
-  let nodes = $derived.by(() => {
-    const res: MagiNodeItem[] = [];
-    if (!items || items.length === 0) return res;
+  // -------------------------------------------------------------
+  // Performance Optimization (Solution 2):
+  // Single-pass node derivation with O(1) Map lookup index for traces
+  // Eliminates ~30,000 array iterations and .filter() allocations per frame
+  // -------------------------------------------------------------
+  interface BoardNodeData {
+    allNodes: MagiNodeItem[];
+    diagNodes: MagiNodeItem[];
+    horizNodes: MagiNodeItem[];
+    nodeByTraceKey: Map<string, MagiNodeItem>;
+  }
+
+  let boardNodeData = $derived.by<BoardNodeData>(() => {
+    const allNodes: MagiNodeItem[] = [];
+    const diagNodes: MagiNodeItem[] = [];
+    const horizNodes: MagiNodeItem[] = [];
+    const nodeByTraceKey = new Map<string, MagiNodeItem>();
+
+    if (!items || items.length === 0) {
+      return { allNodes, diagNodes, horizNodes, nodeByTraceKey };
+    }
+
+    const effectiveCount = effectiveItems.length;
+    const limitCount = animateReveal
+      ? Math.min(effectiveCount, revealedCount)
+      : effectiveCount;
 
     for (let g = 0; g < totalBlocks; g++) {
       const r = Math.floor(g / blocksPerRow);
@@ -261,15 +285,21 @@
       const xOffset = b * W_BLOCK;
       const yOffset = r * H_ROW;
 
+      const blockStartIdx = g * itemsPerBlock;
+      if (blockStartIdx >= limitCount && animateReveal) {
+        continue;
+      }
+
       const blockItems = effectiveItems.slice(
-        g * itemsPerBlock,
+        blockStartIdx,
         (g + 1) * itemsPerBlock,
       );
 
-      // Iterate through 31 slots of block g
       for (let slot = 0; slot < 31; slot++) {
-        if (slot >= blockItems.length) {
-          // If past items in this block, leave slot empty (pure circuit trace)
+        if (slot >= blockItems.length) continue;
+
+        const globalIdx = blockStartIdx + slot;
+        if (animateReveal && globalIdx >= revealedCount) {
           continue;
         }
 
@@ -277,18 +307,21 @@
         if (!matchedItem) continue;
 
         const itemKey =
-          matchedItem.id || matchedItem.stationCode || String(g * 31 + slot);
-        const revealInfo = nodeRevealStates[itemKey];
+          matchedItem.id || matchedItem.stationCode || String(globalIdx);
 
-        // If not yet revealed, DO NOT render node (trace remains unbroken)
-        if (!revealInfo || !revealInfo.revealed) {
-          continue;
-        }
+        const isResolved = animateReveal ? globalIdx < resolvedCount : true;
+        const targetConnected = matchedItem.status
+          ? matchedItem.status === "ACTIVE"
+          : (matchedItem.connected ?? true);
 
-        const isConnected = revealInfo.connected;
-        const isResolved = revealInfo.resolved;
+        const isConnected =
+          userOverrides[itemKey] !== undefined
+            ? userOverrides[itemKey]
+            : isResolved
+              ? targetConnected
+              : true;
+
         const layout = SLOT_LAYOUT[slot];
-
         const label =
           matchedItem.stationCode ||
           matchedItem.label ||
@@ -303,11 +336,13 @@
         const networkCode = matchedItem?.networkCode ?? "GE";
         const stationCode = matchedItem?.stationCode ?? label;
 
+        let nodeItem: MagiNodeItem;
+
         if (layout.bank === "horizontal") {
           const traceIdx = layout.traceIndex;
           const coords = getBaseTraceCoords(traceIdx);
 
-          res.push({
+          nodeItem = {
             id: matchedItem?.id || `node-g${g}-s${slot}`,
             label,
             bank: "horizontal",
@@ -326,7 +361,8 @@
             networkCode,
             stationCode,
             rawItem: matchedItem,
-          });
+          };
+          horizNodes.push(nodeItem);
         } else {
           // Diagonal node
           const traceIdx = layout.traceIndex;
@@ -353,7 +389,7 @@
           const topMargin = topFixed.y - (yOffset + coords.yEntry);
           const botMargin = yOffset + coords.yNode - bottomFixed.y;
 
-          res.push({
+          nodeItem = {
             id: matchedItem?.id || `node-g${g}-s${slot}`,
             label,
             bank: "diagonal",
@@ -374,13 +410,23 @@
             networkCode,
             stationCode,
             rawItem: matchedItem,
-          });
+          };
+          diagNodes.push(nodeItem);
         }
+
+        allNodes.push(nodeItem);
+        nodeByTraceKey.set(
+          `${g}-${layout.bank}-${layout.traceIndex}`,
+          nodeItem,
+        );
       }
     }
 
-    return res;
+    return { allNodes, diagNodes, horizNodes, nodeByTraceKey };
   });
+
+  // Backward-compatible node array
+  let nodes = $derived(boardNodeData.allNodes);
 
   // Calculate planar non-overlapping traces across all rows and blocks
   let traces = $derived.by(() => {
@@ -408,16 +454,12 @@
           const xBendOut = xOffset + coords.xBendOut;
           const xTurnOut = xOffset + coords.xTurnOut;
 
-          // Find nodes on this trace in block g
-          const diagNode = nodes.find(
-            (n) =>
-              n.blockIndex === g && n.bank === "diagonal" && n.traceIndex === i,
+          // O(1) instant lookup from pre-indexed Map (Solution 2)
+          const diagNode = boardNodeData.nodeByTraceKey.get(
+            `${g}-diagonal-${i}`,
           );
-          const horizNode = nodes.find(
-            (n) =>
-              n.blockIndex === g &&
-              n.bank === "horizontal" &&
-              n.traceIndex === i,
+          const horizNode = boardNodeData.nodeByTraceKey.get(
+            `${g}-horizontal-${i}`,
           );
 
           const isFirstBlockInRow = b === 0;
@@ -475,13 +517,8 @@
     if (readonly) return;
     const newStatus = !node.connected;
     const itemKey = node.stationCode || node.id;
-    if (nodeRevealStates[itemKey]) {
-      nodeRevealStates[itemKey] = {
-        revealed: true,
-        resolved: true,
-        connected: newStatus,
-      };
-    }
+    userOverrides[itemKey] = newStatus;
+
     if (node.rawItem) {
       if (node.rawItem.status !== undefined) {
         node.rawItem.status = newStatus ? "ACTIVE" : "OFFLINE";
@@ -583,7 +620,11 @@
   const malePath = getMalePiecePath(W_HALF, NODE_H);
 </script>
 
-<div class="magi-board-view relative w-full bg-[#ff4e00] {className}">
+<div
+  class="magi-board-view relative w-full bg-[#ff4e00] {className} {animateReveal
+    ? 'with-reveal-anim'
+    : ''}"
+>
   <!-- Main SVG MAGI Circuit Canvas with Dynamic Multi-Column & Multi-Row Grid -->
   <div class="relative w-full overflow-auto bg-[#ff4e00] transition-all">
     <svg
@@ -915,7 +956,7 @@
       <!-- ============================================================== -->
       <!-- BANK 1: DIAGONAL BUS NODES (LANE 1 & LANE 2 AT 45 DEG TILT)    -->
       <!-- ============================================================== -->
-      {#each nodes.filter((n) => n.bank === "diagonal") as node (node.id + "-b" + node.blockIndex + "-t" + node.traceIndex)}
+      {#each boardNodeData.diagNodes as node (node.id + "-b" + node.blockIndex + "-t" + node.traceIndex)}
         {@const isSevered = !node.connected}
         {@const isResolved = node.isResolved !== false}
         {@const isSelected =
@@ -1059,7 +1100,7 @@
       <!-- ============================================================== -->
       <!-- BANK 2: HORIZONTAL BUS NODES (STAGGERED CASCADE)               -->
       <!-- ============================================================== -->
-      {#each nodes.filter((n) => n.bank === "horizontal") as node (node.id + "-b" + node.blockIndex + "-t" + node.traceIndex)}
+      {#each boardNodeData.horizNodes as node (node.id + "-b" + node.blockIndex + "-t" + node.traceIndex)}
         {@const isSevered = !node.connected}
         {@const isResolved = node.isResolved !== false}
         {@const isSelected =
@@ -1263,7 +1304,7 @@
       stroke 0.3s;
   }
 
-  .node-group {
+  :global(.with-reveal-anim) .node-group {
     animation: nodeAppear 0.25s ease-out forwards;
   }
 

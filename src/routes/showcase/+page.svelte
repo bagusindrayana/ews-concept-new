@@ -17,11 +17,13 @@
   import ThreadedComments, {
     type ThreadTone,
   } from "$lib/components/ThreadedComments.svelte";
-  import MagiBusSwitch, { type MagiNodeItem } from "$lib/components/MagiBusSwitch.svelte";
+  import MagiBusSwitch, {
+    type MagiNodeItem,
+  } from "$lib/components/MagiBusSwitch.svelte";
   import MagiBusSingle from "$lib/components/MagiBusSingle.svelte";
-  import MagiBusBoard from "$lib/components/MagiBusBoard.svelte";
+  // import MagiBusBoard from "$lib/components/MagiBusBoard.svelte";
   import MagiBusRack from "$lib/components/MagiBusRack.svelte";
-  import MagiBusControls from "$lib/components/MagiBusControls.svelte";
+  // import MagiBusControls from "$lib/components/MagiBusControls.svelte";
 
   let lastMagiNodeId = $state<string | null>(null);
   let lastMagiNodeConnected = $state<boolean | null>(null);
@@ -963,40 +965,302 @@
 
     <!-- MAGI BUS SYNC SWITCH (NERVE LINK DATA TOGGLE) -->
     <section class="col-span-1 md:col-span-2 lg:col-span-3">
-      <div class="flex items-center justify-between mb-4 border-b border-gray-700 pb-2">
+      <div
+        class="flex items-center justify-between mb-4 border-b border-gray-700 pb-2"
+      >
         <div>
-          <h2 class="text-xl font-semibold">
-            MAGI Bus Sync Switch (Nerve Link Data Toggle)
-          </h2>
-          <p class="text-xs text-gray-400 mt-1">
-            Visual bus sirkuit MAGI Evangelion: Node berupa blok kapsul hitam dengan ID numerik monospaced hijau neon.
-            Saat terputus (severed/off), node berpisah menjadi 2 bagian dengan konektor socket/plug dan benang/garis sirkuit mengendur melengkung (wavy S-curve).
-          </p>
+          <h2 class="text-xl font-semibold">MAGI Bus Sync Switch</h2>
         </div>
-      </div>
-
-      <!-- Callback Feedback Banner -->
-      <div class="flex items-center justify-between px-3 py-2 bg-neutral-900 border border-neutral-700 rounded mb-4 font-mono text-xs">
-        <div class="flex items-center gap-2">
-          <span class="text-neutral-400">LAST TOGGLED:</span>
-          {#if lastMagiNodeId}
-            <span class="text-orange-400 font-bold">{lastMagiNodeId}</span>
-            <span class="text-neutral-500">→</span>
-            <span class="font-bold {lastMagiNodeConnected ? 'text-emerald-400' : 'text-rose-500'}">
-              {lastMagiNodeConnected ? "CONNECTED (ON)" : "SEVERED (OFF)"}
-            </span>
-          {:else}
-            <span class="text-neutral-500 italic">None (klik node di board atau switch di bawah)</span>
-          {/if}
-        </div>
-        <span class="text-[11px] text-neutral-500 hidden sm:inline">
-          Preset 1: Gambar 1 | Preset 2: Gambar 2
-        </span>
       </div>
 
       <!-- 1. Full Board Variant -->
       <div class="mb-6">
         <MagiBusSwitch
+          maxColumns={2}
+          nodes={[
+            // Bank 1: Diagonal Core Synapses
+            {
+              id: "GE-JAGI",
+              title: "GE-JAGI",
+              status: "ACTIVE",
+              type: "normal",
+              stationCode: "JAGI",
+              networkCode: "GE",
+              site: "Jatiwangi, Java",
+            },
+            {
+              id: "GE-TNTI",
+              title: "GE-TNTI",
+              status: "ACTIVE",
+              type: "normal",
+              stationCode: "TNTI",
+              networkCode: "GE",
+              site: "Ternate, Maluku",
+            },
+            {
+              id: "IA-BKB",
+              title: "IA-BKB",
+              status: "ACTIVE",
+              type: "normal",
+              stationCode: "BKB",
+              networkCode: "IA",
+              site: "Bukit Tinggi, Sumatra",
+            },
+            {
+              id: "IA-BBJI",
+              title: "IA-BBJI",
+              status: "OFFLINE",
+              type: "danger",
+              stationCode: "BBJI",
+              networkCode: "IA",
+              site: "Banjarnegara, Java",
+            },
+            {
+              id: "GE-UGM",
+              title: "GE-UGM",
+              status: "ACTIVE",
+              type: "normal",
+              stationCode: "UGM",
+              networkCode: "GE",
+              site: "Yogyakarta, Java",
+            },
+            {
+              id: "IA-KAPI",
+              title: "IA-KAPI",
+              status: "OFFLINE",
+              type: "danger",
+              stationCode: "KAPI",
+              networkCode: "IA",
+              site: "Kappang, Sulawesi",
+            },
+            {
+              id: "IA-SMRI",
+              title: "IA-SMRI",
+              status: "ACTIVE",
+              type: "normal",
+              stationCode: "SMRI",
+              networkCode: "IA",
+              site: "Semarang, Java",
+            },
+            {
+              id: "GE-FAKI",
+              title: "GE-FAKI",
+              status: "OFFLINE",
+              type: "danger",
+              stationCode: "FAKI",
+              networkCode: "GE",
+              site: "Fakfak, Papua",
+            },
+            {
+              id: "GE-PLAI",
+              title: "GE-PLAI",
+              status: "ACTIVE",
+              type: "normal",
+              stationCode: "PLAI",
+              networkCode: "GE",
+              site: "Pelabuhan Ratu, Java",
+            },
+            {
+              id: "IA-CISI",
+              title: "IA-CISI",
+              status: "ACTIVE",
+              type: "normal",
+              stationCode: "CISI",
+              networkCode: "IA",
+              site: "Cisompet, Garut",
+            },
+            {
+              id: "IA-SWI",
+              title: "IA-SWI",
+              status: "ACTIVE",
+              type: "normal",
+              stationCode: "SWI",
+              networkCode: "IA",
+              site: "Sawahan, Java",
+            },
+            {
+              id: "GE-SOEI",
+              title: "GE-SOEI",
+              status: "OFFLINE",
+              type: "danger",
+              stationCode: "SOEI",
+              networkCode: "GE",
+              site: "Soe, Timor",
+            },
+            {
+              id: "IA-GSI",
+              title: "IA-GSI",
+              status: "ACTIVE",
+              type: "normal",
+              stationCode: "GSI",
+              networkCode: "IA",
+              site: "Gunungsitoli, Nias",
+            },
+
+            // Bank 2: Horizontal Seismic Transceivers
+            {
+              id: "GE-LHMI",
+              title: "GE-LHMI",
+              status: "ACTIVE",
+              type: "normal",
+              stationCode: "LHMI",
+              networkCode: "GE",
+              site: "Lhokseumawe, Aceh",
+            },
+            {
+              id: "IA-BNDI",
+              title: "IA-BNDI",
+              status: "ACTIVE",
+              type: "normal",
+              stationCode: "BNDI",
+              networkCode: "IA",
+              site: "Banda Neira, Maluku",
+            },
+            {
+              id: "IA-AAI",
+              title: "IA-AAI",
+              status: "OFFLINE",
+              type: "danger",
+              stationCode: "AAI",
+              networkCode: "IA",
+              site: "Arso, Papua",
+            },
+            {
+              id: "GE-BND",
+              title: "GE-BND",
+              status: "ACTIVE",
+              type: "normal",
+              stationCode: "BND",
+              networkCode: "GE",
+              site: "Banda Sea Array",
+            },
+            {
+              id: "IA-PMBI",
+              title: "IA-PMBI",
+              status: "ACTIVE",
+              type: "normal",
+              stationCode: "PMBI",
+              networkCode: "IA",
+              site: "Palembang, Sumatra",
+            },
+            {
+              id: "IA-JMB",
+              title: "IA-JMB",
+              status: "OFFLINE",
+              type: "danger",
+              stationCode: "JMB",
+              networkCode: "IA",
+              site: "Jambi Observation",
+            },
+            {
+              id: "GE-MMRI",
+              title: "GE-MMRI",
+              status: "OFFLINE",
+              type: "danger",
+              stationCode: "MMRI",
+              networkCode: "GE",
+              site: "Maumere, Flores",
+            },
+            {
+              id: "IA-TRTI",
+              title: "IA-TRTI",
+              status: "ACTIVE",
+              type: "normal",
+              stationCode: "TRTI",
+              networkCode: "IA",
+              site: "Tolitoli, Sulawesi",
+            },
+            {
+              id: "IA-LUWI",
+              title: "IA-LUWI",
+              status: "OFFLINE",
+              type: "danger",
+              stationCode: "LUWI",
+              networkCode: "IA",
+              site: "Luwuk, Banggai",
+            },
+            {
+              id: "GE-TOLI2",
+              title: "GE-TOLI2",
+              status: "ACTIVE",
+              type: "normal",
+              stationCode: "TOLI2",
+              networkCode: "GE",
+              site: "Toli-Toli Coastal",
+            },
+            {
+              id: "IA-GENI",
+              title: "IA-GENI",
+              status: "ACTIVE",
+              type: "normal",
+              stationCode: "GENI",
+              networkCode: "IA",
+              site: "Genteng, Banyuwangi",
+            },
+            {
+              id: "IA-KLI",
+              title: "IA-KLI",
+              status: "OFFLINE",
+              type: "danger",
+              stationCode: "KLI",
+              networkCode: "IA",
+              site: "Kotabumi, Lampung",
+            },
+            {
+              id: "GE-MEDA",
+              title: "GE-MEDA",
+              status: "OFFLINE",
+              type: "danger",
+              stationCode: "MEDA",
+              networkCode: "GE",
+              site: "Medan Geophysics",
+            },
+            {
+              id: "IA-PDSI",
+              title: "IA-PDSI",
+              status: "ACTIVE",
+              type: "normal",
+              stationCode: "PDSI",
+              networkCode: "IA",
+              site: "Padang Sidempuan",
+            },
+            {
+              id: "IA-SANI",
+              title: "IA-SANI",
+              status: "OFFLINE",
+              type: "danger",
+              stationCode: "SANI",
+              networkCode: "IA",
+              site: "Sanana, Maluku",
+            },
+            {
+              id: "GE-BKNI",
+              title: "GE-BKNI",
+              status: "OFFLINE",
+              type: "danger",
+              stationCode: "BKNI",
+              networkCode: "GE",
+              site: "Bangka Belitung",
+            },
+            {
+              id: "IA-GLMI",
+              title: "IA-GLMI",
+              status: "ACTIVE",
+              type: "normal",
+              stationCode: "GLMI",
+              networkCode: "IA",
+              site: "Galela, Halmahera",
+            },
+            {
+              id: "GE-WSI",
+              title: "GE-WSI",
+              status: "ACTIVE",
+              type: "normal",
+              stationCode: "WSI",
+              networkCode: "GE",
+              site: "Waingapu, Sumba",
+            },
+          ]}
           variant="board"
           onToggle={(node, isConn) => {
             lastMagiNodeId = node.id;
@@ -1008,12 +1272,13 @@
       <!-- 2. Compact Variants: Single Switch & Data Rack -->
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
         <!-- Single Toggle Switch -->
-        <div class="p-4 bg-neutral-900 border border-neutral-800 rounded flex flex-col gap-3">
+        <div
+          class="p-4 bg-neutral-900 border border-neutral-800 rounded flex flex-col gap-3"
+        >
           <div>
-            <h3 class="font-bold text-sm text-neutral-200">Standalone Switch Variant</h3>
-            <p class="text-xs text-neutral-400 mt-0.5">
-              Komponen saklar ringkas untuk form setting atau panel kontrol data.
-            </p>
+            <h3 class="font-bold text-sm text-neutral-200">
+              Standalone Switch Variant
+            </h3>
           </div>
           <MagiBusSingle
             label="00130"
@@ -1026,12 +1291,13 @@
         </div>
 
         <!-- Data Rack Variant -->
-        <div class="p-4 bg-neutral-900 border border-neutral-800 rounded flex flex-col gap-3">
+        <div
+          class="p-4 bg-neutral-900 border border-neutral-800 rounded flex flex-col gap-3"
+        >
           <div>
-            <h3 class="font-bold text-sm text-neutral-200">Rack Channels Variant (MagiBusRack)</h3>
-            <p class="text-xs text-neutral-400 mt-0.5">
-              Daftar channel vertikal untuk toggle stream individual (BMKG, Buoy, FDSNWS).
-            </p>
+            <h3 class="font-bold text-sm text-neutral-200">
+              Rack Channels Variant (MagiBusRack)
+            </h3>
           </div>
           <MagiBusRack
             onToggle={(item, isConn) => {

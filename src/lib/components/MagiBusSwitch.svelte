@@ -56,19 +56,31 @@
   });
 
   const IMAGE_2_DISCONNECTED_IDS = new Set([
-    "00130", "00132", "00135", "00136",
-    "00225", "00228", "00229", "00231", "00234", "00235", "00237", "00238"
+    "00130",
+    "00132",
+    "00135",
+    "00136",
+    "00225",
+    "00228",
+    "00229",
+    "00231",
+    "00234",
+    "00235",
+    "00237",
+    "00238",
   ]);
 
   let totalCount = $derived(items.length > 0 ? items.length : 31);
   let connectedCount = $derived(
     items.length > 0
-      ? items.filter((n) => (n.status ? n.status === "ACTIVE" : n.connected !== false)).length
-      : 31
+      ? items.filter((n) =>
+          n.status ? n.status === "ACTIVE" : n.connected !== false,
+        ).length
+      : 31,
   );
   let severedCount = $derived(totalCount - connectedCount);
   let syncPercentage = $derived(
-    totalCount > 0 ? Math.round((connectedCount / totalCount) * 100) : 100
+    totalCount > 0 ? Math.round((connectedCount / totalCount) * 100) : 100,
   );
 
   function applyPresetAllConnected() {
@@ -81,7 +93,9 @@
 
   function applyPresetImage2Severed() {
     items.forEach((n) => {
-      const isSevered = IMAGE_2_DISCONNECTED_IDS.has(n.id) || IMAGE_2_DISCONNECTED_IDS.has(n.label);
+      const isSevered =
+        IMAGE_2_DISCONNECTED_IDS.has(n.id) ||
+        IMAGE_2_DISCONNECTED_IDS.has(n.label);
       if (n.status) n.status = isSevered ? "OFFLINE" : "ACTIVE";
       n.connected = !isSevered;
     });
@@ -112,7 +126,9 @@
         const randomIndex = Math.floor(Math.random() * items.length);
         const target = items[randomIndex];
         if (target) {
-          const curr = target.status ? target.status === "ACTIVE" : target.connected !== false;
+          const curr = target.status
+            ? target.status === "ACTIVE"
+            : target.connected !== false;
           if (target.status) target.status = curr ? "OFFLINE" : "ACTIVE";
           target.connected = !curr;
           items = [...items];
@@ -159,18 +175,18 @@
       {readonly}
       highlightQuery={searchQuery}
       {onToggle}
+      minRows={1}
     />
   </div>
-
 {:else if variant === "single"}
   <MagiBusSingle
     bind:connected={singleConnected}
     {readonly}
     onToggle={(isConn) => {
-      if (onToggle) onToggle({ id: "SINGLE", label: "00130", connected: isConn }, isConn);
+      if (onToggle)
+        onToggle({ id: "SINGLE", label: "00130", connected: isConn }, isConn);
     }}
   />
-
 {:else if variant === "rack"}
   <MagiBusRack
     items={items as MagiRackItem[]}
