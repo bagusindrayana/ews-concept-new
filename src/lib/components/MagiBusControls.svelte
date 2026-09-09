@@ -4,6 +4,7 @@
     connectedCount = 0,
     severedCount = 0,
     syncPercentage = 100,
+    columns = $bindable(4),
     isSimulating = false,
     searchQuery = $bindable(""),
     onPresetAllConnected,
@@ -17,6 +18,7 @@
     connectedCount?: number;
     severedCount?: number;
     syncPercentage?: number;
+    columns?: number;
     isSimulating?: boolean;
     searchQuery?: string;
     onPresetAllConnected?: () => void;
@@ -48,6 +50,41 @@
 
     <!-- Actions & Presets -->
     <div class="flex items-center flex-wrap gap-1.5 text-xs">
+      <!-- Layout Columns Selector -->
+      <div class="flex items-center gap-1 bg-neutral-950 px-1 py-0.5 rounded border border-neutral-700">
+        <span class="text-[10px] text-neutral-400 px-1 font-bold">COLS:</span>
+        <button
+          type="button"
+          class="px-2 py-0.5 rounded text-[10px] font-bold transition-all {columns === 2
+            ? 'bg-orange-500 text-black shadow'
+            : 'text-neutral-400 hover:text-white'}"
+          onclick={() => (columns = 2)}
+          title="2 Kolom (1 Bank per baris)"
+        >
+          2
+        </button>
+        <button
+          type="button"
+          class="px-2 py-0.5 rounded text-[10px] font-bold transition-all {columns === 4
+            ? 'bg-orange-500 text-black shadow'
+            : 'text-neutral-400 hover:text-white'}"
+          onclick={() => (columns = 4)}
+          title="4 Kolom (2 Bank per baris - Default)"
+        >
+          4
+        </button>
+        <button
+          type="button"
+          class="px-2 py-0.5 rounded text-[10px] font-bold transition-all {columns === 6
+            ? 'bg-orange-500 text-black shadow'
+            : 'text-neutral-400 hover:text-white'}"
+          onclick={() => (columns = 6)}
+          title="6 Kolom (3 Bank per baris)"
+        >
+          6
+        </button>
+      </div>
+
       {#if onPresetAllConnected}
         <button
           type="button"

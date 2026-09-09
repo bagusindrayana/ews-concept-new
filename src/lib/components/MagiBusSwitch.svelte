@@ -22,6 +22,7 @@
   let {
     nodes: propNodes,
     variant = "board",
+    maxColumns = 4,
     readonly = false,
     showControls = true,
     showTelemetry = true,
@@ -30,6 +31,7 @@
   }: {
     nodes?: any[];
     variant?: "board" | "single" | "rack";
+    maxColumns?: number;
     readonly?: boolean;
     showControls?: boolean;
     showTelemetry?: boolean;
@@ -141,6 +143,7 @@
         {severedCount}
         {syncPercentage}
         {isSimulating}
+        bind:columns={maxColumns}
         bind:searchQuery
         onPresetAllConnected={applyPresetAllConnected}
         onPresetImage2={applyPresetImage2Severed}
@@ -152,6 +155,7 @@
 
     <MagiBusBoard
       {items}
+      {maxColumns}
       {readonly}
       highlightQuery={searchQuery}
       {onToggle}

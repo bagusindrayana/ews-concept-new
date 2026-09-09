@@ -59,16 +59,9 @@
   let statuses = $state<StationStatusItem[]>([...INITIAL_STATIONS]);
   let selectedStation = $state<StationStatusItem | null>(INITIAL_STATIONS[0]);
   let searchQuery = $state("");
+  let maxColumns = $state(4);
   let isSimulating = $state(false);
   let simulationInterval: any = null;
-  let activeBankIndex = $state(0);
-
-  // Pagination for large station lists (> 31)
-  const STATIONS_PER_BANK = 31;
-  let totalBanks = $derived(Math.max(1, Math.ceil(statuses.length / STATIONS_PER_BANK)));
-  let currentBankStations = $derived(
-    statuses.slice(activeBankIndex * STATIONS_PER_BANK, (activeBankIndex + 1) * STATIONS_PER_BANK)
-  );
 
   // Live Telemetry Stats
   let totalCount = $derived(statuses.length);
@@ -93,6 +86,7 @@
       const el = document.getElementById("loading-screen");
       if (el) el.style.display = "none";
 
+      const seenIds = new Set<string>();
       const fetchedList: StationStatusItem[] = [];
 
       stationResults.forEach((result) => {
@@ -118,16 +112,20 @@
             const staCode = (stationNode["@attributes"] as any)?.code || "UNKNOWN";
             const endDate = (stationNode["@attributes"] as any)?.endDate;
             const isOffline = Boolean(endDate);
+            const id = `${netCode}-${staCode}`;
 
-            fetchedList.push({
-              id: `${netCode}-${staCode}`,
-              title: `${netCode}-${staCode}`,
-              status: isOffline ? "OFFLINE" : "ACTIVE",
-              type: isOffline ? "danger" : "normal",
-              stationCode: `${staCode}`,
-              networkCode: `${netCode}`,
-              site: `${(stationNode["Site"] as any)?.Name || "UNKNOWN"}`,
-            });
+            if (!seenIds.has(id)) {
+              seenIds.add(id);
+              fetchedList.push({
+                id,
+                title: `${netCode}-${staCode}`,
+                status: isOffline ? "OFFLINE" : "ACTIVE",
+                type: isOffline ? "danger" : "normal",
+                stationCode: `${staCode}`,
+                networkCode: `${netCode}`,
+                site: `${(stationNode["Site"] as any)?.Name || "UNKNOWN"}`,
+              });
+            }
           });
         });
       });
@@ -270,7 +268,7 @@
   <div class="w-full h-1 bg-red-600/80 mb-3"></div>
 
   <!-- Main Content Layout Spanning Screen Width with Edge-to-Edge Circuit -->
-  <div class="w-full max-w-[1440px] px-2 md:px-6 flex flex-col gap-4">
+  <div class="w-full max-w-[1720px] px-2 md:px-6 flex flex-col gap-4">
     <!-- Decoupled Cyber Deck HUD Control Strip -->
     <MagiBusControls
       {totalCount}
@@ -278,6 +276,7 @@
       {severedCount}
       {syncPercentage}
       {isSimulating}
+      bind:columns={maxColumns}
       bind:searchQuery
       onPresetAllConnected={connectAll}
       onPresetImage2={applyPresetImage2Severed}
@@ -287,30 +286,11 @@
       className="shadow-xl"
     />
 
-    <!-- Bank Switcher Tabs if stations exceed single board limit -->
-    {#if totalBanks > 1}
-      <div class="flex items-center justify-between px-3 py-1.5 bg-black/80 border border-neutral-800 rounded text-xs font-mono">
-        <span class="text-neutral-400">SELECT TELEMETRY BANK:</span>
-        <div class="flex items-center gap-1.5">
-          {#each Array(totalBanks) as _, bankIdx}
-            <button
-              type="button"
-              class="px-2.5 py-1 rounded transition-colors {activeBankIndex === bankIdx
-                ? 'bg-[#ff4e00] text-black font-bold border border-orange-400'
-                : 'bg-neutral-900 text-neutral-400 border border-neutral-800 hover:text-white'}"
-              onclick={() => (activeBankIndex = bankIdx)}
-            >
-              BANK {String.fromCharCode(65 + bankIdx)} (CH {bankIdx * STATIONS_PER_BANK + 1}-{Math.min((bankIdx + 1) * STATIONS_PER_BANK, totalCount)})
-            </button>
-          {/each}
-        </div>
-      </div>
-    {/if}
-
-    <!-- Pure Authentic MAGI Bus Circuit Board -->
+    <!-- Pure Authentic MAGI Bus Circuit Board (Continuous Multi-Row Multi-Column) -->
     <div class="relative w-full shadow-2xl rounded-md overflow-hidden border border-neutral-800">
       <MagiBusBoard
-        items={currentBankStations}
+        items={statuses}
+        {maxColumns}
         highlightQuery={searchQuery}
         activeNodeId={selectedStation?.stationCode || selectedStation?.id}
         onToggle={handleNodeToggle}

@@ -17,6 +17,10 @@
     bottomFixed?: { x: number; y: number };
     topMargin?: number;
     botMargin?: number;
+    // Multi-block tracking
+    blockIndex?: number;
+    rowIndex?: number;
+    blockInRow?: number;
     // Metadata
     stationCode?: string;
     networkCode?: string;
@@ -28,6 +32,7 @@
 
   let {
     items = [],
+    maxColumns = 4,
     readonly = false,
     activeNodeId = null,
     highlightQuery = "",
@@ -36,6 +41,7 @@
     onSelectNode,
   }: {
     items?: any[];
+    maxColumns?: number;
     readonly?: boolean;
     activeNodeId?: string | null;
     highlightQuery?: string;
@@ -45,7 +51,7 @@
   } = $props();
 
   // -------------------------------------------------------------
-  // Default authentic 31-node configuration (Image 1 & 2 layout)
+  // Default authentic 31-node configuration (Single Module Unit)
   // 18 Horizontal Traces (i=0..17) with 18 horizontal nodes
   // + 13 Diagonal Nodes placed along traces 4..16
   // -------------------------------------------------------------
@@ -89,154 +95,261 @@
     { id: "00240", label: "00240", bank: "horizontal" as const, traceIndex: 17, channelName: "SEIS-BMKG-240", category: "Ocean Buoy Link" },
   ];
 
-  // Derive active nodes reactively by mapping passed `items` or defaults
+  // Board Architecture Constants (Dimensions per 2-column block module)
+  const W_BLOCK = 1180;
+  const H_ROW = 680;
+  const W_HALF = 43;
+  const NODE_W = 86;
+  const NODE_H = 20;
+  const SEPARATE_SHIFT = 13;
+
+  // View mode: 'fit' scales SVG to container width, 'scroll' allows native 100% crisp resolution
+  let viewMode = $state<"fit" | "scroll">("fit");
+
+  // Multi-column and Multi-row calculations
+  // 1 block = 2 columns (1 diagonal column + 1 horizontal column = 31 nodes)
+  let blocksPerRow = $derived(Math.max(1, Math.floor(maxColumns / 2)));
+  const itemsPerBlock = 31;
+  let effectiveItems = $derived(items && items.length > 0 ? items : DEFAULT_CONFIG);
+  let totalBlocks = $derived(Math.max(1, Math.ceil(effectiveItems.length / itemsPerBlock)));
+  let totalRows = $derived(Math.max(1, Math.ceil(totalBlocks / blocksPerRow)));
+  let activeBlocksPerRow = $derived(Math.min(blocksPerRow, totalBlocks));
+  let totalWidth = $derived(activeBlocksPerRow * W_BLOCK);
+  let totalHeight = $derived(totalRows * H_ROW);
+
+  // Base trace coordinates within 1 module
+  function getBaseTraceCoords(i: number) {
+    const yNode = 55 + i * 33;
+    const pair = Math.floor(i / 2);
+    const odd = i % 2 === 1;
+    const xNode = 940 - pair * 64 + (odd ? 44 : 0);
+
+    const leadL = odd ? 80 : 36;
+    const xBendIn = xNode - 43 - leadL;
+
+    const leadR = odd ? 40 : 85;
+    const xBendOut = xNode + 43 + leadR;
+
+    const yEntry = 15 + i * 16;
+    const diagL = yNode - yEntry;
+    const xTurnIn = xBendIn - diagL;
+
+    const diagR = 25 + (17 - i) * 6;
+    const yExit = yNode + diagR;
+    const xTurnOut = xBendOut + diagR;
+
+    return {
+      i,
+      yNode,
+      xNode,
+      leadL,
+      xBendIn,
+      leadR,
+      xBendOut,
+      yEntry,
+      diagL,
+      xTurnIn,
+      diagR,
+      yExit,
+      xTurnOut,
+    };
+  }
+
+  // Derive active nodes positioned across all blocks and rows
   let nodes = $derived.by(() => {
-    return DEFAULT_CONFIG.map((cfg, idx): MagiNodeItem => {
-      // Find matching item from props if provided
-      let matchedItem: any = null;
-      if (items && items.length > 0) {
-        if (idx < items.length) {
-          matchedItem = items[idx];
+    const res: MagiNodeItem[] = [];
+
+    for (let g = 0; g < totalBlocks; g++) {
+      const r = Math.floor(g / blocksPerRow);
+      const b = g % blocksPerRow;
+      const xOffset = b * W_BLOCK;
+      const yOffset = r * H_ROW;
+
+      const blockItems = effectiveItems.slice(g * itemsPerBlock, (g + 1) * itemsPerBlock);
+
+      // Iterate through 31 slots of block g:
+      // Slots 0..12: Diagonal nodes
+      // Slots 13..30: Horizontal nodes
+      for (let slot = 0; slot < 31; slot++) {
+        if (slot >= blockItems.length && items && items.length > 0) {
+          // If past total items, slot is unpopulated
+          continue;
+        }
+
+        const matchedItem = blockItems[slot] || DEFAULT_CONFIG[slot];
+        const defaultCfg = DEFAULT_CONFIG[slot];
+
+        const isConnected = matchedItem
+          ? (matchedItem.status ? matchedItem.status === "ACTIVE" : matchedItem.connected ?? true)
+          : true;
+
+        const label = matchedItem
+          ? (matchedItem.stationCode || matchedItem.label || matchedItem.title || defaultCfg.label)
+          : defaultCfg.label;
+
+        const channelName = matchedItem
+          ? (matchedItem.title || `${matchedItem.networkCode || "NERV"}-${matchedItem.stationCode || label}`)
+          : defaultCfg.channelName;
+
+        const site = matchedItem?.site ?? "";
+        const networkCode = matchedItem?.networkCode ?? "GE";
+        const stationCode = matchedItem?.stationCode ?? label;
+
+        if (defaultCfg.bank === "horizontal") {
+          const traceIdx = defaultCfg.traceIndex;
+          const coords = getBaseTraceCoords(traceIdx);
+
+          res.push({
+            ...defaultCfg,
+            id: matchedItem?.id || `${defaultCfg.id}-g${g}`,
+            label,
+            connected: isConnected,
+            x: xOffset + coords.xNode,
+            y: yOffset + coords.yNode,
+            leadLeft: coords.leadL,
+            leadRight: coords.leadR,
+            blockIndex: g,
+            rowIndex: r,
+            blockInRow: b,
+            channelName,
+            site,
+            networkCode,
+            stationCode,
+            rawItem: matchedItem,
+          });
         } else {
-          // If items has fewer entries, cycle or look by id
-          matchedItem = items.find((it: any) => it.id === cfg.id || it.stationCode === cfg.label);
+          // Diagonal node
+          const traceIdx = defaultCfg.traceIndex;
+          const coords = getBaseTraceCoords(traceIdx);
+
+          const isLane1 = traceIdx % 2 === 0;
+          const t = isLane1 ? 0.52 : 0.42;
+          const localDiagX = coords.xTurnIn + coords.diagL * t;
+          const localDiagY = coords.yEntry + coords.diagL * t;
+
+          const sinA = 0.7071;
+          const wireSpan = 16;
+          const diagWireDelta = (W_HALF + wireSpan) * sinA;
+
+          const topFixed = {
+            x: xOffset + localDiagX - diagWireDelta,
+            y: yOffset + localDiagY - diagWireDelta,
+          };
+          const bottomFixed = {
+            x: xOffset + localDiagX + diagWireDelta,
+            y: yOffset + localDiagY + diagWireDelta,
+          };
+
+          const topMargin = topFixed.y - (yOffset + coords.yEntry);
+          const botMargin = (yOffset + coords.yNode) - bottomFixed.y;
+
+          res.push({
+            ...defaultCfg,
+            id: matchedItem?.id || `${defaultCfg.id}-g${g}`,
+            label,
+            connected: isConnected,
+            x: xOffset + localDiagX,
+            y: yOffset + localDiagY,
+            topFixed,
+            bottomFixed,
+            topMargin,
+            botMargin,
+            blockIndex: g,
+            rowIndex: r,
+            blockInRow: b,
+            channelName,
+            site,
+            networkCode,
+            stationCode,
+            rawItem: matchedItem,
+          });
         }
       }
+    }
 
-      const isConnected = matchedItem
-        ? (matchedItem.status ? matchedItem.status === "ACTIVE" : matchedItem.connected ?? true)
-        : true;
-
-      const label = matchedItem
-        ? (matchedItem.stationCode || matchedItem.label || matchedItem.title || cfg.label)
-        : cfg.label;
-
-      const channelName = matchedItem
-        ? (matchedItem.title || `${matchedItem.networkCode || "NERV"}-${matchedItem.stationCode || label}`)
-        : cfg.channelName;
-
-      const site = matchedItem?.site ?? "";
-      const networkCode = matchedItem?.networkCode ?? "GE";
-      const stationCode = matchedItem?.stationCode ?? label;
-
-      // Coordinate geometry calculation
-      const traceIdx = cfg.traceIndex;
-      const yNode = 55 + traceIdx * 33;
-      const pair = Math.floor(traceIdx / 2);
-      const odd = traceIdx % 2 === 1;
-      const xNode = 940 - pair * 64 + (odd ? 44 : 0);
-
-      // Left lead & in-bend
-      const leadL = odd ? 80 : 36;
-      const xBendIn = xNode - 43 - leadL;
-
-      // Right lead & out-bend
-      const leadR = odd ? 40 : 85;
-      const xBendOut = xNode + 43 + leadR;
-
-      if (cfg.bank === "horizontal") {
-        return {
-          ...cfg,
-          label,
-          connected: isConnected,
-          x: xNode,
-          y: yNode,
-          leadLeft: leadL,
-          leadRight: leadR,
-          channelName,
-          site,
-          networkCode,
-          stationCode,
-          rawItem: matchedItem,
-        };
-      } else {
-        // Diagonal node sitting on trace's diagonal corridor
-        // The diagonal segment goes from (xTurnIn, yEntry) to (xBendIn, yNode)
-        const yEntry = 15 + traceIdx * 16;
-        const diagLen = yNode - yEntry;
-        const xTurnIn = xBendIn - diagLen;
-
-        // Staggering: Lane 1 (even traces) t = 0.52, Lane 2 (odd traces) t = 0.42
-        const isLane1 = traceIdx % 2 === 0;
-        const t = isLane1 ? 0.52 : 0.42;
-        const diagX = xTurnIn + diagLen * t;
-        const diagY = yEntry + diagLen * t;
-
-        const sinA = 0.7071;
-        const wireSpan = 16;
-        const diagWireDelta = (43 + wireSpan) * sinA;
-
-        const topFixed = {
-          x: diagX - diagWireDelta,
-          y: diagY - diagWireDelta,
-        };
-        const bottomFixed = {
-          x: diagX + diagWireDelta,
-          y: diagY + diagWireDelta,
-        };
-
-        const topMargin = topFixed.y - yEntry;
-        const botMargin = yNode - bottomFixed.y;
-
-        return {
-          ...cfg,
-          label,
-          connected: isConnected,
-          x: diagX,
-          y: diagY,
-          topFixed,
-          bottomFixed,
-          topMargin,
-          botMargin,
-          channelName,
-          site,
-          networkCode,
-          stationCode,
-          rawItem: matchedItem,
-        };
-      }
-    });
+    return res;
   });
 
-  // Calculate 18 planar non-overlapping traces
-  const traces = $derived.by(() => {
+  // Calculate planar non-overlapping traces across all rows and blocks
+  let traces = $derived.by(() => {
     const res = [];
-    for (let i = 0; i < 18; i++) {
-      const yNode = 55 + i * 33;
-      const pair = Math.floor(i / 2);
-      const odd = i % 2 === 1;
-      const xNode = 940 - pair * 64 + (odd ? 44 : 0);
-      
-      const leadL = odd ? 80 : 36;
-      const xBendIn = xNode - 43 - leadL;
-      
-      const leadR = odd ? 40 : 85;
-      const xBendOut = xNode + 43 + leadR;
 
-      const yEntry = 15 + i * 16;
-      const diagL = yNode - yEntry;
-      const xTurnIn = xBendIn - diagL;
+    for (let r = 0; r < totalRows; r++) {
+      const yOffset = r * H_ROW;
 
-      const diagR = 25 + (17 - i) * 6;
-      const yExit = yNode + diagR;
-      const xTurnOut = xBendOut + diagR;
+      for (let b = 0; b < activeBlocksPerRow; b++) {
+        const g = r * blocksPerRow + b;
+        const xOffset = b * W_BLOCK;
+        const xStart = xOffset;
+        const xEnd = xOffset + W_BLOCK;
 
-      // Find if this trace has a diagonal node
-      const diagNode = nodes.find((n) => n.bank === "diagonal" && n.traceIndex === i);
+        for (let i = 0; i < 18; i++) {
+          const coords = getBaseTraceCoords(i);
 
-      res.push({
-        i,
-        yEntry,
-        xTurnIn,
-        xBendIn,
-        yNode,
-        xNode,
-        xBendOut,
-        xTurnOut,
-        yExit,
-        diagNode,
-      });
+          const yNode = yOffset + coords.yNode;
+          const yEntry = yOffset + coords.yEntry;
+          const yExit = yOffset + coords.yExit;
+
+          const xTurnIn = xOffset + coords.xTurnIn;
+          const xBendIn = xOffset + coords.xBendIn;
+          const xNode = xOffset + coords.xNode;
+          const xBendOut = xOffset + coords.xBendOut;
+          const xTurnOut = xOffset + coords.xTurnOut;
+
+          // Find nodes on this trace in block g
+          const diagNode = nodes.find(
+            (n) => n.blockIndex === g && n.bank === "diagonal" && n.traceIndex === i
+          );
+          const horizNode = nodes.find(
+            (n) => n.blockIndex === g && n.bank === "horizontal" && n.traceIndex === i
+          );
+
+          const isFirstBlockInRow = b === 0;
+          const isLastBlockInRow = b === activeBlocksPerRow - 1;
+
+          // Staggered 45-degree straight-line planar interconnect (NO CURVES)
+          // Lower traces (larger i) turn earlier/lower down, utilizing open substrate space
+          const dy = yNode - yEntry; // vertical climb: 40 + 17 * i
+          const xInterStart = xOffset + 1115 + i * (-16);
+          const xInterEnd = xInterStart + dy; // 45° straight climb, reaches yEntry
+
+          // Midpoint of the 45° straight climb for ferrite bead
+          const xMid = (xInterStart + xInterEnd) * 0.5;
+          const yMid = (yNode + yEntry) * 0.5;
+
+          // Arrival point for Segment 1 in block b from preceding block b-1
+          const prevInterEnd = (b - 1) * W_BLOCK + 1115 + i * (-16) + dy;
+
+          res.push({
+            key: `r${r}-b${b}-t${i}`,
+            r,
+            b,
+            g,
+            i,
+            xStart,
+            xEnd,
+            yEntry,
+            xTurnIn,
+            xBendIn,
+            yNode,
+            xNode,
+            xBendOut,
+            xTurnOut,
+            yExit,
+            diagNode,
+            horizNode,
+            isFirstBlockInRow,
+            isLastBlockInRow,
+            xInterStart,
+            xInterEnd,
+            prevInterEnd,
+            xMid,
+            yMid,
+          });
+        }
+      }
     }
+
     return res;
   });
 
@@ -342,23 +455,46 @@
     return `M ${p0.x.toFixed(1)} ${p0.y.toFixed(1)} C ${c1x.toFixed(1)} ${c1y.toFixed(1)}, ${c2x.toFixed(1)} ${c2y.toFixed(1)}, ${midX.toFixed(1)} ${midY.toFixed(1)} C ${c3x.toFixed(1)} ${c3y.toFixed(1)}, ${c4x.toFixed(1)} ${c4y.toFixed(1)}, ${p1.x.toFixed(1)} ${p1.y.toFixed(1)}`;
   }
 
-  const NODE_W = 86;
-  const NODE_H = 20;
-  const W_HALF = NODE_W / 2;
   const femalePath = getFemalePiecePath(W_HALF, NODE_H);
   const malePath = getMalePiecePath(W_HALF, NODE_H);
-  const SEPARATE_SHIFT = 13;
 </script>
 
 <div
   class="magi-board-view relative w-full rounded-md border border-neutral-800 bg-[#ff4e00] overflow-hidden text-neutral-900 shadow-2xl select-none {className}"
 >
-  <!-- Main SVG MAGI Circuit Canvas with Edge-to-Edge traces (x=0 to x=1200) -->
-  <div class="relative w-full aspect-[16/9] min-h-[480px] overflow-hidden bg-[#ff4e00]">
+  <!-- Mainframe Sub-Bar: Architecture stats & View Mode Switcher -->
+  <div class="flex flex-wrap items-center justify-between gap-2 px-3.5 py-1.5 bg-black/95 text-orange-400 border-b border-neutral-800 font-mono text-[11px] shadow-sm">
+    <div class="flex items-center gap-2">
+      <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+      <span class="font-bold tracking-wider">BOARD ARCHITECTURE:</span>
+      <span class="text-neutral-300">
+        {activeBlocksPerRow * 2} COLUMNS ({activeBlocksPerRow} BANKS/ROW) × {totalRows} ROWS // {nodes.length} ACTIVE NODES
+      </span>
+    </div>
+    <div class="flex items-center gap-3">
+      <span class="text-neutral-500 text-[10px] hidden sm:inline">
+        CANVAS: {totalWidth}×{totalHeight}PX
+      </span>
+      <button
+        type="button"
+        class="px-2.5 py-0.5 rounded bg-neutral-900 hover:bg-neutral-800 text-neutral-200 hover:text-white text-[10px] font-bold border border-neutral-700 transition-colors"
+        onclick={() => (viewMode = viewMode === "fit" ? "scroll" : "fit")}
+        title={viewMode === "fit" ? "Beralih ke mode scroll resolusi penuh 100%" : "Beralih ke mode pas lebar layar (fit)"}
+      >
+        {viewMode === "fit" ? "ZOOM 100% (SCROLL)" : "FIT SCREEN WIDTH"}
+      </button>
+    </div>
+  </div>
+
+  <!-- Main SVG MAGI Circuit Canvas with Dynamic Multi-Column & Multi-Row Grid -->
+  <div
+    class="relative w-full overflow-auto bg-[#ff4e00] transition-all {viewMode === 'fit' ? 'max-h-[82vh]' : 'max-h-[85vh]'}"
+  >
     <svg
-      class="w-full h-full block cursor-default"
-      viewBox="0 0 1200 680"
-      preserveAspectRatio="xMidYMid meet"
+      class="block cursor-default {viewMode === 'fit' ? 'w-full h-auto' : ''}"
+      style={viewMode === "scroll" ? `width: ${totalWidth}px; height: ${totalHeight}px; min-width: ${totalWidth}px;` : "width: 100%;"}
+      viewBox="0 0 {totalWidth} {totalHeight}"
+      preserveAspectRatio="xMidYMin meet"
     >
       <defs>
         <!-- Fine engineering background grid -->
@@ -377,22 +513,89 @@
         </filter>
       </defs>
 
-      <!-- Substrate grid -->
+      <!-- Substrate grid covering entire multi-row canvas -->
       <rect width="100%" height="100%" fill="url(#boardGrid)" />
 
       <!-- ============================================================== -->
-      <!-- 18 PLANAR NON-OVERLAPPING CONTINUOUS TRACES (EDGE TO EDGE)    -->
+      <!-- ROW HEADERS & BLOCK BUS DIVIDERS (ETCHED ON CIRCUIT SUBSTRATE) -->
       <!-- ============================================================== -->
-      {#each traces as tr (tr.i)}
-        <!-- Segment 1: Entry from Left Edge (x=0) to first 45° bend -->
-        <line
-          x1="0"
-          y1={tr.yEntry}
-          x2={tr.xTurnIn}
-          y2={tr.yEntry}
-          stroke="#0c0c0c"
-          stroke-width="1.8"
-        />
+      {#each { length: totalRows } as _, r}
+        {@const yRow = r * H_ROW}
+        {@const startCh = r * blocksPerRow * itemsPerBlock + 1}
+        {@const endCh = Math.min(effectiveItems.length, (r + 1) * blocksPerRow * itemsPerBlock)}
+
+        <!-- Row Header Telemetry Legend -->
+        <g transform="translate(24, {yRow + 24})" class="pointer-events-none select-none opacity-85">
+          <text
+            x="0"
+            y="0"
+            font-family="'Roboto Condensed', monospace"
+            font-size="11"
+            font-weight="700"
+            letter-spacing="2"
+            fill="rgba(0, 0, 0, 0.45)"
+          >
+            MAGI PROCESSOR BACKPLANE // BUS ROW 0{r + 1} // [CH {String(startCh).padStart(3, "0")} - {String(endCh).padStart(3, "0")}]
+          </text>
+        </g>
+
+        <!-- Horizontal boundary separator between rows -->
+        {#if r > 0}
+          <line
+            x1="0"
+            y1={yRow}
+            x2={totalWidth}
+            y2={yRow}
+            stroke="rgba(0,0,0,0.25)"
+            stroke-width="1.5"
+            stroke-dasharray="12,6"
+          />
+        {/if}
+
+        <!-- Continuous inter-column bus indicators (silkscreen text only, no vertical cuts) -->
+        {#each { length: activeBlocksPerRow - 1 } as _, b}
+          {@const xSep = (b + 1) * W_BLOCK}
+          <g transform="translate({xSep}, {yRow + 24})" class="pointer-events-none select-none opacity-40">
+            <text
+              x="0"
+              y="0"
+              text-anchor="middle"
+              font-family="'Roboto Condensed', monospace"
+              font-size="8"
+              font-weight="700"
+              letter-spacing="1.5"
+              fill="rgba(0,0,0,0.5)"
+            >
+              INTER-COLUMN BUS TRACE LINK // CH 18-PLANAR
+            </text>
+          </g>
+        {/each}
+      {/each}
+
+      <!-- ============================================================== -->
+      <!-- CONTINUOUS PLANAR CIRCUIT TRACES (ACROSS ALL ROWS & BLOCKS)    -->
+      <!-- ============================================================== -->
+      {#each traces as tr (tr.key)}
+        <!-- Segment 1: Lead-in to diagonal turn-in -->
+        {#if tr.isFirstBlockInRow}
+          <line
+            x1="0"
+            y1={tr.yEntry}
+            x2={tr.xTurnIn}
+            y2={tr.yEntry}
+            stroke="#0c0c0c"
+            stroke-width="1.8"
+          />
+        {:else if tr.xTurnIn > tr.prevInterEnd}
+          <line
+            x1={tr.prevInterEnd}
+            y1={tr.yEntry}
+            x2={tr.xTurnIn}
+            y2={tr.yEntry}
+            stroke="#0c0c0c"
+            stroke-width="1.8"
+          />
+        {/if}
 
         {#if tr.diagNode && tr.diagNode.topFixed && tr.diagNode.bottomFixed}
           <!-- Segment 2A: From Entry Turn to Diagonal Node Top Lead -->
@@ -445,36 +648,93 @@
           </g>
         {/if}
 
-        <!-- Segment 4: 45° Diagonal Lead-out from Horizontal Node Bank -->
-        <line
-          x1={tr.xBendOut}
-          y1={tr.yNode}
-          x2={tr.xTurnOut}
-          y2={tr.yExit}
-          stroke="#0c0c0c"
-          stroke-width="1.8"
-        />
+        <!-- Segment 3: Horizontal Trace & Interconnect / Exit -->
+        {#if !tr.isLastBlockInRow}
+          <!-- In intermediate blocks, trace extends to staggered xInterStart -->
+          {#if !tr.horizNode}
+            <line
+              x1={tr.xBendIn}
+              y1={tr.yNode}
+              x2={tr.xInterStart}
+              y2={tr.yNode}
+              stroke="#0c0c0c"
+              stroke-width="1.8"
+            />
+          {:else if tr.xInterStart > tr.xBendOut}
+            <line
+              x1={tr.xBendOut}
+              y1={tr.yNode}
+              x2={tr.xInterStart}
+              y2={tr.yNode}
+              stroke="#0c0c0c"
+              stroke-width="1.8"
+            />
+            <!-- Ferrite bead on long horizontal run past node if wide enough -->
+            {#if (tr.xInterStart - tr.xBendOut) > 60}
+              <g transform="translate({tr.xBendOut + (tr.xInterStart - tr.xBendOut) * 0.5}, {tr.yNode})">
+                <rect x="-5" y="-2.5" width="10" height="5" rx="2" fill="#0c0c0c" />
+              </g>
+            {/if}
+          {/if}
 
-        <!-- Ferrite Beads along diagonal out-track -->
-        <g transform="translate({tr.xBendOut + 22}, {tr.yNode + 22}) rotate(45)">
-          <rect x="-5" y="-2.5" width="10" height="5" rx="2" fill="#0c0c0c" />
-        </g>
+          <!-- Inter-column 45° straight diagonal climb (NO CURVES) -->
+          <line
+            x1={tr.xInterStart}
+            y1={tr.yNode}
+            x2={tr.xInterEnd}
+            y2={tr.yEntry}
+            stroke="#0c0c0c"
+            stroke-width="1.8"
+          />
 
-        <!-- Segment 5: Exit to Right Edge (x=1200) -->
-        <line
-          x1={tr.xTurnOut}
-          y1={tr.yExit}
-          x2="1200"
-          y2={tr.yExit}
-          stroke="#0c0c0c"
-          stroke-width="1.8"
-        />
+          <!-- Ferrite bead along the 45° straight diagonal climb -->
+          <g transform="translate({tr.xMid}, {tr.yMid}) rotate(-45)">
+            <rect x="-5" y="-2.5" width="10" height="5" rx="2" fill="#0c0c0c" />
+          </g>
+        {:else}
+          <!-- In LAST block of row, trace exits toward the right screen boundary -->
+          {#if !tr.horizNode}
+            <line
+              x1={tr.xBendIn}
+              y1={tr.yNode}
+              x2={tr.xBendOut}
+              y2={tr.yNode}
+              stroke="#0c0c0c"
+              stroke-width="1.8"
+            />
+          {/if}
+
+          <!-- Segment 4: 45° Diagonal Lead-out on LAST block of row -->
+          <line
+            x1={tr.xBendOut}
+            y1={tr.yNode}
+            x2={tr.xTurnOut}
+            y2={tr.yExit}
+            stroke="#0c0c0c"
+            stroke-width="1.8"
+          />
+
+          <!-- Ferrite Beads along diagonal out-track -->
+          <g transform="translate({tr.xBendOut + 22}, {tr.yNode + 22}) rotate(45)">
+            <rect x="-5" y="-2.5" width="10" height="5" rx="2" fill="#0c0c0c" />
+          </g>
+
+          <!-- Segment 5: Exit to the right screen boundary (totalWidth) on LAST block of row -->
+          <line
+            x1={tr.xTurnOut}
+            y1={tr.yExit}
+            x2={totalWidth}
+            y2={tr.yExit}
+            stroke="#0c0c0c"
+            stroke-width="1.8"
+          />
+        {/if}
       {/each}
 
       <!-- ============================================================== -->
       <!-- BANK 1: DIAGONAL BUS NODES (LANE 1 & LANE 2 AT 45 DEG TILT)    -->
       <!-- ============================================================== -->
-      {#each nodes.filter((n) => n.bank === "diagonal") as node (node.id)}
+      {#each nodes.filter((n) => n.bank === "diagonal") as node (node.id + '-b' + node.blockIndex + '-t' + node.traceIndex)}
         {@const isSevered = !node.connected}
         {@const isSelected = activeNodeId === node.id || activeNodeId === node.stationCode}
         {@const isHighlighted =
@@ -612,7 +872,7 @@
       <!-- ============================================================== -->
       <!-- BANK 2: HORIZONTAL BUS NODES (STAGGERED CASCADE)               -->
       <!-- ============================================================== -->
-      {#each nodes.filter((n) => n.bank === "horizontal") as node (node.id)}
+      {#each nodes.filter((n) => n.bank === "horizontal") as node (node.id + '-b' + node.blockIndex + '-t' + node.traceIndex)}
         {@const isSevered = !node.connected}
         {@const isSelected = activeNodeId === node.id || activeNodeId === node.stationCode}
         {@const isHighlighted =
@@ -620,13 +880,16 @@
           (node.label.toLowerCase().includes(highlightQuery.toLowerCase()) ||
             node.channelName?.toLowerCase().includes(highlightQuery.toLowerCase()))}
 
-        {@const tr = traces[node.traceIndex]}
+        {@const coords = getBaseTraceCoords(node.traceIndex)}
+        {@const xOffset = (node.blockInRow ?? 0) * W_BLOCK}
         {@const leftCapX = isSevered ? node.x - W_HALF - SEPARATE_SHIFT : node.x - W_HALF}
         {@const rightCapX = isSevered ? node.x + W_HALF + SEPARATE_SHIFT : node.x + W_HALF}
+        {@const inBendX = xOffset + coords.xBendIn}
+        {@const outBendX = xOffset + coords.xBendOut}
 
         <!-- Flexible wire: from in-bend to node left cap -->
         <path
-          d={getWirePath({ x: tr.xBendIn, y: node.y }, { x: leftCapX, y: node.y }, isSevered, 10)}
+          d={getWirePath({ x: inBendX, y: node.y }, { x: leftCapX, y: node.y }, isSevered, 10)}
           fill="none"
           stroke="#0c0c0c"
           stroke-width="1.8"
@@ -636,7 +899,7 @@
 
         <!-- Flexible wire: from node right cap to out-bend -->
         <path
-          d={getWirePath({ x: rightCapX, y: node.y }, { x: tr.xBendOut, y: node.y }, isSevered, 10)}
+          d={getWirePath({ x: rightCapX, y: node.y }, { x: outBendX, y: node.y }, isSevered, 10)}
           fill="none"
           stroke="#0c0c0c"
           stroke-width="1.8"
@@ -728,7 +991,7 @@
     <!-- Detailed Node Tooltip HUD (on hover) -->
     {#if hoveredNode}
       <div
-        class="absolute bottom-3 left-4 px-3.5 py-2 bg-black/95 border border-orange-500 text-white font-mono text-xs rounded shadow-2xl pointer-events-none z-30 flex flex-col gap-1 backdrop-blur max-w-sm"
+        class="fixed bottom-4 left-6 px-3.5 py-2.5 bg-black/95 border border-orange-500 text-white font-mono text-xs rounded shadow-2xl pointer-events-none z-50 flex flex-col gap-1 backdrop-blur max-w-sm"
       >
         <div class="flex items-center justify-between gap-4">
           <div class="flex items-center gap-1.5">
@@ -757,7 +1020,7 @@
         {/if}
 
         <div class="text-neutral-400 text-[11px]">
-          BANK: <span class="text-neutral-200 uppercase">{hoveredNode.bank} // TRACE {hoveredNode.traceIndex + 1}</span>
+          LOCATION: <span class="text-neutral-200">ROW 0{(hoveredNode.rowIndex ?? 0) + 1} // BANK 0{(hoveredNode.blockIndex ?? 0) + 1} // {hoveredNode.bank.toUpperCase()}</span>
         </div>
 
         <div class="text-[10px] text-neutral-400 border-t border-neutral-800 pt-1 mt-0.5 italic">
