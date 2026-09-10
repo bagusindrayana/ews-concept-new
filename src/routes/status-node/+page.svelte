@@ -560,9 +560,10 @@
     <div class="relative w-full overflow-hidden">
       <MagiBusBoard
         items={statuses}
-        maxColumns={4}
+        maxColumns={2}
         revealDelayMs={10}
-        animateReveal={animateReveal}
+        resolveDelayMs={1000}
+        {animateReveal}
       />
     </div>
   </div>

@@ -708,7 +708,7 @@
           <text
             x="0"
             y="0"
-            font-family="'Roboto Condensed', monospace"
+            font-family="Helvatica, 'Roboto Condensed', monospace"
             font-size="11"
             font-weight="700"
             letter-spacing="2"
@@ -744,7 +744,7 @@
               x="0"
               y="0"
               text-anchor="middle"
-              font-family="'Roboto Condensed', monospace"
+              font-family="Helvatica, 'Roboto Condensed', monospace"
               font-size="8"
               font-weight="700"
               letter-spacing="1.5"
@@ -1062,19 +1062,39 @@
             stroke-width="1.2"
           />
 
+          <text
+            x="-40"
+            y="4.5"
+            text-anchor="start"
+            font-family="Helvatica, 'Roboto Condensed', monospace"
+            font-size="12"
+            font-weight="700"
+            letter-spacing="1.5"
+            fill={isSevered ? "#f89238" : "#44ff99"}
+            filter={isSevered ? "url(#boardAmberGlow)" : "url(#boardGreenGlow)"}
+            class="pointer-events-none node-text {isSevered
+              ? 'node-blink'
+              : ''}"
+            style="transform: translate({isSevered
+              ? -SEPARATE_SHIFT
+              : 0}px, 0);"
+          >
+            {node.label}
+          </text>
+
           <!-- Text Display -->
-          {#if !isSevered}
+          <!-- {#if !isSevered}
             <text
-              x="0"
+              x="-40"
               y="4.5"
-              text-anchor="middle"
-              font-family="'Roboto Condensed', monospace"
+              text-anchor="start"
+              font-family="Helvatica, 'Roboto Condensed', monospace"
               font-size="12"
               font-weight="700"
               letter-spacing="1.5"
               fill={!isResolved ? "#38bdf8" : "#44ff99"}
               filter={!isResolved ? "" : "url(#boardGreenGlow)"}
-              class="pointer-events-none"
+              class="pointer-events-none node-text"
             >
               {node.label}
             </text>
@@ -1083,7 +1103,7 @@
               x={SEPARATE_SHIFT + 8}
               y="4.5"
               text-anchor="middle"
-              font-family="'Roboto Condensed', monospace"
+              font-family="Helvatica, 'Roboto Condensed', monospace"
               font-size="11"
               font-weight="700"
               letter-spacing="1"
@@ -1093,7 +1113,7 @@
             >
               {node.label}
             </text>
-          {/if}
+          {/if} -->
         </g>
       {/each}
 
@@ -1200,13 +1220,33 @@
             stroke-width="1.2"
           />
 
+          <text
+            x="-40"
+            y="4.5"
+            text-anchor="start"
+            font-family="Helvatica, 'Roboto Condensed', monospace"
+            font-size="12"
+            font-weight="700"
+            letter-spacing="1.5"
+            fill={isSevered ? "#f89238" : "#44ff99"}
+            filter={isSevered ? "url(#boardAmberGlow)" : "url(#boardGreenGlow)"}
+            class="pointer-events-none node-text {isSevered
+              ? 'node-blink'
+              : ''}"
+            style="transform: translate({isSevered
+              ? -SEPARATE_SHIFT
+              : 0}px, 0);"
+          >
+            {node.label}
+          </text>
+
           <!-- Text Display -->
-          {#if !isSevered}
+          <!-- {#if !isSevered}
             <text
               x="0"
               y="4.5"
               text-anchor="middle"
-              font-family="'Roboto Condensed', monospace"
+              font-family="Helvatica, 'Roboto Condensed', monospace"
               font-size="12"
               font-weight="700"
               letter-spacing="1.5"
@@ -1221,7 +1261,7 @@
               x={SEPARATE_SHIFT + 8}
               y="4.5"
               text-anchor="middle"
-              font-family="'Roboto Condensed', monospace"
+              font-family="Helvatica, 'Roboto Condensed', monospace"
               font-size="11"
               font-weight="700"
               letter-spacing="1"
@@ -1231,7 +1271,7 @@
             >
               {node.label}
             </text>
-          {/if}
+          {/if} -->
         </g>
       {/each}
     </svg>
@@ -1295,6 +1335,7 @@
     transition:
       d 0.45s cubic-bezier(0.2, 0.9, 0.3, 1),
       stroke 0.3s;
+    transition-delay: 1s;
   }
 
   .node-piece {
@@ -1302,6 +1343,12 @@
       transform 0.45s cubic-bezier(0.2, 0.9, 0.3, 1),
       fill 0.3s,
       stroke 0.3s;
+    transition-delay: 1s;
+  }
+
+  .node-text {
+    transition: all 0.2s;
+    transition-delay: 1s;
   }
 
   :global(.with-reveal-anim) .node-group {
@@ -1320,5 +1367,20 @@
   .node-group:hover .node-piece {
     stroke: #ffffff;
     stroke-width: 1.5;
+  }
+
+  .node-blink {
+    animation: node-blink 0.1s ease-in-out 3;
+  }
+
+  @keyframes node-blink {
+    0%,
+    100% {
+      opacity: 1;
+    }
+
+    50% {
+      opacity: 0;
+    }
   }
 </style>
