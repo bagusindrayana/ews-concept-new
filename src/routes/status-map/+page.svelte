@@ -239,7 +239,7 @@
             href="/status-ui">STATION STATUS</a
         >
         <a
-        class="ews-btn ews-btn-primary scale-75 md:scale-100 pointer-events-autp"
+        class="ews-btn ews-btn-primary scale-75 md:scale-100 pointer-events-auto"
         href="/magi">MAGI</a
       >
     </div>

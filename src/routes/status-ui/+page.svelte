@@ -16,6 +16,7 @@
             stationCode: string;
             networkCode: string;
             site: string;
+            source: string;
         }[]
     >([]);
 
@@ -31,7 +32,10 @@
                 const url = `${source.baseUrl}/fdsnws/station/1/query?${mapStore.urlParams}&level=station&nodata=404&channel=BH?,SH?`;
                 const response = await fdsnFetch(url, "/api/fdsn/station");
                 if (!response.ok) throw new Error(`${source.name}: HTTP ${response.status}`);
-                return xmlToJson(await response.text());
+                return {
+                    source,
+                    data: xmlToJson(await response.text()),
+                };
             }),
         );
 
@@ -44,7 +48,8 @@
                 return;
             }
 
-            const fdsn = result.value.FDSNStationXML as JsonNode;
+            const sourceHost = new URL(result.value.source.baseUrl).host;
+            const fdsn = result.value.data.FDSNStationXML as JsonNode;
             const networksList = fdsn?.Network as JsonNode[];
             const networks = Array.isArray(networksList)
                 ? networksList
@@ -79,6 +84,7 @@
                             stationCode: `${staCode}`,
                             networkCode: `${netCode}`,
                             site: `${(stationNode["Site"] as any)?.Name || "UNKNOWN"}`,
+                            source: sourceHost,
                         });
                     });
                 });
@@ -206,7 +212,7 @@
     <RibCageLayout
         items={statuses}
         getHref={(item: any) =>
-            `/realtime?networkCode=${item.networkCode}&stationCode=${item.stationCode}`}
+            `/realtime?networkCode=${item.networkCode}&stationCode=${item.stationCode}&source=${item.source}`}
     >
         {#snippet nodeContent(
             item: any,

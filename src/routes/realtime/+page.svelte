@@ -12,11 +12,12 @@
     import HexGrid from "$lib/components/HexGrid.svelte";
     import HexShape from "$lib/components/HexShape.svelte";
     import StripeBar from "$lib/components/StripeBar.svelte";
-    import { mapStore } from "$lib/stores/mapStore.svelte";
+    import { mapStore, type DataSource } from "$lib/stores/mapStore.svelte";
     import { fdsnFetch } from "$lib/utils/fdsnFetch";
 
     export let data: PageData;
     let waveformChart: any;
+    let dataSource : any | undefined = undefined;
 
     let stationData: any;
     let selectedChannel: any;
@@ -338,11 +339,12 @@
 
         const network = data.networkCode ?? "GE";
         const station = data.stationCode ?? "LUWI";
+        const source = data.source ?? "geofon.gfz.de";
         const channel = selectedChannel
             ? selectedChannel["@attributes"].code
             : "BHZ";
 
-        const url = `${mapStore.dataSource.baseUrl}/fdsnws/dataselect/1/query?starttime=${encodeURIComponent(startISO)}&endtime=${encodeURIComponent(endISO)}&nodata=404&network=${network}&station=${station}&channel=${channel}`;
+        const url = `${dataSource.baseUrl}/fdsnws/dataselect/1/query?starttime=${encodeURIComponent(startISO)}&endtime=${encodeURIComponent(endISO)}&nodata=404&network=${network}&station=${station}&channel=${channel}`;
 
         try {
             const response = await fdsnFetch(url, "/api/fdsn/dataselect");
@@ -461,7 +463,7 @@
     }
 
     function loadDataStation(network: string, station: string) {
-        const url = `${mapStore.dataSource.baseUrl}/fdsnws/station/1/query?network=${network}&station=${station}&level=response&format=xml&nodata=404`;
+        const url = `${dataSource.baseUrl}/fdsnws/station/1/query?network=${network}&station=${station}&level=response&format=xml&nodata=404`;
 
         return fdsnFetch(url, "/api/fdsn/station")
             .then((response) => {
@@ -550,7 +552,21 @@
             return;
         }
 
-        const sourceUrl = new URL(mapStore.dataSource.baseUrl); 
+        
+        mapStore.dataSources.forEach((item) => {
+            if (item.baseUrl.includes(data.source ?? "geofon.gfz.de")) {
+                dataSource = item;
+            }
+        });
+
+        if (dataSource == undefined) {
+            console.error(
+                `Data source ${data.source} tidak ditemukan di mapStore.dataSources`,
+            );
+            return;
+        }
+
+        const sourceUrl = new URL(dataSource.baseUrl); 
         console.log(sourceUrl)
         console.log(sourceUrl.host);
 
@@ -561,7 +577,7 @@
 
         await waveformService.init();
         await stationPromise;
-        seedLinkHost = mapStore.dataSource.seedLinkHost ?? sourceUrl.host;
+        seedLinkHost = dataSource.seedLinkHost ?? sourceUrl.host;
 
         const wsUrl = env.PUBLIC_WEBSOCKET_URL ?? "ws://localhost:8080";
         ws = new WebSocket(wsUrl);
