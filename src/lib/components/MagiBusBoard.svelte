@@ -43,6 +43,7 @@
     revealDelayMs = 25,
     resolveDelayMs = 600,
     animateReveal = true,
+    randomResolve = false,
     onToggle,
     onSelectNode,
     minRows = 2,
@@ -56,6 +57,7 @@
     revealDelayMs?: number;
     resolveDelayMs?: number;
     animateReveal?: boolean;
+    randomResolve?: boolean;
     onToggle?: (item: any, isConnected: boolean) => void;
     onSelectNode?: (item: any) => void;
     minRows?: number;
@@ -128,6 +130,7 @@
   // -------------------------------------------------------------
   let revealedCount = $state(0);
   let resolvedCount = $state(0);
+  let resolvedMask = $state<boolean[]>([]);
   let userOverrides = $state<Record<string, boolean>>({});
   let lastItemsFingerprint = $state("");
   let animFrameId: number | null = null;
@@ -144,7 +147,11 @@
     stopRevealAnimation();
     revealedCount = 0;
     resolvedCount = 0;
+    resolvedMask = new Array(totalItemsCount).fill(false);
     animStartTime = null;
+
+    // Track indices of nodes that have already been revealed but not yet resolved
+    const unresolvedRevealed: number[] = [];
 
     function step(now: number) {
       if (animStartTime === null) animStartTime = now;
@@ -157,18 +164,42 @@
         Math.floor(elapsed / stepMs),
       );
 
+      if (newRevealed > revealedCount) {
+        if (randomResolve) {
+          for (let i = revealedCount; i < newRevealed; i++) {
+            unresolvedRevealed.push(i);
+          }
+        }
+        revealedCount = newRevealed;
+      }
+
       // Resolve step lags behind by resolveDelayMs:
       const resolveElapsed = Math.max(0, elapsed - resolveDelayMs);
-      const newResolved = Math.min(
+      const targetResolved = Math.min(
         totalItemsCount,
         Math.floor(resolveElapsed / stepMs),
       );
 
-      if (newRevealed !== revealedCount) {
-        revealedCount = newRevealed;
-      }
-      if (newResolved !== resolvedCount) {
-        resolvedCount = newResolved;
+      if (randomResolve) {
+        // Random check among nodes that have ALREADY been revealed
+        while (
+          resolvedCount < targetResolved &&
+          unresolvedRevealed.length > 0
+        ) {
+          const randIdx = Math.floor(Math.random() * unresolvedRevealed.length);
+          const nodeIdx = unresolvedRevealed[randIdx];
+          // O(1) swap with last element and pop
+          unresolvedRevealed[randIdx] =
+            unresolvedRevealed[unresolvedRevealed.length - 1];
+          unresolvedRevealed.pop();
+
+          resolvedMask[nodeIdx] = true;
+          resolvedCount++;
+        }
+      } else {
+        if (newResolvedTarget(targetResolved)) {
+          resolvedCount = targetResolved;
+        }
       }
 
       if (resolvedCount < totalItemsCount) {
@@ -178,19 +209,24 @@
       }
     }
 
+    function newResolvedTarget(target: number) {
+      return target !== resolvedCount;
+    }
+
     animFrameId = requestAnimationFrame(step);
   }
 
   $effect(() => {
     const currentItems = items || [];
-    const fingerprint = currentItems
+    const fingerprint = `${currentItems
       .map((it, idx) => it.id || it.stationCode || idx)
-      .join("|");
+      .join("|")}_${randomResolve}_${animateReveal}`;
 
     if (currentItems.length === 0) {
       stopRevealAnimation();
       revealedCount = 0;
       resolvedCount = 0;
+      resolvedMask = [];
       lastItemsFingerprint = "";
       return;
     }
@@ -200,6 +236,7 @@
       lastItemsFingerprint = fingerprint;
       revealedCount = currentItems.length;
       resolvedCount = currentItems.length;
+      resolvedMask = new Array(currentItems.length).fill(true);
       return;
     }
 
@@ -309,7 +346,11 @@
         const itemKey =
           matchedItem.id || matchedItem.stationCode || String(globalIdx);
 
-        const isResolved = animateReveal ? globalIdx < resolvedCount : true;
+        const isResolved = animateReveal
+          ? randomResolve
+            ? resolvedMask[globalIdx] === true
+            : globalIdx < resolvedCount
+          : true;
         const targetConnected = matchedItem.status
           ? matchedItem.status === "ACTIVE"
           : (matchedItem.connected ?? true);
@@ -621,12 +662,12 @@
 </script>
 
 <div
-  class="magi-board-view relative w-full bg-[#ff4e00] {className} {animateReveal
+  class="magi-board-view relative w-full bg-[#c85a03] {className} {animateReveal
     ? 'with-reveal-anim'
     : ''}"
 >
   <!-- Main SVG MAGI Circuit Canvas with Dynamic Multi-Column & Multi-Row Grid -->
-  <div class="relative w-full overflow-auto bg-[#ff4e00] transition-all">
+  <div class="relative w-full overflow-auto bg-[#c85a03] transition-all">
     <svg
       class="block cursor-default {viewMode === 'fit' ? 'w-full h-auto' : ''}"
       style={viewMode === "scroll"
@@ -1003,6 +1044,7 @@
           stroke-width="1.8"
           stroke-linecap="round"
           class="magi-wire"
+          class:is-severed={isSevered}
         />
 
         <!-- Bottom flexible wire -->
@@ -1013,6 +1055,7 @@
           stroke-width="1.8"
           stroke-linecap="round"
           class="magi-wire"
+          class:is-severed={isSevered}
         />
 
         <!-- Interactive Node Capsule Group (rotated 45 deg) -->
@@ -1020,6 +1063,7 @@
         <!-- svelte-ignore a11y_no_static_element_interactions -->
         <g
           class="node-group cursor-pointer group"
+          class:is-severed={isSevered}
           transform="translate({node.x}, {node.y}) rotate(45)"
           onclick={() => toggle(node)}
           onmouseenter={() => (hoveredNode = node)}
@@ -1044,6 +1088,7 @@
           <path
             d={femalePath}
             class="node-piece"
+            class:is-severed={isSevered}
             style="transform: translate({isSevered
               ? -SEPARATE_SHIFT
               : 0}px, 0);"
@@ -1056,6 +1101,7 @@
           <path
             d={malePath}
             class="node-piece"
+            class:is-severed={isSevered}
             style="transform: translate({isSevered ? SEPARATE_SHIFT : 0}px, 0);"
             fill={isSevered ? "#220505" : "#050505"}
             stroke={isSevered ? "#520e0e" : "#000000"}
@@ -1072,9 +1118,9 @@
             letter-spacing="1.5"
             fill={isSevered ? "#f89238" : "#44ff99"}
             filter={isSevered ? "url(#boardAmberGlow)" : "url(#boardGreenGlow)"}
-            class="pointer-events-none node-text {isSevered
-              ? 'node-blink'
-              : ''}"
+            class="pointer-events-none node-text"
+            class:node-blink={isSevered}
+            class:is-severed={isSevered}
             style="transform: translate({isSevered
               ? -SEPARATE_SHIFT
               : 0}px, 0);"
@@ -1156,6 +1202,7 @@
           stroke-width="1.8"
           stroke-linecap="round"
           class="magi-wire"
+          class:is-severed={isSevered}
         />
 
         <!-- Flexible wire: from node right cap to out-bend -->
@@ -1171,6 +1218,7 @@
           stroke-width="1.8"
           stroke-linecap="round"
           class="magi-wire"
+          class:is-severed={isSevered}
         />
 
         <!-- Interactive Node Capsule Group (horizontal) -->
@@ -1178,6 +1226,7 @@
         <!-- svelte-ignore a11y_no_static_element_interactions -->
         <g
           class="node-group cursor-pointer group"
+          class:is-severed={isSevered}
           transform="translate({node.x}, {node.y})"
           onclick={() => toggle(node)}
           onmouseenter={() => (hoveredNode = node)}
@@ -1202,6 +1251,7 @@
           <path
             d={femalePath}
             class="node-piece"
+            class:is-severed={isSevered}
             style="transform: translate({isSevered
               ? -SEPARATE_SHIFT
               : 0}px, 0);"
@@ -1214,6 +1264,7 @@
           <path
             d={malePath}
             class="node-piece"
+            class:is-severed={isSevered}
             style="transform: translate({isSevered ? SEPARATE_SHIFT : 0}px, 0);"
             fill={isSevered ? "#220505" : "#050505"}
             stroke={isSevered ? "#520e0e" : "#000000"}
@@ -1230,9 +1281,9 @@
             letter-spacing="1.5"
             fill={isSevered ? "#f89238" : "#44ff99"}
             filter={isSevered ? "url(#boardAmberGlow)" : "url(#boardGreenGlow)"}
-            class="pointer-events-none node-text {isSevered
-              ? 'node-blink'
-              : ''}"
+            class="pointer-events-none node-text"
+            class:node-blink={isSevered}
+            class:is-severed={isSevered}
             style="transform: translate({isSevered
               ? -SEPARATE_SHIFT
               : 0}px, 0);"
@@ -1335,6 +1386,10 @@
     transition:
       d 0.45s cubic-bezier(0.2, 0.9, 0.3, 1),
       stroke 0.3s;
+    transition-delay: 0s;
+  }
+
+  :global(.magi-wire.is-severed) {
     transition-delay: 1s;
   }
 
@@ -1343,11 +1398,19 @@
       transform 0.45s cubic-bezier(0.2, 0.9, 0.3, 1),
       fill 0.3s,
       stroke 0.3s;
+    transition-delay: 0s;
+  }
+
+  .node-piece.is-severed {
     transition-delay: 1s;
   }
 
   .node-text {
     transition: all 0.2s;
+    transition-delay: 0s;
+  }
+
+  .node-text.is-severed {
     transition-delay: 1s;
   }
 

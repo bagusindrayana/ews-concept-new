@@ -564,6 +564,7 @@
         revealDelayMs={10}
         resolveDelayMs={1000}
         {animateReveal}
+        randomResolve={true}
       />
     </div>
   </div>
