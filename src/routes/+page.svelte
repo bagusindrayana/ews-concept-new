@@ -1466,12 +1466,28 @@
               </div>
             </div>
             {#if alertGempaBumi?.infoGempa.message?.trim() != "" && alertGempaBumi?.infoGempa.message?.trim() != undefined}
-              <div class="alertGempaBumi mt-2 bordered w-full p-2 h-[200px]">
-                <p class="  break-words text-ellipsise">
+              <div class="alertGempaBumi mt-2 bordered w-full p-2 h-[180px]">
+                <p class="  break-words text-ellipsis line-clamp-10">
                   {alertGempaBumi?.infoGempa.message}
                 </p>
               </div>
             {/if}
+
+            <div class="mt-2 bordered w-full p-2 h-[180px]">
+              <p class="  break-words text-ellipsis line-clamp-10">
+                Pemutakhiran Peringatan Dini, Tsunami akibat gempa dengan
+                kekuatan:8.7, lokasi: 185 km Tenggara KAMCHATKA-RUSSIA,
+                waktu:30-Jul-25 06:24:50 WIB, telah terdeteksi di
+                CHICHIJIMA,JEPANG(10:00WIB)0.1m, HANASAKI,JEPANG(08:16WIB)0.3m,
+                KAMCHATKAPENINSULA,RUSIA(06:51WIB)0.8m,
+                KURILISLAND(07:05WIB)0.7m, KUSHIRO,JEPANG(08:30WIB)0.1m,
+                NIKOLSKOE,RUSIA(07:17WIB)0.3m,
+                NORTHEASTTOKYO,JEPANG(08:00WIB)0.1m,
+                OFUNATO,JEPANG(08:47WIB)0.4m, PETROPAVLOVSK,RUSIA(07:00WIB)0.1m,
+                SOUTHOFAMCHITKA(08:05WIB)0.2m, SOUTHOFATTU(07:30WIB)0.2m Ikuti
+                arahan peringatan dini TSUNAMI dari BPBD, BNPB dan BMKG
+              </p>
+            </div>
           </div>
           {#if alertGempaBumi?.mag != undefined && alertGempaBumi?.mag >= 5}
             <div
@@ -1529,8 +1545,8 @@
             style="font-size:10px"
           >
             {#if infoTsunami?.infoTsunami.message != ""}
-              <div class="infoTsunami mt-2 bordered w-full p-2 h-[200px]">
-                <p class=" break-words text-ellipsise">
+              <div class="infoTsunami mt-2 bordered w-full p-2 h-[180px]">
+                <p class=" break-words text-ellipsis line-clamp-10">
                   {infoTsunami?.infoTsunami.message}
                 </p>
               </div>
@@ -1649,8 +1665,8 @@
                 </div>
               </div>
               {#if agi?.infoGempa.message?.trim() != "" && agi?.infoGempa.message?.trim() != undefined}
-                <div class="agi mt-2 bordered w-full p-2 h-[200px]">
-                  <p class=" break-words text-ellipsise">
+                <div class="agi mt-2 bordered w-full p-2 h-[180px]">
+                  <p class=" break-words text-ellipsis line-clamp-10">
                     {agi.infoGempa.message}
                   </p>
                 </div>
@@ -1832,8 +1848,8 @@
               </div>
             </div>
             {#if GempaDirasakan?.infoGempa.message != ""}
-              <div class="mt-2 bordered w-full hidden lg:block p-2 h-[200px]">
-                <p class=" break-words text-ellipsise">
+              <div class="mt-2 bordered w-full hidden lg:block p-2 h-[180px]">
+                <p class=" break-words text-ellipsis line-clamp-10">
                   {GempaDirasakan?.infoGempa.message}
                 </p>
               </div>

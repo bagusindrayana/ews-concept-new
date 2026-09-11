@@ -3,6 +3,7 @@
   import { onMount } from "svelte";
   import HexShape from "./HexShape.svelte";
   import StripeBar from "./StripeBar.svelte";
+  import HexGrid from "./HexGrid.svelte";
 
   interface Props {
     infoTsunami: InfoTsunami;
@@ -52,7 +53,10 @@
   }
 
   onMount(() => {
-    divs = generateDiv(window.screen.width + window.screen.width / 3);
+    // divs = generateDiv(window.screen.width + window.screen.width / 2);
+    // divs = generateDiv(
+    //   Math.max(window.screen.width + 10, window.screen.height + 10),
+    // );
     parseMessage();
 
     if (closeInSecond && closeInSecond > 0) {
@@ -65,11 +69,40 @@
 
 {#if !close}
   <div
+    class="fixed w-[110%] top-[-50px] left-[-50px]"
+    style="background-color:rgba(0, 0, 0, 0.7)"
+  >
+    <HexGrid variant="flat" align="center">
+      {#each { length: Math.max(window.screen.width + 10, window.screen.height + 10) / 2 } as _, hexIndex}
+        <div
+          class="w-full h-full cursor-pointer select-none relative opacity-0 show-pop-up"
+          style="animation-delay: {hexIndex * 5}ms;"
+        >
+          <!-- <HexShape
+            clipContent={true}
+            className="w-full h-full transition-all duration-150 hover:brightness-125"
+          >
+            <div
+              class="w-full h-full flex flex-col items-center justify-center text-center text-black px-4"
+            >
+              <span
+                class="text-[11px] sm:text-xs font-black uppercase tracking-wide leading-tight truncate max-w-full"
+              >
+                N/A
+              </span>
+            </div>
+          </HexShape> -->
+          <img src="/images/warning_hex_red.png" alt="" />
+        </div>
+      {/each}
+    </HexGrid>
+  </div>
+  <div
     class="fixed m-auto top-0 left-0 right-0 bottom-0 flex justify-center"
     id="tsunami-warning"
     style="z-index: 99;"
   >
-    <div class="w-full h-full absolute -rotate-90" style="z-index: 1;">
+    <!-- <div class="w-full h-full bg-black" style="z-index: 1;">
       <div id="bg-tsunami">
         <div class="hex-bg">
           {#each divs as div}
@@ -79,7 +112,8 @@
           {/each}
         </div>
       </div>
-    </div>
+      
+    </div> -->
 
     <div
       class="w-full flex flex-col items-center justify-center"
@@ -174,7 +208,7 @@
                   class="infoTsunamiAlert ews-card-content p-1 lg:p-2 custom-scrollbar h-[180px]"
                 >
                   <p
-                    class="text-xs ews-text break-words text-ellipsise"
+                    class="text-xs ews-text break-words text-ellipsis line-clamp-10"
                     style="font-size: 8px;"
                   >
                     {infoTsunami.message}

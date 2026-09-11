@@ -56,10 +56,6 @@
     padding: 0px !important;
     max-width: 400px;
     box-shadow: none;
-    max-height: 400px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
 }
 
 .mapboxgl-popup-close-button {

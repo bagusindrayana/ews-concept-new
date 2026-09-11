@@ -88,8 +88,8 @@ export class TitikTsunami {
                         </div>
                     </div>
                 </div>
-                <div class="ews-card-content p-1 lg:p-2  custom-scrollbar">
-                    <p class="mt-1">${this.setting?.description || ''}</p>
+                <div class="ews-card-content p-1 lg:p-2">
+                    <p class="mt-1 line-clamp-12 max-h-[200px]">${this.setting?.description || ''}</p>
                 </div>
             </div>
         `.trim()
