@@ -37,12 +37,7 @@
     >([]);
 
     //type status any
-    let hexStatus: { id: number; status: any }[] = $state(
-        Array.from({ length: 600 }, (_, index) => ({
-            id: index + 1,
-            status: null,
-        })),
-    );
+    let hexStatus: { id: number; status: any }[] = $state([]);
 
     async function fetchStatuses() {
         // Clear existing statuses
@@ -121,7 +116,7 @@
             0,
             Math.floor((hexStatus.length - trueCount) / 2),
         );
-        console.log(trueCount, start);
+        // console.log(trueCount, start);
         setTimeout(() => {
             statuses.forEach((status, i) => {
                 if (start + i < hexStatus.length) {
@@ -134,6 +129,19 @@
     }
 
     onMount(() => {
+        hexStatus = Array.from(
+            {
+                length:
+                    Math.max(
+                        window.screen.width / 2 + 10,
+                        window.screen.height / 2 + 10,
+                    ) / 2,
+            },
+            (_, index) => ({
+                id: index + 1,
+                status: null,
+            }),
+        );
         const el = document.getElementById("loading-screen");
         if (el) el.style.display = "none";
         isLoading = false;
@@ -195,14 +203,17 @@
     >
         {#if !isLoading}
             <div class="absolute w-[110%] top-[-50px] left-[-50px]">
-                <HexGrid variant="flat" align="center">
+                <HexGrid
+                    variant="flat"
+                    align="center"
+                    revealVariant="diagonal-top-left"
+                >
                     {#each hexStatus as hex, hexIndex}
                         {@const isSelected = mapStore.isDataSourceSelected(
                             hex.id.toString(),
                         )}
                         <label
-                            class="w-full h-full cursor-pointer select-none relative opacity-0 show-pop-up"
-                            style="animation-delay: {hexIndex * 5}ms;"
+                            class="w-full h-full cursor-pointer select-none relative"
                         >
                             <input
                                 type="checkbox"

@@ -5,6 +5,7 @@
 	import { demoStore } from "$lib/stores/demoStore";
 	import GempaBumiAlert from "$lib/components/GempaBumiAlert.svelte";
 	import TsunamiAlert from "$lib/components/TsunamiAlert.svelte";
+	import { page } from "$app/stores";
 
 	let { children } = $props();
 
@@ -30,15 +31,23 @@
 <div class="no-snapshot scanline fixed inset-0 pointer-events-none z-10"></div> -->
 {@render children()}
 
-{#if $demoStore.gempaAlert}
-	<GempaBumiAlert
-		magnitudo={$demoStore.gempaAlert.mag}
-		kedalaman={$demoStore.gempaAlert.depth}
-		show={true}
-		closeInSecond={10}
-	/>
-{/if}
+{#if $page.url.pathname !== "/"}
+	{#if $demoStore.gempaAlert}
+		<GempaBumiAlert
+			magnitudo={$demoStore.gempaAlert.mag}
+			kedalaman={$demoStore.gempaAlert.depth}
+			show={true}
+			closeInSecond={10}
+		/>
+	{/if}
 
-{#if $demoStore.tsunamiAlert}
-	<TsunamiAlert infoTsunami={$demoStore.tsunamiAlert} closeInSecond={10} />
+	{#if $demoStore.tsunamiAlert}
+		<TsunamiAlert
+			infoTsunami={$demoStore.tsunamiAlert}
+			closeInSecond={10}
+			onClose={() => {
+				demoStore.clearAlerts();
+			}}
+		/>
+	{/if}
 {/if}

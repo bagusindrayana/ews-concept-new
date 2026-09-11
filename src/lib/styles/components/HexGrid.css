@@ -302,3 +302,16 @@
     width: 88%;
     height: 88%;
 }
+
+/* ---- 5. Built-in HexGrid Reveal & Exit Animations ---- */
+.ews-hex-reveal-in {
+    opacity: 0;
+    animation: showPopUp var(--hex-reveal-duration, 0.3s) cubic-bezier(0.34, 1.56, 0.64, 1) both !important;
+    animation-delay: var(--hex-reveal-delay, 0ms) !important;
+}
+
+.ews-hex-reveal-out {
+    opacity: 1;
+    animation: closePopUp var(--hex-reveal-duration, 0.3s) cubic-bezier(0.25, 1, 0.5, 1) both !important;
+    animation-delay: var(--hex-reveal-delay, 0ms) !important;
+}

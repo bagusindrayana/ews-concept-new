@@ -31,6 +31,11 @@
   let showGempaBumiAlert = $state(false);
   let showTsunamiAlert = $state(false);
 
+  // HexGrid reveal demo state
+  let demoHexVariant = $state<string>("diagonal-top-left");
+  let demoHexReverse = $state(false);
+  let demoHexKey = $state(0);
+
   // Dummy Data for Kota Terdampak
   let dummyKota = $state({
     lng: 106.8456,
@@ -456,6 +461,88 @@
             {/each}
           </HexGrid>
         </div>
+      </div>
+
+      <!-- Interactive HexGrid Reveal Animation Showcase -->
+      <div class="mt-6 p-4 border border-gray-800 rounded bg-black/40">
+        <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+          <div>
+            <h3 class="text-sm font-bold text-primary uppercase tracking-wider">
+              HexGrid Reveal Animation System
+            </h3>
+            <p class="text-xs text-gray-400">
+              Active Variant: <span class="text-white font-mono">{demoHexVariant}</span> | Reverse: <span class="text-white font-mono">{demoHexReverse ? "true" : "false"}</span>
+            </p>
+          </div>
+          <div class="flex flex-wrap gap-2">
+            <button
+              class="px-2.5 py-1 text-xs font-semibold rounded border border-gray-600 transition-colors hover:bg-gray-800"
+              class:border-primary={demoHexReverse}
+              class:text-primary={demoHexReverse}
+              onclick={() => (demoHexReverse = !demoHexReverse)}
+            >
+              {demoHexReverse ? "Reverse: ON (Exit Wave)" : "Reverse: OFF"}
+            </button>
+            <button
+              class="px-3 py-1 text-xs font-bold rounded bg-primary text-black hover:brightness-110"
+              onclick={() => {
+                demoHexReverse = false;
+                demoHexKey++;
+              }}
+            >
+              Replay Reveal
+            </button>
+          </div>
+        </div>
+
+        <!-- Variant Selection Buttons -->
+        <div class="flex flex-wrap gap-1.5 mb-5 text-xs">
+          {#each [
+            { id: "diagonal-top-left", label: "Diagonal Top-Left (Kiri Atas)" },
+            { id: "diagonal-top-right", label: "Diagonal Top-Right (Kanan Atas)" },
+            { id: "diagonal-bottom-left", label: "Diagonal Bottom-Left (Kiri Bawah)" },
+            { id: "diagonal-bottom-right", label: "Diagonal Bottom-Right (Kanan Bawah)" },
+            { id: "center", label: "Center (Tengah)" },
+            { id: "random", label: "Random (Acak)" }
+          ] as v}
+            <button
+              class="px-2 py-1 rounded border transition-all {demoHexVariant === v.id ? 'border-primary bg-primary/20 text-white font-bold' : 'border-gray-800 text-gray-400 hover:text-white hover:border-gray-600'}"
+              onclick={() => {
+                demoHexVariant = v.id;
+                demoHexReverse = false;
+                demoHexKey++;
+              }}
+            >
+              {v.label}
+            </button>
+          {/each}
+        </div>
+
+        <!-- Render Grid with active variant -->
+        {#key demoHexKey}
+          <div class="p-2 border border-gray-900 rounded bg-black/60 overflow-hidden min-h-[220px]">
+            <HexGrid
+              variant="flat"
+              align="center"
+              revealVariant={demoHexVariant}
+              reverse={demoHexReverse}
+              revealMaxDelay={900}
+              revealDuration={320}
+            >
+              {#each { length: 36 } as _, i}
+                <div class="ews-hex-hive flat cursor-pointer select-none">
+                  <HexShape
+                    clipContent={true}
+                    className="w-full h-full transition-transform hover:scale-110"
+                    color={i % 3 === 0 ? "fdsn-selected" : ""}
+                  >
+                    <span class="text-[10px] font-black">{i + 1}</span>
+                  </HexShape>
+                </div>
+              {/each}
+            </HexGrid>
+          </div>
+        {/key}
       </div>
     </section>
 
@@ -1307,6 +1394,31 @@
           />
         </div>
       </div>
+
+      <!-- Emergency Alerts Demo Section -->
+      <div class="mt-8 p-6 border border-red-900/60 rounded bg-red-950/20">
+        <h3 class="text-base font-bold text-red-500 uppercase tracking-wider mb-2">
+          Emergency Alerts Demo (Tsunami Alert with Reverse Exit Animation)
+        </h3>
+        <p class="text-xs text-gray-400 mb-4">
+          Test the Tsunami Alert popup with its full diagonal HexGrid reveal background, center Eva-style warning banners, and smooth reverse/exit collapse animation.
+        </p>
+        <div class="flex flex-wrap gap-3">
+          <button
+            id="btn-launch-tsunami"
+            class="px-5 py-2.5 bg-red-600 hover:bg-red-500 text-white font-black text-sm uppercase rounded tracking-wider shadow-lg shadow-red-900/40 transition-all active:scale-95 cursor-pointer"
+            onclick={() => (showTsunamiAlert = true)}
+          >
+            Launch Tsunami Alert
+          </button>
+          <button
+            class="px-4 py-2.5 bg-amber-600 hover:bg-amber-500 text-black font-bold text-sm uppercase rounded transition-all active:scale-95 cursor-pointer"
+            onclick={() => (showGempaBumiAlert = true)}
+          >
+            Launch Gempa Alert
+          </button>
+        </div>
+      </div>
     </section>
   </div>
 </div>
@@ -1334,9 +1446,13 @@
 {#if showTsunamiAlert}
   <!-- Tsunami Alert takes up the full screen and has animations -->
   <div class="fixed inset-0 z-50 pointer-events-auto">
-    <TsunamiAlert infoTsunami={dummyTsunami.infoTsunami} />
+    <TsunamiAlert
+      infoTsunami={dummyTsunami.infoTsunami}
+      closeInSecond={10}
+      onClose={() => (showTsunamiAlert = false)}
+    />
     <button
-      class="absolute top-4 right-4 z-[60] bg-black text-white px-4 py-2"
+      class="absolute top-4 right-4 z-[60] bg-black text-white px-4 py-2 border border-red-500 font-bold"
       onclick={() => (showTsunamiAlert = false)}
     >
       Close Tsunami Alert

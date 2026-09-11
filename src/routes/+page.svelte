@@ -38,7 +38,7 @@
   import RangeSlider from "$lib/components/RangeSlider.svelte";
   import HexGrid from "$lib/components/HexGrid.svelte";
   import HexShape from "$lib/components/HexShape.svelte";
-  import { mapStore, DATA_SOURCES } from "$lib/stores/mapStore.svelte.ts";
+  import { mapStore, DATA_SOURCES } from "$lib/stores/mapStore.svelte";
 
   let mapContainer: HTMLDivElement;
   let map: mapboxgl.Map;
@@ -69,8 +69,15 @@
   let alertGempaBumi: TitikGempa | null = $state(null);
   let alertGempaBumis = $state<TitikGempa[]>([]);
   let alertTsunami: TitikTsunami | null = $state(null);
+  let activeTsunamiAlert = $state<InfoTsunami | null>(null);
   let infoTsunami: TitikTsunami | null = $state(null);
   let shakeMap: string | null = $state(null);
+
+  $effect(() => {
+    if (alertTsunami?.infoTsunami) {
+      activeTsunamiAlert = alertTsunami.infoTsunami;
+    }
+  });
 
   // Settings modal state
   let showSettingsModal = $state(false);
@@ -403,7 +410,7 @@
       closePopUpInSecond: 13,
     });
     tts.push(tt);
-    // alertTsunami = tt;
+    alertTsunami = tt;
 
     if (results.length > 0) {
       if (map.getSource("coastline"))
@@ -434,7 +441,6 @@
       shakeMap = data.shakemap;
     }, 9000);
     setTimeout(() => {
-      // alertTsunami = null;
       infoTsunami = tt;
     }, 10000);
   }
@@ -2202,8 +2208,16 @@
   </div>
 
   <!-- TSUNAMI ALERT -->
-  {#if !loadingScreen && alertTsunami != null && alertTsunami != undefined}
-    <TsunamiAlert infoTsunami={alertTsunami.infoTsunami} />
+  {#if !loadingScreen && activeTsunamiAlert != null}
+    <TsunamiAlert
+      revealVariant={"random"}
+      infoTsunami={activeTsunamiAlert}
+      closeInSecond={10}
+      onClose={() => {
+        activeTsunamiAlert = null;
+        alertTsunami = null;
+      }}
+    />
   {/if}
 
   <!-- LOADING SCREEN -->
