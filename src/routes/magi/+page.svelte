@@ -18,9 +18,9 @@
     let balthasarSource = $derived(mapStore.dataSources[1]);
     let casparSource = $derived(mapStore.dataSources[2]);
 
-    let  melchiorActive = $state(false);
-    let  balthasarActive = $state(false);
-    let  casparActive = $state(false);
+    let melchiorActive = $state(false);
+    let balthasarActive = $state(false);
+    let casparActive = $state(false);
 
     let isLoading = $state(true);
 
@@ -54,10 +54,12 @@
                 const response = await fdsnFetch(url, "/api/fdsn/station");
                 if (!response.ok)
                     throw new Error(`${source.name}: HTTP ${response.status}`);
-                
+
                 const xmlResult = xmlToJson(await response.text());
 
-                const indexMagi = mapStore.dataSources.findIndex((s) => s.id === source.id);
+                const indexMagi = mapStore.dataSources.findIndex(
+                    (s) => s.id === source.id,
+                );
                 if (indexMagi === 0) {
                     melchiorActive = true;
                 } else if (indexMagi === 1) {
@@ -68,8 +70,6 @@
                 return xmlResult;
             }),
         );
-
-        
 
         stationResults.forEach((result) => {
             if (result.status === "rejected") {
@@ -117,19 +117,20 @@
         });
 
         const trueCount = statuses.length;
-        const start = Math.max(0,Math.floor((hexStatus.length - trueCount) / 2));
-        console.log(trueCount,start);
+        const start = Math.max(
+            0,
+            Math.floor((hexStatus.length - trueCount) / 2),
+        );
+        console.log(trueCount, start);
         setTimeout(() => {
             statuses.forEach((status, i) => {
-            if(start + i < hexStatus.length){
-                setTimeout(() => {
-                    hexStatus[start + i].status = status;
-                }, i * 10); 
-            }
-            
-        });
-        }, 1000); 
-        
+                if (start + i < hexStatus.length) {
+                    setTimeout(() => {
+                        hexStatus[start + i].status = status;
+                    }, i * 10);
+                }
+            });
+        }, 1000);
     }
 
     onMount(() => {
@@ -138,7 +139,7 @@
         isLoading = false;
         setTimeout(() => {
             fetchStatuses();
-        }, 1000); 
+        }, 1000);
     });
 
     onDestroy(() => {
@@ -195,10 +196,13 @@
         {#if !isLoading}
             <div class="absolute w-[110%] top-[-50px] left-[-50px]">
                 <HexGrid variant="flat" align="center">
-                    {#each hexStatus as hex,hexIndex}
-                        {@const isSelected = mapStore.isDataSourceSelected(hex.id.toString())}
+                    {#each hexStatus as hex, hexIndex}
+                        {@const isSelected = mapStore.isDataSourceSelected(
+                            hex.id.toString(),
+                        )}
                         <label
-                            class="w-full h-full cursor-pointer select-none relative opacity-0 show-pop-up" style="animation-delay: {hexIndex * 5}ms;"
+                            class="w-full h-full cursor-pointer select-none relative opacity-0 show-pop-up"
+                            style="animation-delay: {hexIndex * 5}ms;"
                         >
                             <input
                                 type="checkbox"
@@ -209,7 +213,9 @@
                             />
                             <HexShape
                                 clipContent={true}
-                                color={hex.status?.status == "ACTIVE" ? "fdsn-selected" : ""}
+                                color={hex.status?.status == "ACTIVE"
+                                    ? "fdsn-selected"
+                                    : ""}
                                 className="w-full h-full transition-all duration-150 hover:brightness-125"
                             >
                                 <div
@@ -228,8 +234,12 @@
             </div>
         {/if}
         <div class="absolute w-full flex justify-center h-full items-center">
-            <div class="w-full">
-                <MagiStatusDisplay isMelchiorActive={melchiorActive} isBalthasarActive={balthasarActive} isCasparActive={casparActive} />
+            <div class="w-full max-w-[50vw]">
+                <MagiStatusDisplay
+                    isMelchiorActive={melchiorActive}
+                    isBalthasarActive={balthasarActive}
+                    isCasparActive={casparActive}
+                />
             </div>
         </div>
     </div>
