@@ -1040,10 +1040,7 @@
           showSnapshotModal = true;
         }}>SNAPSHOTS</button
       >
-      <a
-        class="ews-btn ews-btn-primary"
-        href="/status-ui">STATION</a
-      >
+      <a class="ews-btn ews-btn-primary" href="/status-ui">STATION</a>
     </div>
 
     <!-- MENU / X toggle button -->
@@ -1273,13 +1270,16 @@
       <label class="font-bold uppercase text-xs" style="color:var(--orange)">
         FDSN DATA SOURCE
       </label>
-      <HexGrid variant="flat" hexWidth={83*1.5} hexHeight={72*1.5} align="center">
-        {#each DATA_SOURCES as ds,dsIndex}
+      <HexGrid
+        variant="flat"
+        hexWidth={83 * 1.5}
+        hexHeight={72 * 1.5}
+        align="center"
+      >
+        {#each DATA_SOURCES as ds, dsIndex}
           <label
-            class="ews-hex-hive flat opacity-0 show-pop-up cursor-pointer" style="animation-delay: {Math.min(
-                                            dsIndex * 25,
-                                            1000,
-                                        )}ms;"
+            class="ews-hex-hive flat opacity-0 show-pop-up cursor-pointer"
+            style="animation-delay: {Math.min(dsIndex * 25, 1000)}ms;"
           >
             <input
               type="checkbox"
@@ -1290,15 +1290,22 @@
             />
             <HexShape
               clipContent={true}
-              color={mapStore.isDataSourceSelected(ds.id) ? "fdsn-selected text-black" : "text-[#FFC358]"}
+              color={mapStore.isDataSourceSelected(ds.id)
+                ? "fdsn-selected text-black"
+                : "text-[#FFC358]"}
               className="w-full h-full transition-all duration-150 hover:brightness-125"
             >
-              <div class="w-full h-full flex flex-col items-center justify-center text-center  px-5" title="{ds.name} : {ds.baseUrl}">
-                <span class="text-[16px] font-black uppercase tracking-wide leading-tight truncate max-w-full">{ds.name}</span>
+              <div
+                class="w-full h-full flex flex-col items-center justify-center text-center px-5"
+                title="{ds.name} : {ds.baseUrl}"
+              >
+                <span
+                  class="text-[16px] font-black uppercase tracking-wide leading-tight truncate max-w-full"
+                  >{ds.name}</span
+                >
                 <!-- <span class="text-[9px] mt-0.5 opacity-85 truncate max-w-full font-mono">{ds.baseUrl}</span> -->
               </div>
             </HexShape>
-            
           </label>
         {/each}
       </HexGrid>
@@ -1458,11 +1465,13 @@
                 </table>
               </div>
             </div>
-            <div class="mt-2 bordered w-full">
-              <p class=" p-2 break-words">
-                {alertGempaBumi?.infoGempa.message}
-              </p>
-            </div>
+            {#if alertGempaBumi?.infoGempa.message?.trim() != "" && alertGempaBumi?.infoGempa.message?.trim() != undefined}
+              <div class="alertGempaBumi mt-2 bordered w-full p-2 h-[200px]">
+                <p class="  break-words text-ellipsise">
+                  {alertGempaBumi?.infoGempa.message}
+                </p>
+              </div>
+            {/if}
           </div>
           {#if alertGempaBumi?.mag != undefined && alertGempaBumi?.mag >= 5}
             <div
@@ -1519,11 +1528,13 @@
             class="flex flex-col w-full justify-center items-center text-sm p-1 lg:p-2"
             style="font-size:10px"
           >
-            <div class="mt-2 bordered w-full">
-              <p class=" p-2 break-words">
-                {infoTsunami?.infoTsunami.message}
-              </p>
-            </div>
+            {#if infoTsunami?.infoTsunami.message != ""}
+              <div class="infoTsunami mt-2 bordered w-full p-2 h-[200px]">
+                <p class=" break-words text-ellipsise">
+                  {infoTsunami?.infoTsunami.message}
+                </p>
+              </div>
+            {/if}
           </div>
           {#if infoTsunami?.infoTsunami.level?.includes("PD-1") || infoTsunami?.infoTsunami.level?.includes("PD-2")}
             <div
@@ -1637,9 +1648,13 @@
                   </table>
                 </div>
               </div>
-              <div class="mt-2 bordered w-full">
-                <p class=" p-2 break-words">{agi.infoGempa.message}</p>
-              </div>
+              {#if agi?.infoGempa.message?.trim() != "" && agi?.infoGempa.message?.trim() != undefined}
+                <div class="agi mt-2 bordered w-full p-2 h-[200px]">
+                  <p class=" break-words text-ellipsise">
+                    {agi.infoGempa.message}
+                  </p>
+                </div>
+              {/if}
             </div>
             {#if agi.mag >= 5}
               <div
@@ -1816,11 +1831,13 @@
                 </table>
               </div>
             </div>
-            <div class="mt-2 bordered hidden lg:block">
-              <p class=" p-2 break-words">
-                {GempaDirasakan?.infoGempa.message}
-              </p>
-            </div>
+            {#if GempaDirasakan?.infoGempa.message != ""}
+              <div class="mt-2 bordered w-full hidden lg:block p-2 h-[200px]">
+                <p class=" break-words text-ellipsise">
+                  {GempaDirasakan?.infoGempa.message}
+                </p>
+              </div>
+            {/if}
           </div>
         {/snippet}
       </Card>
@@ -2106,11 +2123,6 @@
                 </table>
               </div>
             </div>
-            <!-- <div class="mt-2 bordered">
-              <p class=" p-2 break-words">
-                {GempaDirasakan?.infoGempa.message}
-              </p>
-            </div> -->
           </div>
         {/snippet}
 

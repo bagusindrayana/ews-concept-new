@@ -56,6 +56,10 @@
     padding: 0px !important;
     max-width: 400px;
     box-shadow: none;
+    max-height: 400px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .mapboxgl-popup-close-button {
@@ -1014,7 +1018,8 @@ button {
     height: 16px;
     background: var(--orange);
     border: 2px solid black;
-    border-radius: 0; /* Square/Diamond look for EWS */
+    border-radius: 0;
+    /* Square/Diamond look for EWS */
     cursor: pointer;
     box-shadow: 0 0 10px rgba(var(--glow-rgb), 0.5);
     transition: all 0.2s ease;
