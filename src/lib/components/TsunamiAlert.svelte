@@ -81,35 +81,6 @@
       </div>
     </div>
 
-    <!-- random position  -->
-    <!-- <div class="w-full h-full absolute" style="z-index: 2;">
-      {#each locations as location, i}
-        <div
-          class="show-pop-up"
-          style="position: absolute; top: {Math.floor(Math.random() * 10) *
-            110}px; {i % 2 == 0 ? 'left' : 'right'}: {Math.floor(
-            Math.random() * 10,
-          ) * 110}px; animation-delay: {Math.floor(Math.random() * 10) * 0.1}s;"
-        >
-          <HexShape
-            clipContent={true}
-            color="red"
-            className="h-[100px] relative"
-          >
-            <div
-              class="flex justify-center items-center text-center absolute bg-black top-0 left-0 bottom-0 right-0"
-            >
-              <p
-                class="text-xs ews-label text-danger w-[60%] break-all break-word"
-              >
-                {location}
-              </p>
-            </div>
-          </HexShape>
-        </div>
-      {/each}
-    </div> -->
-
     <div
       class="w-full flex flex-col items-center justify-center"
       style="z-index: 5;"
@@ -198,11 +169,18 @@
                   </div>
                 </div>
               </div>
-              <div class="ews-card-content p-1 lg:p-2 custom-scrollbar">
-                <p class="text-xs ews-text" style="font-size: 8px;">
-                  {infoTsunami.message}
-                </p>
-              </div>
+              {#if infoTsunami.message?.trim() != "" && infoTsunami.message?.trim() != undefined}
+                <div
+                  class="infoTsunamiAlert ews-card-content p-1 lg:p-2 custom-scrollbar h-[180px]"
+                >
+                  <p
+                    class="text-xs ews-text break-words text-ellipsise"
+                    style="font-size: 8px;"
+                  >
+                    {infoTsunami.message}
+                  </p>
+                </div>
+              {/if}
             </div>
           </div>
         </div>
