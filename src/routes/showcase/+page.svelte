@@ -373,6 +373,28 @@
         </div>
       </div>
 
+      <div class="flex w-full relative mb-4">
+        <StripeBar className="my-2 " size="200px"></StripeBar>
+        <StripeBar className="my-2 -scale-x-100 " size="200px"></StripeBar>
+        <div
+          class="absolute top-0 left-0 bottom-0 right-0 flex items-center justify-center text-center"
+        >
+          <div class="p-1 bg-black rounded-lg w-full">
+            <div class="bordered-red bg-black p-2 w-full text-primary">
+              <InfiniteScroll speed={60} gap={48} direction="right">
+                {#snippet children()}
+                  <div class="flex flex-col text-center px-4">
+                    <span class="text-xs">CONDITION: RED</span>
+                    <b class="text-4xl" style="line-height: 0.8;">EMERGENCY</b>
+                    <span class="text-xs">CODE: 102</span>
+                  </div>
+                {/snippet}
+              </InfiniteScroll>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- Demo 2: Variasi speed & direction -->
       <div class="flex flex-col gap-3">
         <div>
@@ -471,7 +493,13 @@
               HexGrid Reveal Animation System
             </h3>
             <p class="text-xs text-gray-400">
-              Active Variant: <span class="text-white font-mono">{demoHexVariant}</span> | Reverse: <span class="text-white font-mono">{demoHexReverse ? "true" : "false"}</span>
+              Active Variant: <span class="text-white font-mono"
+                >{demoHexVariant}</span
+              >
+              | Reverse:
+              <span class="text-white font-mono"
+                >{demoHexReverse ? "true" : "false"}</span
+              >
             </p>
           </div>
           <div class="flex flex-wrap gap-2">
@@ -497,16 +525,12 @@
 
         <!-- Variant Selection Buttons -->
         <div class="flex flex-wrap gap-1.5 mb-5 text-xs">
-          {#each [
-            { id: "diagonal-top-left", label: "Diagonal Top-Left (Kiri Atas)" },
-            { id: "diagonal-top-right", label: "Diagonal Top-Right (Kanan Atas)" },
-            { id: "diagonal-bottom-left", label: "Diagonal Bottom-Left (Kiri Bawah)" },
-            { id: "diagonal-bottom-right", label: "Diagonal Bottom-Right (Kanan Bawah)" },
-            { id: "center", label: "Center (Tengah)" },
-            { id: "random", label: "Random (Acak)" }
-          ] as v}
+          {#each [{ id: "diagonal-top-left", label: "Diagonal Top-Left (Kiri Atas)" }, { id: "diagonal-top-right", label: "Diagonal Top-Right (Kanan Atas)" }, { id: "diagonal-bottom-left", label: "Diagonal Bottom-Left (Kiri Bawah)" }, { id: "diagonal-bottom-right", label: "Diagonal Bottom-Right (Kanan Bawah)" }, { id: "center", label: "Center (Tengah)" }, { id: "random", label: "Random (Acak)" }] as v}
             <button
-              class="px-2 py-1 rounded border transition-all {demoHexVariant === v.id ? 'border-primary bg-primary/20 text-white font-bold' : 'border-gray-800 text-gray-400 hover:text-white hover:border-gray-600'}"
+              class="px-2 py-1 rounded border transition-all {demoHexVariant ===
+              v.id
+                ? 'border-primary bg-primary/20 text-white font-bold'
+                : 'border-gray-800 text-gray-400 hover:text-white hover:border-gray-600'}"
               onclick={() => {
                 demoHexVariant = v.id;
                 demoHexReverse = false;
@@ -520,7 +544,9 @@
 
         <!-- Render Grid with active variant -->
         {#key demoHexKey}
-          <div class="p-2 border border-gray-900 rounded bg-black/60 overflow-hidden min-h-[220px]">
+          <div
+            class="p-2 border border-gray-900 rounded bg-black/60 overflow-hidden min-h-[220px]"
+          >
             <HexGrid
               variant="flat"
               align="center"
@@ -1397,11 +1423,15 @@
 
       <!-- Emergency Alerts Demo Section -->
       <div class="mt-8 p-6 border border-red-900/60 rounded bg-red-950/20">
-        <h3 class="text-base font-bold text-red-500 uppercase tracking-wider mb-2">
+        <h3
+          class="text-base font-bold text-red-500 uppercase tracking-wider mb-2"
+        >
           Emergency Alerts Demo (Tsunami Alert with Reverse Exit Animation)
         </h3>
         <p class="text-xs text-gray-400 mb-4">
-          Test the Tsunami Alert popup with its full diagonal HexGrid reveal background, center Eva-style warning banners, and smooth reverse/exit collapse animation.
+          Test the Tsunami Alert popup with its full diagonal HexGrid reveal
+          background, center Eva-style warning banners, and smooth reverse/exit
+          collapse animation.
         </p>
         <div class="flex flex-wrap gap-3">
           <button

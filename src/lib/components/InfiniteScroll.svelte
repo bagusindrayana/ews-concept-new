@@ -64,8 +64,13 @@
     }
 
     if (trackEl) {
-      const sign = direction === "right" ? 1 : -1;
-      trackEl.style.transform = `translateX(${sign * offset}px)`;
+      const x =
+        direction === "right"
+          ? singleWidth > 0
+            ? -singleWidth + offset
+            : 0
+          : -offset;
+      trackEl.style.transform = `translateX(${x}px)`;
     }
     animFrame = requestAnimationFrame(tick);
   }
@@ -73,6 +78,11 @@
   onMount(() => {
     // Hitung clone setelah render awal
     calcClones();
+    // Pastikan font loaded agar kalkulasi width akurat
+    document.fonts?.ready.then(() => {
+      calcClones();
+    });
+
     // Tunggu $state update (clones dirender), lalu hitung ulang
     requestAnimationFrame(() => {
       calcClones();
