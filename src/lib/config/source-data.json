@@ -238,5 +238,85 @@
                 ]
             }
         }
+    },
+    {
+        "id": "live_30_felt",
+        "category": "feel",
+        "source_url": "https://bmkg-content-inatews.storage.googleapis.com/last30feltevent.xml",
+        "type": "xml",
+        "single_data": false,
+        "attribute": "alert.info",
+        "data_mapping": {
+            "id": {
+                "attribute": "eventid"
+            },
+            "lng": {
+                "attribute": "point.coordinates",
+                "func": [
+                    {
+                        "split": {
+                            "separator": ",",
+                            "index": 0
+                        }
+                    },
+                    {
+                        "toFloat": {}
+                    }
+                ]
+            },
+            "lat": {
+                "attribute": "point.coordinates",
+                "func": [
+                    {
+                        "split": {
+                            "separator": ",",
+                            "index": 1
+                        }
+                    },
+                    {
+                        "toFloat": {}
+                    }
+                ]
+            },
+            "mag": {
+                "attribute": "magnitude",
+                "func": [
+                    {
+                        "toFloat": {}
+                    }
+                ]
+            },
+            "depth": {
+                "attribute": "depth"
+            },
+            "place": {
+                "attribute": "area"
+            },
+            "time": {
+                "attribute": "time",
+                "func": [
+                    {
+                        "template": {
+                            "format": "${date} ${time}"
+                        }
+                    },
+                    {
+                        "replace": {
+                            "from": " WIB",
+                            "to": ""
+                        }
+                    },
+                    {
+                        "fromFormat": {
+                            "format": "dd-MM-yy HH:mm:ss",
+                            "zone": "Asia/Jakarta"
+                        }
+                    },
+                    {
+                        "formatReadable": {}
+                    }
+                ]
+            }
+        }
     }
 ]

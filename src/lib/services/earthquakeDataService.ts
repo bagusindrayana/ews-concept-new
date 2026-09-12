@@ -12,7 +12,7 @@ import sourceDataConfig from "$lib/config/source-data.json";
  */
 function utcSqlToJakarta(value: string | undefined): DateTime {
   if (!value) return DateTime.now().setZone("Asia/Jakarta");
-  
+
   // Try direct SQL parse
   let dt = DateTime.fromSQL(value, { zone: "UTC" });
   if (!dt.isValid) {
@@ -23,7 +23,7 @@ function utcSqlToJakarta(value: string | undefined): DateTime {
     // Try fromFormat fallback (first 19 chars)
     dt = DateTime.fromFormat(value.substring(0, 19), "yyyy-MM-dd HH:mm:ss", { zone: "UTC" });
   }
-  
+
   return dt.isValid ? dt.setZone("Asia/Jakarta") : DateTime.now().setZone("Asia/Jakarta");
 }
 
@@ -314,7 +314,7 @@ export class EarthquakeDataService {
       if (config.category === "all" && !mainGeoJson && raw.type === "FeatureCollection") {
         mainGeoJson = raw;
       } else if (config.category === "all" && !mainGeoJson && Array.isArray(raw.features)) {
-          mainGeoJson = { type: "FeatureCollection", features: raw.features };
+        mainGeoJson = { type: "FeatureCollection", features: raw.features };
       }
 
       // Route data based on category
@@ -342,13 +342,13 @@ export class EarthquakeDataService {
       normalized.forEach((info: InfoGempa) => {
         if (!infoMap.has(info.id)) {
           infoMap.set(info.id, info);
-          
+
           // Try to find corresponding feature in raw data or generate one
           let feature = null;
           if (Array.isArray(raw.features)) {
             feature = raw.features.find((f: any) => f.properties.id === info.id);
           }
-          
+
           featureMap.set(info.id, feature || this.toGeoJsonFeature(info));
         }
       });
@@ -372,7 +372,7 @@ export class EarthquakeDataService {
 
     // If we merged multiple sources, ensure features match the info list
     if (configResults.size > 1) {
-        mergedGeoJson.features = finalGeoJsonFeatures;
+      mergedGeoJson.features = finalGeoJsonFeatures;
     }
 
     return {
