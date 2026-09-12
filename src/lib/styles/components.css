@@ -30,7 +30,10 @@
 /* Mapbox Popup Styles - FIX BACKGROUND */
 .mapboxgl-popup {
     width: auto;
+
+    max-width: 300px !important;
 }
+
 
 .mapboxgl-popup-anchor-bottom .mapboxgl-popup-tip {
     border-top-color: unset;
