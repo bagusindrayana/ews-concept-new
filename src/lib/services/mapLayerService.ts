@@ -49,12 +49,6 @@ export class MapLayerService {
           "line-opacity": 0.7,
         },
       });
-      map.addLayer({
-        id: "wilayah-fill",
-        type: "fill",
-        source: "wilayah",
-        paint: { "fill-color": "red", "fill-opacity": 0 },
-      });
     }
     return data;
   }

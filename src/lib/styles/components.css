@@ -567,13 +567,13 @@
 }
 
 .ews-title.internal .text.-characters {
-    font-size: 3rem;
+    font-size: 3.5rem;
     padding-top: var(--label-gutter-size);
 }
 
 
 .ews-title.internal .text {
-    font-size: 3rem;
+    font-size: 2rem;
 }
 
 .ews-title.badge .text.-characters {

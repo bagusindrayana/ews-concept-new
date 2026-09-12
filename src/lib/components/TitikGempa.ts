@@ -30,7 +30,7 @@ export class TitikGempa {
     initalSWaveRadius: number = 0;
 
     constructor(id: string, infoGempa: InfoGempa, setting?: TitikGempaSetting) {
-        this.id = id;
+        this.id = String(id);
         this.infoGempa = infoGempa;
         this.setting = setting;
         this.init();

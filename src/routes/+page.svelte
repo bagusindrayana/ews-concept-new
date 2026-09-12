@@ -54,9 +54,9 @@
 
   let geoJsonData: any = null;
   let geoJsonCoastline: any = null;
-  let geoJsonTitikGempa = $state<any>(null);
+  let geoJsonTitikGempa = $state.raw<any>(null);
   let worker: Worker | null = null;
-  let tgs = $state<TitikGempa[]>([]);
+  let tgs = $state.raw<TitikGempa[]>([]);
   let titikGempaBaru: TitikGempa[] = [];
   let tts: TitikTsunami[] = [];
   let markerDaerahs: number[][] = [];
@@ -66,7 +66,8 @@
 
   let detailInfoGempa: InfoGempa | null = $state(null);
   let loadingScreen = $state(true);
-  let events = $state<TitikGempa[]>([]);
+  let events = $state.raw<TitikGempa[]>([]);
+  let eventLimit = $state(40);
   let alertGempaBumi: TitikGempa | null = $state(null);
   let alertGempaBumis = $state<TitikGempa[]>([]);
   let alertTsunami: TitikTsunami | null = $state(null);
@@ -185,6 +186,7 @@
     filters.depthMax = 1000;
     filters.timeMinHours = 0;
     filters.timeMaxHours = 168;
+    eventLimit = 40;
   }
 
   // Snapshot Modal state
@@ -245,7 +247,7 @@
     }
   }
 
-  async function warningHandler(data: any) {
+  async function warningHandler(data: any, autoSnapshot = true) {
     const time = new Date().toLocaleTimeString();
     const id = data.id || `tg-${time}`;
     if (!map) return;
@@ -278,7 +280,7 @@
       showPopUpInSecond: 6,
       zoomToPosition: true,
     });
-    tgs.push(tg);
+    tgs = [...tgs, tg];
     titikGempaBaru.push(tg);
     alertGempaBumis = [...alertGempaBumis, tg];
 
@@ -291,15 +293,17 @@
     await new Promise((r) => setTimeout(r, 6000));
     events = [...tgs];
 
-    // Take snapshot automatically after 4 seconds (allow UI to settle)
-    setTimeout(() => {
-      takeSnapshot(
-        id,
-        data.place || "Unknown",
-        data.mag || 0,
-        data.time || new Date().toLocaleString(),
-      );
-    }, 3000);
+    // Take snapshot automatically after 4 seconds (allow UI to settle) only if enabled
+    if (autoSnapshot) {
+      setTimeout(() => {
+        takeSnapshot(
+          id,
+          data.place || "Unknown",
+          data.mag || 0,
+          data.time || new Date().toLocaleString(),
+        );
+      }, 3000);
+    }
     if (worker != null) sendWave();
   }
 
@@ -585,10 +589,12 @@
         source: "hightlight-wave",
         paint: { "fill-color": ["get", "color"], "fill-opacity": 0.8 },
       });
-      map.moveLayer("outline");
-      map.moveLayer("outline-coastline");
-      for (let tg of tgs) {
-        if (map.getLayer(tg.id)) map.moveLayer(tg.id);
+      if (map.getLayer("outline")) map.moveLayer("outline");
+      if (map.getLayer("outline-coastline")) map.moveLayer("outline-coastline");
+      for (let tg of titikGempaBaru) {
+        if (!tg?.id) continue;
+        const layerId = String(tg.id);
+        if (map.getLayer(layerId)) map.moveLayer(layerId);
       }
     }
     sendWave();
@@ -752,6 +758,7 @@
                 dirasakanInfo.info,
                 dirasakanInfo.raw,
               ),
+              false,
             );
             setTimeout(() => {
               GempaDirasakan = new TitikGempa(
@@ -1008,6 +1015,14 @@
       socket.disconnect();
     }
     if (timezoneInterval) clearInterval(timezoneInterval);
+    if (blinkInterval) clearInterval(blinkInterval);
+    if (worker) {
+      worker.terminate();
+      worker = null;
+    }
+    if (map) {
+      map.remove();
+    }
   });
 </script>
 
@@ -1738,14 +1753,14 @@
         >
       {/snippet}
       {#snippet children()}
-        <div class="w-full p-0 lg:p-1">
+        <div class="w-full p-0 lg:p-1 flex flex-col gap-2">
           <ul>
-            {#each events as v, i (v.id)}
+            {#each events.slice(0, eventLimit) as v, i (v.id)}
               <li class="w-full">
                 <button
                   onclick={() => selectEvent(v.infoGempa)}
                   class="flex flex-col mb-1 md:mb-2 list-event cursor-pointer slide-in-left w-full text-start"
-                  style="animation-delay:{i * 0.01}s"
+                  style="animation-delay:{((i % 40) * 0.015).toFixed(3)}s"
                 >
                   <span style="font-size:16px">{v.infoGempa.time} WIB</span>
                   <div
@@ -1758,6 +1773,19 @@
               </li>
             {/each}
           </ul>
+          {#if events.length > eventLimit}
+            <div class="flex flex-col items-center gap-1 my-2">
+              <span class="text-[11px] text-gray-400">
+                SHOWING {Math.min(eventLimit, events.length)} OF {events.length} EVENTS
+              </span>
+              <button
+                class="ews-btn ews-btn-primary w-full text-xs py-1"
+                onclick={() => (eventLimit += 40)}
+              >
+                ▼ LOAD MORE (+40)
+              </button>
+            </div>
+          {/if}
         </div>
       {/snippet}
     </Card>
