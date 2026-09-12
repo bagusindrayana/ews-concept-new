@@ -39,6 +39,7 @@
   import HexGrid from "$lib/components/HexGrid.svelte";
   import HexShape from "$lib/components/HexShape.svelte";
   import { mapStore, DATA_SOURCES } from "$lib/stores/mapStore.svelte";
+  import { formatTime } from "$lib/utils/datetimeHelper";
 
   let mapContainer: HTMLDivElement;
   let map: mapboxgl.Map;
@@ -1427,12 +1428,11 @@
                     <div class="text">MAG</div>
                   </div>
                   <div class="decal">
-                    <div
-                      class="w-full h-full stripe-bar-vertical loop-stripe-vertical anim-duration-20"
-                    ></div>
-                    <div
-                      class="w-full h-full stripe-bar-vertical loop-stripe-vertical anim-duration-20"
-                    ></div>
+                    <StripeBar
+                      className="w-full h-full"
+                      size={"100%"}
+                      orientation="vertical"
+                    ></StripeBar>
                   </div>
                 </div>
                 <p class=" font-bold">
@@ -1626,12 +1626,11 @@
                       <div class="text">MAG</div>
                     </div>
                     <div class="decal">
-                      <div
-                        class="w-full h-full stripe-bar-vertical loop-stripe-vertical anim-duration-20"
-                      ></div>
-                      <div
-                        class="w-full h-full stripe-bar-vertical loop-stripe-vertical anim-duration-20"
-                      ></div>
+                      <StripeBar
+                        className="w-full h-full"
+                        size={"100%"}
+                        orientation="vertical"
+                      ></StripeBar>
                     </div>
                   </div>
                   <p class=" font-bold">
@@ -1716,7 +1715,7 @@
   <!-- EVENT LOG -->
   {#if !loadingScreen && showEventLog}
     <Card
-      className="no-snapshot fixed top-1 left-2 right-2 md:left-auto md:right-3 md:top-3 md:w-1/3 lg:w-1/5 show-pop-up ews-card ews-card-red ews-card-float"
+      className="no-snapshot fixed top-1 left-2 right-2 md:left-auto md:right-3 md:top-3 md:w-1/3 lg:w-1/4 show-pop-up ews-card ews-card-red ews-card-float"
     >
       {#snippet title()}
         <StripeBar color="red"
@@ -1730,7 +1729,7 @@
         >
       {/snippet}
       {#snippet children()}
-        <div class="w-full p-0 lg:p-2">
+        <div class="w-full p-0 lg:p-1">
           <ul>
             {#each events as v, i (v.id)}
               <li class="w-full">
@@ -1739,8 +1738,11 @@
                   class="flex flex-col mb-1 md:mb-2 list-event cursor-pointer slide-in-left w-full text-start"
                   style="animation-delay:{i * 0.01}s"
                 >
-                  <span style="font-size:11px">{v.infoGempa.time} WIB</span>
-                  <div class="bordered p-2" style="font-size:12px">
+                  <span style="font-size:16px">{v.infoGempa.time} WIB</span>
+                  <div
+                    class="bordered p-2"
+                    style="font-size:20px; overflow:hidden; text-overflow: ellipsis;"
+                  >
                     {v.readableMag} M - {v.infoGempa.place || "uknown"}
                   </div>
                 </button>
@@ -1759,7 +1761,7 @@
   >
     {#if !loadingScreen && GempaDirasakan != undefined && GempaDirasakan != null && showGempaDirasakan}
       <Card
-        className="no-snapshot block show-pop-up w-1/2 md:w-1/2 lg:w-2/5 xl:w-1/5 pointer-events-auto bordered-red"
+        className="no-snapshot block show-pop-up w-1/2 max-w-[360px] pointer-events-auto bordered-red"
       >
         {#snippet title()}
           <StripeBar loop={true} color="red">
@@ -1779,12 +1781,19 @@
           </StripeBar>
         {/snippet}
         {#snippet footer()}
-          <button
+          <!-- <button
             class="flex justify-center w-full cursor-pointer"
             onclick={() =>
               GempaDirasakan && selectEvent(GempaDirasakan.infoGempa)}
           >
             <Icon icon="ri:map-pin-fill" width="20" height="20" />
+          </button> -->
+          <button
+            onclick={() =>
+              GempaDirasakan && selectEvent(GempaDirasakan.infoGempa)}
+            class="ews-btn ews-btn-primary overflow-hidden truncate w-full"
+          >
+            {GempaDirasakan?.infoGempa?.place}
           </button>
         {/snippet}
         {#snippet children()}
@@ -1792,10 +1801,10 @@
             class="flex flex-col w-full justify-center items-center text-sm p-1 lg:p-2"
             style="font-size:10px"
           >
-            <div class="w-full flex flex-col md:flex-row gap-2">
-              <div>
+            <div class="w-full flex flex-col md:flex-row gap-2 justify-between">
+              <div class="w-full h-full lg:w-32">
                 <div
-                  class="ews-title text-3xl internal bordered flex justify-between mb-2 w-full lg:w-32"
+                  class="ews-title text-3xl internal bordered flex justify-between w-full h-full"
                 >
                   <div class="flex flex-col items-center p-1">
                     <div class="text -characters">
@@ -1804,33 +1813,32 @@
                     <div class="text">MAG</div>
                   </div>
                   <div class="decal">
-                    <div
-                      class="w-full h-full stripe-bar-red-vertical loop-stripe-vertical anim-duration-20"
-                    ></div>
-                    <div
-                      class="w-full h-full stripe-bar-red-vertical loop-stripe-vertical anim-duration-20"
-                    ></div>
+                    <StripeBar
+                      className="w-full h-full"
+                      size={"100%"}
+                      orientation="vertical"
+                    ></StripeBar>
                   </div>
                 </div>
-                <p class=" font-bold">
+                <!-- <p class=" font-bold">
                   DEPTH : {GempaDirasakan?.readableDepth} KM
-                </p>
+                </p> -->
               </div>
-              <div class="bordered p-1 lg:p-2 w-full">
+              <div class="bordered p-1 w-full">
                 <table class="w-full">
                   <tbody>
                     <tr
                       ><td class="text-left p-0">TIME</td><td
                         class="text-right p-0"
-                        >{GempaDirasakan?.infoGempa.time} WIB</td
+                        >{formatTime(GempaDirasakan?.infoGempa.time)} WIB</td
                       ></tr
                     >
-                    <tr
+                    <!-- <tr
                       ><td class="text-left p-0">MAG</td><td
                         class="text-right p-0"
                         >{Number(GempaDirasakan?.infoGempa.mag).toFixed(1)}</td
                       ></tr
-                    >
+                    > -->
                     <tr
                       ><td class="text-left p-0">DEPTH</td><td
                         class="text-right p-0"
@@ -1853,13 +1861,15 @@
                 </table>
               </div>
             </div>
-            {#if GempaDirasakan?.infoGempa.message != ""}
+            <!-- {#if GempaDirasakan?.infoGempa.message != ""}
               <div class="mt-2 bordered w-full hidden lg:block p-2 h-[180px]">
-                <p class=" break-words text-ellipsis line-clamp-10">
+                <p
+                  class="GempaDirasakan break-words text-ellipsis line-clamp-10"
+                >
                   {GempaDirasakan?.infoGempa.message}
                 </p>
               </div>
-            {/if}
+            {/if} -->
           </div>
         {/snippet}
       </Card>
@@ -1868,7 +1878,7 @@
     <!-- LAST DETECTED EARTHQUAKE -->
     {#if !loadingScreen && GempaTerakhir != undefined && GempaTerakhir != null && showGempaTerdeteksi}
       <Card
-        className="block show-pop-up w-1/2 md:w-1/4 lg:w-1/6 pointer-events-auto"
+        className="block show-pop-up w-1/2 max-w-[300px] pointer-events-auto"
       >
         {#snippet title()}
           <div class="overflow-hidden">
@@ -1883,26 +1893,33 @@
           </div>
         {/snippet}
         {#snippet footer()}
-          <button
+          <!-- <button
             class="flex justify-center w-full cursor-pointer"
             onclick={() =>
               GempaTerakhir && selectEvent(GempaTerakhir.infoGempa)}
           >
             <Icon icon="ri:map-pin-fill" width="20" height="20" />
+          </button> -->
+          <button
+            onclick={() =>
+              GempaTerakhir && selectEvent(GempaTerakhir.infoGempa)}
+            class="ews-btn ews-btn-primary overflow-hidden truncate w-full"
+          >
+            {GempaTerakhir?.infoGempa?.place}
           </button>
         {/snippet}
         {#snippet children()}
           <div class=" text-sm w-full p-1 lg:p-2" style="font-size:10px">
             <table class="w-full">
               <tbody>
-                <tr
+                <!-- <tr
                   ><td class="text-left">PLACE</td><td class="text-right"
                     >{GempaTerakhir?.infoGempa.place}</td
                   ></tr
-                >
+                > -->
                 <tr
                   ><td class="text-left">TIME</td><td class="text-right"
-                    >{GempaTerakhir?.readableTime} WIB</td
+                    >{formatTime(GempaTerakhir?.readableTime)} WIB</td
                   ></tr
                 >
                 <tr
@@ -1960,12 +1977,12 @@
             <div class="bordered p-1 md:p-2">
               <table class="w-full">
                 <tbody>
-                  <tr
+                  <!-- <tr
                     ><td class="text-left flex">PLACE</td><td
                       class="text-right break-words pl-1 md:pl-2"
                       >{detailInfoGempa?.place}</td
                     ></tr
-                  >
+                  > -->
                   <tr
                     ><td class="text-left flex">TIME</td><td
                       class="text-right break-words pl-1 md:pl-2"
@@ -2001,6 +2018,13 @@
                   >
                 </tbody>
               </table>
+            </div>
+            <div
+              class="bordered pl-1 md:p-2 overflow-auto max-h-60 custom-scrollbar"
+            >
+              {#each detailInfoGempa?.place?.split(",") as p}
+                <p>{p}</p>
+              {/each}
             </div>
             <div
               class="bordered pl-1 md:p-2 overflow-auto max-h-60 custom-scrollbar"
@@ -2101,12 +2125,11 @@
                     <div class="text">MAG</div>
                   </div>
                   <div class="decal">
-                    <div
-                      class="w-full h-full stripe-bar-vertical loop-stripe-vertical anim-duration-20"
-                    ></div>
-                    <div
-                      class="w-full h-full stripe-bar-vertical loop-stripe-vertical anim-duration-20"
-                    ></div>
+                    <StripeBar
+                      className="w-full h-full"
+                      size={"100%"}
+                      orientation="vertical"
+                    ></StripeBar>
                   </div>
                 </div>
                 <p class=" font-bold">

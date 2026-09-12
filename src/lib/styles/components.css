@@ -564,14 +564,25 @@
 }
 
 .ews-title.internal .text.-characters {
-    font-size: 3.5rem;
+    font-size: 3rem;
     padding-top: var(--label-gutter-size);
 }
 
+
+.ews-title.internal .text {
+    font-size: 3rem;
+}
+
 .ews-title.badge .text.-characters {
-    font-size: 3.5rem;
+    font-size: 3rem;
     padding-top: var(--label-gutter-size);
 }
+
+.ews-title.badge .text {
+    font-size: 3rem;
+}
+
+
 
 
 .github-icon {
