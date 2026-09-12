@@ -1400,14 +1400,18 @@
   >
     {#if !loadingScreen && alertGempaBumi != undefined && alertGempaBumi != null}
       <Card
-        className="hidden md:block show-pop-up md:w-1/2 lg:w-2/5 xl:w-1/5 pointer-events-auto"
+        className="realtime-earthquake hidden md:block show-pop-up ews-card no-snapshot w-1/2 max-w-[360px] pointer-events-auto bordered-red"
       >
         {#snippet title()}
           <StripeBar color="red" loop={true} reverse={true} duration={20}>
             <div
               class="absolute top-0 bottom-0 left-0 right-0 flex justify-center items-center"
             >
-              <p class="p-1 bg-black font-bold text-xs">EARTHQUAKE</p>
+              <p
+                class="text-xs lg:text-lg bg-black font-bold p-1 ews-title text-3xl"
+              >
+                EARTHQUAKE
+              </p>
             </div>
           </StripeBar>
         {/snippet}
@@ -1417,9 +1421,9 @@
             style="font-size:10px"
           >
             <div class="w-full flex gap-2">
-              <div>
+              <div class="w-full h-full lg:w-32">
                 <div
-                  class="ews-title text-3xl internal bordered flex mb-2 w-full lg:w-32"
+                  class="ews-title text-3xl internal bordered flex justify-between w-full h-full"
                 >
                   <div class="flex flex-col items-center p-1">
                     <div class="text -characters">
@@ -1435,23 +1439,23 @@
                     ></StripeBar>
                   </div>
                 </div>
-                <p class=" font-bold">
-                  DEPTH : {alertGempaBumi?.readableDepth} KM
-                </p>
+                <!-- <p class=" font-bold">
+                  DEPTH : {GempaDirasakan?.readableDepth} KM
+                </p> -->
               </div>
               <div class="bordered p-1 w-full">
                 <table class="w-full">
                   <tbody>
                     <tr
                       ><td class="text-left">TIME</td><td class="text-right"
-                        >{alertGempaBumi?.readableTime} WIB</td
+                        >{formatTime(alertGempaBumi?.readableTime)} WIB</td
                       ></tr
                     >
-                    <tr
+                    <!-- <tr
                       ><td class="text-left">MAG</td><td class="text-right"
                         >{Number(alertGempaBumi?.mag).toFixed(1)}</td
                       ></tr
-                    >
+                    > -->
                     <tr
                       ><td class="text-left">DEPTH</td><td class="text-right"
                         >{alertGempaBumi?.depth}</td
@@ -1473,27 +1477,14 @@
             </div>
             {#if alertGempaBumi?.infoGempa.message?.trim() != "" && alertGempaBumi?.infoGempa.message?.trim() != undefined}
               <div class="alertGempaBumi mt-2 bordered w-full p-2 h-[180px]">
-                <p class="  break-words text-ellipsis line-clamp-10">
+                <p
+                  class="  break-words text-ellipsis line-clamp-10"
+                  style="font-size: 16px;"
+                >
                   {alertGempaBumi?.infoGempa.message}
                 </p>
               </div>
             {/if}
-
-            <div class="mt-2 bordered w-full p-2 h-[180px]">
-              <p class="  break-words text-ellipsis line-clamp-10">
-                Pemutakhiran Peringatan Dini, Tsunami akibat gempa dengan
-                kekuatan:8.7, lokasi: 185 km Tenggara KAMCHATKA-RUSSIA,
-                waktu:30-Jul-25 06:24:50 WIB, telah terdeteksi di
-                CHICHIJIMA,JEPANG(10:00WIB)0.1m, HANASAKI,JEPANG(08:16WIB)0.3m,
-                KAMCHATKAPENINSULA,RUSIA(06:51WIB)0.8m,
-                KURILISLAND(07:05WIB)0.7m, KUSHIRO,JEPANG(08:30WIB)0.1m,
-                NIKOLSKOE,RUSIA(07:17WIB)0.3m,
-                NORTHEASTTOKYO,JEPANG(08:00WIB)0.1m,
-                OFUNATO,JEPANG(08:47WIB)0.4m, PETROPAVLOVSK,RUSIA(07:00WIB)0.1m,
-                SOUTHOFAMCHITKA(08:05WIB)0.2m, SOUTHOFATTU(07:30WIB)0.2m Ikuti
-                arahan peringatan dini TSUNAMI dari BPBD, BNPB dan BMKG
-              </p>
-            </div>
           </div>
           {#if alertGempaBumi?.mag != undefined && alertGempaBumi?.mag >= 5}
             <div
@@ -1517,12 +1508,19 @@
           {/if}
         {/snippet}
         {#snippet footer()}
-          <button
+          <!-- <button
             class="flex justify-center w-full cursor-pointer"
             onclick={() =>
               alertGempaBumi && selectEvent(alertGempaBumi.infoGempa)}
           >
             <Icon icon="ri:map-pin-fill" width="24" height="24" />
+          </button> -->
+          <button
+            onclick={() =>
+              alertGempaBumi && selectEvent(alertGempaBumi.infoGempa)}
+            class="ews-btn ews-btn-primary overflow-hidden truncate w-full"
+          >
+            {alertGempaBumi?.infoGempa?.place}
           </button>
         {/snippet}
       </Card>
@@ -1540,7 +1538,11 @@
             <div
               class="absolute top-0 bottom-0 left-0 right-0 flex justify-center items-center"
             >
-              <p class="p-1 bg-black font-bold text-xs">TSUNAMI WARNING</p>
+              <p
+                class="text-xs lg:text-lg bg-black font-bold p-1 ews-title text-3xl"
+              >
+                TSUNAMI WARNING
+              </p>
             </div>
           </div>
         {/snippet}
@@ -1551,7 +1553,7 @@
             style="font-size:10px"
           >
             {#if infoTsunami?.infoTsunami.message != ""}
-              <div class="infoTsunami mt-2 bordered w-full p-2 h-[180px]">
+              <div class="infoTsunami mt-1 bordered w-full p-2 h-[180px]">
                 <p class=" break-words text-ellipsis line-clamp-10">
                   {infoTsunami?.infoTsunami.message}
                 </p>
@@ -1597,7 +1599,11 @@
               <div
                 class="absolute top-0 bottom-0 left-0 right-0 flex justify-center items-center"
               >
-                <p class="p-1 bg-black font-bold text-xs">EARTHQUAKE</p>
+                <p
+                  class="text-xs lg:text-lg bg-black font-bold p-1 ews-title text-3xl"
+                >
+                  EARTHQUAKE
+                </p>
               </div>
               <div
                 class="absolute top-2 right-1 flex justify-center items-center"
@@ -1671,7 +1677,10 @@
               </div>
               {#if agi?.infoGempa.message?.trim() != "" && agi?.infoGempa.message?.trim() != undefined}
                 <div class="agi mt-2 bordered w-full p-2 h-[180px]">
-                  <p class=" break-words text-ellipsis line-clamp-10">
+                  <p
+                    class=" break-words text-ellipsis line-clamp-10"
+                    style="font-size: 16px;"
+                  >
                     {agi.infoGempa.message}
                   </p>
                 </div>
@@ -1764,7 +1773,7 @@
         className="no-snapshot block show-pop-up w-1/2 max-w-[360px] pointer-events-auto bordered-red"
       >
         {#snippet title()}
-          <StripeBar loop={true} color="red">
+          <StripeBar loop={false} color="red">
             <div
               class="absolute top-0 bottom-0 left-0 right-0 flex justify-center items-center"
             >
@@ -1882,7 +1891,7 @@
       >
         {#snippet title()}
           <div class="overflow-hidden">
-            <StripeBar loop={true} reverse={true}></StripeBar>
+            <StripeBar loop={false} reverse={true}></StripeBar>
             <div
               class="absolute top-0 bottom-0 left-0 right-0 flex justify-center items-center"
             >
