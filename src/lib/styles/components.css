@@ -373,7 +373,7 @@
 
 .list-event {
     display: block;
-    font: 400 16px "Roboto Condensed";
+    font: 400 16px "Helvetica";
     letter-spacing: -1px;
     line-height: 1;
     padding: 1px calc(var(--gutter-size) - 3px);
@@ -510,7 +510,7 @@
 
 .ews-title {
     overflow: hidden;
-    font: 400 "Roboto Condensed";
+    font: 400 "Helvetica";
     letter-spacing: -1px;
     line-height: 1;
     /* padding-right: 0px; */

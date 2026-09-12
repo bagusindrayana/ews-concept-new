@@ -1969,7 +1969,7 @@
       >
         {#snippet title()}
           <div class="flex justify-between">
-            <p class="font-bold -red text-sm">DETAIL EVENT</p>
+            <p class="font-bold -red text-sm md:text-md">DETAIL EVENT</p>
             <button
               onclick={() => {
                 if (selectedPopup) selectedPopup.remove();
@@ -2029,7 +2029,7 @@
               </table>
             </div>
             <div
-              class="bordered pl-1 md:p-2 overflow-auto max-h-60 custom-scrollbar"
+              class="bordered pl-1 md:p-2 overflow-auto max-h-60 custom-scrollbar text-md md:text-lg"
             >
               {#each detailInfoGempa?.place?.split(",") as p}
                 <p>{p}</p>
@@ -2040,7 +2040,7 @@
             >
               <table
                 id="histori_tabel"
-                style="font-size:10px"
+                style="font-size:14px"
                 class="w-full text-right"
               >
                 <thead>
