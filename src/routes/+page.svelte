@@ -251,19 +251,18 @@
     const time = new Date().toLocaleTimeString();
     const id = data.id || `tg-${time}`;
     if (!map) return;
-
     const nig: InfoGempa = {
       id,
       lng: parseFloat(data.lng),
       lat: parseFloat(data.lat),
-      mag: parseFloat(data.mag || 0),
+      mag: parseFloat(data.mag ?? 0),
       depth: data.depth,
       message: data.message,
       place: data.place,
-      time: data.time || new Date().toLocaleString(),
+      time: data.time ?? new Date().toLocaleString(),
       listAffectedArea: [],
       mmi: parseInt(
-        (data.time || new Date().toLocaleString())
+        (data.time ?? new Date().toLocaleString())
           ?.replaceAll("-", "")
           .replaceAll(" ", "")
           .replaceAll(":", "") || "0",
@@ -298,9 +297,9 @@
       setTimeout(() => {
         takeSnapshot(
           id,
-          data.place || "Unknown",
-          data.mag || 0,
-          data.time || new Date().toLocaleString(),
+          data.place ?? "Unknown",
+          data.mag ?? 0,
+          data.time ?? new Date().toLocaleString(),
         );
       }, 3000);
     }
@@ -334,7 +333,7 @@
       lat: parseFloat(coordinates[1]),
       message: data.description + "\n" + data.instruction,
       level: data.subject,
-      time: data.time || new Date().toLocaleString(),
+      time: data.time ?? new Date().toLocaleString(),
       listAffectedArea: [],
     };
 
@@ -508,24 +507,33 @@
     let ntgs: TitikGempa[] = [];
     for (let x = 0; x < data.titikGempa.length; x++) {
       const tg = data.titikGempa[x];
-      const nig: InfoGempa = {
-        id: tg.id,
-        lng: parseFloat(tg.center[1]),
-        lat: parseFloat(tg.center[0]),
-        mag: tg.mag,
-        depth: tg.depth,
-        message: tg.message,
-        place: tg.place,
-        time: new Date().toLocaleString(),
-        mmi: parseInt(
-          new Date()
-            .toLocaleString()
-            ?.replaceAll("-", "")
-            .replaceAll(" ", "")
-            .replaceAll(":", "") || "0",
-        ),
-        listAffectedArea: [],
-      };
+      let cekTg: TitikGempa | undefined = titikGempaBaru.find(
+        (el) => el.id == tg.id,
+      );
+      let nig: InfoGempa;
+      if (cekTg == undefined) {
+        nig = {
+          id: tg.id,
+          lng: parseFloat(tg.center[0]),
+          lat: parseFloat(tg.center[1]),
+          mag: tg.mag,
+          depth: tg.depth,
+          message: tg.message,
+          place: tg.place,
+          time: tg.time ?? new Date().toLocaleString(),
+          mmi: parseInt(
+            (tg.time ?? new Date().toLocaleString())
+              ?.replaceAll("-", "")
+              .replaceAll(" ", "")
+              .replaceAll(":", "") || "0",
+          ),
+          listAffectedArea: [],
+        };
+      } else {
+        nig = cekTg.infoGempa;
+        nig.listAffectedArea = [];
+      }
+
       for (let il = 0; il < tg.areaTerdampak.length; il++) {
         const at = tg.areaTerdampak[il];
 
@@ -897,7 +905,7 @@
           d.mmi.toString() +
           ".mmi.jpg",
       ).then((response) => {
-        if (response.status != 404) {
+        if (response.status == 200) {
           shakeMap = d.mmi.toString() + ".mmi.jpg";
         } else {
           shakeMap = null;
@@ -1185,7 +1193,7 @@
           class="cursor-pointer p-0 b-0 overflow-hidden flex items-center justify-center bordered p-1"
         >
           <StripeBar loop={true} duration={20}></StripeBar>
-          <span class="absolute bg-black ews-label px-2 py-1"
+          <span class="absolute bg-black ews-label px-2 py-1 text-sm"
             >⚠ TEST EARTHQUAKE</span
           ></button
         >
@@ -1196,7 +1204,7 @@
         >
           <StripeBar color="red" loop={true} reverse={true} duration={20}
           ></StripeBar>
-          <span class="absolute bg-black ews-label px-2 py-1"
+          <span class="absolute bg-black ews-label px-2 py-1 text-sm"
             >⚠ TEST TSUNAMI</span
           ></button
         >
@@ -1607,7 +1615,7 @@
     {#if !loadingScreen}
       {#each alertGempaBumis as agi, i (agi.id)}
         <Card
-          className="hidden md:block show-pop-up md:w-1/2 lg:w-2/5 xl:w-1/5 pointer-events-auto"
+          className="hidden md:block show-pop-up pointer-events-auto w-1/2 max-w-[360px]"
         >
           {#snippet title()}
             <StripeBar color="red" reverse={true} loop={true} duration={20}>
@@ -1615,7 +1623,7 @@
                 class="absolute top-0 bottom-0 left-0 right-0 flex justify-center items-center"
               >
                 <p
-                  class="text-xs lg:text-lg bg-black font-bold p-1 ews-title text-3xl"
+                  class="bg-black font-bold p-1 ews-title text-xs md:text-md lg:text-lg"
                 >
                   EARTHQUAKE
                 </p>
@@ -1654,23 +1662,23 @@
                       ></StripeBar>
                     </div>
                   </div>
-                  <p class=" font-bold">
+                  <!-- <p class=" font-bold">
                     DEPTH : {agi.readableDepth} KM
-                  </p>
+                  </p> -->
                 </div>
                 <div class="bordered p-1 lg:p-2 w-full">
                   <table class="w-full">
                     <tbody>
                       <tr
                         ><td class="text-left">TIME</td><td class="text-right"
-                          >{agi.readableTime} WIB</td
+                          >{formatTime(agi.infoGempa.time)} WIB</td
                         ></tr
                       >
-                      <tr
+                      <!-- <tr
                         ><td class="text-left">MAG</td><td class="text-right"
                           >{Number(agi.mag).toFixed(1)}</td
                         ></tr
-                      >
+                      > -->
                       <tr
                         ><td class="text-left">DEPTH</td><td class="text-right"
                           >{agi.depth}</td
@@ -1725,10 +1733,10 @@
 
           {#snippet footer()}
             <button
-              class="flex justify-center w-full cursor-pointer"
               onclick={() => agi && selectEvent(agi.infoGempa)}
+              class="ews-btn ews-btn-primary overflow-hidden truncate w-full"
             >
-              <Icon icon="ri:map-pin-fill" width="20" height="20" />
+              {agi?.infoGempa?.place ?? "LOCATION"}
             </button>
           {/snippet}
         </Card>
@@ -1776,7 +1784,8 @@
           {#if events.length > eventLimit}
             <div class="flex flex-col items-center gap-1 my-2">
               <span class="text-[11px] text-gray-400">
-                SHOWING {Math.min(eventLimit, events.length)} OF {events.length} EVENTS
+                SHOWING {Math.min(eventLimit, events.length)} OF {events.length}
+                EVENTS
               </span>
               <button
                 class="ews-btn ews-btn-primary w-full text-xs py-1"
@@ -1798,7 +1807,7 @@
   >
     {#if !loadingScreen && GempaDirasakan != undefined && GempaDirasakan != null && showGempaDirasakan}
       <Card
-        className="no-snapshot block show-pop-up w-1/2 max-w-[360px] pointer-events-auto bordered-red"
+        className="no-snapshot block show-pop-up w-1/2 max-w-[360px] pointer-events-auto bordered"
       >
         {#snippet title()}
           <StripeBar loop={false} color="red">
@@ -1809,7 +1818,7 @@
                 class="absolute top-0 bottom-0 left-0 right-0 flex justify-center items-center"
               >
                 <p
-                  class="text-xs lg:text-lg bg-black font-bold p-1 ews-title text-3xl"
+                  class="bg-black font-bold p-1 ews-title text-xs md:text-md lg:text-lg"
                 >
                   LAST EARTHQUAKE FELT
                 </p>
@@ -1923,7 +1932,9 @@
             <div
               class="absolute top-0 bottom-0 left-0 right-0 flex justify-center items-center"
             >
-              <p class="bg-black font-bold p-1 ews-title text-xs lg:text-lg">
+              <p
+                class="bg-black font-bold p-1 ews-title text-xs md:text-md lg:text-lg"
+              >
                 LAST DETECTED EARTHQUAKE
               </p>
             </div>
@@ -1988,7 +1999,7 @@
   </div>
 
   <div
-    class="hidden md:block right-0 bottom-0 left-0 md:left-auto md:bottom-6 md:right-3 fixed pointer-events-none flex gap-2 justify-end items-end"
+    class="right-0 bottom-0 left-0 md:left-auto md:bottom-6 md:right-3 fixed pointer-events-none hidden md:flex flex-row-reverse gap-2 justify-end items-end"
   >
     <!-- DETAIL INFO EARTHQUAKE & SHAKEMAP -->
     {#if !loadingScreen && detailInfoGempa != undefined && detailInfoGempa != null && showDetailEvent}
@@ -2014,12 +2025,6 @@
             <div class="bordered p-1 md:p-2">
               <table class="w-full">
                 <tbody>
-                  <!-- <tr
-                    ><td class="text-left flex">PLACE</td><td
-                      class="text-right break-words pl-1 md:pl-2"
-                      >{detailInfoGempa?.place}</td
-                    ></tr
-                  > -->
                   <tr
                     ><td class="text-left flex">TIME</td><td
                       class="text-right break-words pl-1 md:pl-2"
