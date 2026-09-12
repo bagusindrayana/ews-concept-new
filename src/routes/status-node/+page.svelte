@@ -515,7 +515,7 @@
 </svelte:head>
 
 <div
-  class="min-h-screen flex flex-col items-center overflow-x-hidden overflow-y-auto font-mono bg-neutral-950 text-white"
+  class="min-h-screen flex flex-col items-center overflow-x-hidden overflow-y-auto bg-neutral-950 text-white"
 >
   <!-- Fixed Navigation Bar -->
   <!-- <div

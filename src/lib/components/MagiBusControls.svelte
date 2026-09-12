@@ -30,7 +30,7 @@
   } = $props();
 </script>
 
-<div class="flex flex-col w-full font-mono text-xs select-none {className}">
+<div class="flex flex-col w-full text-xs select-none {className}">
   <!-- Top Action Strip -->
   <div
     class="flex flex-wrap items-center justify-between gap-2.5 px-4 py-2 bg-black/95 text-white border-b border-orange-500/40 backdrop-blur rounded-t-md shadow-md"
@@ -148,7 +148,7 @@
           type="text"
           placeholder="FIND NODE..."
           bind:value={searchQuery}
-          class="w-28 px-2 py-1 text-[11px] bg-neutral-950 border border-neutral-700 text-white rounded font-mono focus:outline-none focus:border-orange-400 placeholder:text-neutral-500"
+          class="w-28 px-2 py-1 text-[11px] bg-neutral-950 border border-neutral-700 text-white rounded focus:outline-none focus:border-orange-400 placeholder:text-neutral-500"
         />
         {#if searchQuery}
           <button

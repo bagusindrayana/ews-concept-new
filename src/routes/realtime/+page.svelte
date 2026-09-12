@@ -17,7 +17,7 @@
 
     export let data: PageData;
     let waveformChart: any;
-    let dataSource : any | undefined = undefined;
+    let dataSource: any | undefined = undefined;
 
     let stationData: any;
     let selectedChannel: any;
@@ -500,9 +500,12 @@
                             channel["@attributes"].code,
                     );
                     if (check !== -1) {
-                        if (channel["@attributes"].endDate == undefined || channel["@attributes"].endDate == ""){
+                        if (
+                            channel["@attributes"].endDate == undefined ||
+                            channel["@attributes"].endDate == ""
+                        ) {
                             listChannel[check] = channel;
-                        }  else {
+                        } else {
                             continue;
                         }
                     } else {
@@ -547,12 +550,11 @@
         if (!browser) return;
 
         // console.log(data);
-        
+
         if (data.networkCode == "" || data.stationCode == "") {
             return;
         }
 
-        
         mapStore.dataSources.forEach((item) => {
             if (item.baseUrl.includes(data.source ?? "geofon.gfz.de")) {
                 dataSource = item;
@@ -566,8 +568,8 @@
             return;
         }
 
-        const sourceUrl = new URL(dataSource.baseUrl); 
-        console.log(sourceUrl)
+        const sourceUrl = new URL(dataSource.baseUrl);
+        console.log(sourceUrl);
         console.log(sourceUrl.host);
 
         const stationPromise = loadDataStation(
@@ -584,7 +586,6 @@
         ws.binaryType = "arraybuffer";
 
         ws.onopen = () => {
-            
             const request = {
                 host: seedLinkHost,
                 net: data.networkCode ?? "GE",
@@ -651,7 +652,7 @@
 </svelte:head>
 
 <div
-    class="min-h-screen px-1 lg:px-0 py-1 lg:py-8 flex flex-col justify-center overflow-hidden font-mono relative gap-2"
+    class="min-h-screen px-1 lg:px-0 py-1 lg:py-8 flex flex-col justify-center overflow-hidden relative gap-2"
 >
     <div
         class="flex no-snapshot fixed right-2 translate-y-0 top-2 left-0 right-0 m-auto flex-row justify-center items-center z-5 gap-2 pointer-events-none"
@@ -694,19 +695,18 @@
                                         ]["code"]}
                                     </div>
                                 </div>
-                                <div class="decal">
-                                    <div
-                                        class="w-full h-full stripe-bar-vertical loop-stripe-vertical anim-duration-20"
-                                    ></div>
-                                    <div
-                                        class="w-full h-full stripe-bar-vertical loop-stripe-vertical anim-duration-20"
-                                    ></div>
+                                <div class="decal h-full">
+                                    <StripeBar
+                                        className="w-full h-full"
+                                        size={"100%"}
+                                        orientation="vertical"
+                                    ></StripeBar>
                                 </div>
                             </div>
                             <div class="bordered p-1 lg:p-2 w-full">
                                 <table class="w-full">
                                     <tbody>
-                                        <tr>
+                                        <!-- <tr>
                                             <td class="text-left p-0">
                                                 Site
                                             </td>
@@ -714,7 +714,7 @@
                                                 {stationData.Network.Station
                                                     .Site.Name}
                                             </td>
-                                        </tr>
+                                        </tr> -->
                                         <tr>
                                             <td class="text-left p-0">
                                                 Elevation
@@ -746,6 +746,12 @@
                                 </table>
                             </div>
                         </div>
+
+                        <div
+                            class="p-2 bg-primary w-full min-h-10 text-center text-black font-bold uppercase"
+                        >
+                            {stationData.Network.Station.Site.Name}
+                        </div>
                     {/snippet}
                     {#snippet footer()}
                         <div class="flex justify-center w-full ews-title">
@@ -762,7 +768,7 @@
                     {/snippet}
                     {#snippet children()}
                         <div class="p-1 lg:p-2 w-full">
-                            <HexGrid variant="flat">
+                            <HexGrid variant="flat" align="center">
                                 {#each listChannel as channel, channelIndex (channel["@attributes"]["code"])}
                                     <div
                                         class="ews-hex-hive flat opacity-0 show-pop-up"
@@ -793,7 +799,7 @@
                                                 on:click={() => {
                                                     selectedChannel = channel;
                                                     const request = {
-                                                        host:seedLinkHost,
+                                                        host: seedLinkHost,
                                                         net:
                                                             data.networkCode ??
                                                             "GE",

@@ -1011,7 +1011,7 @@
   });
 </script>
 
-<div class="min-h-screen bg-black font-mono relative overflow-hidden">
+<div class="min-h-screen bg-black relative overflow-hidden">
   <audio id="danger" class="hidden"
     ><source src={SOUNDS.DANGER} type="audio/mp3" /></audio
   >
@@ -1310,7 +1310,7 @@
                   class="text-[16px] font-black uppercase tracking-wide leading-tight truncate max-w-full"
                   >{ds.name}</span
                 >
-                <!-- <span class="text-[9px] mt-0.5 opacity-85 truncate max-w-full font-mono">{ds.baseUrl}</span> -->
+                <!-- <span class="text-[9px] mt-0.5 opacity-85 truncate max-w-full ">{ds.baseUrl}</span> -->
               </div>
             </HexShape>
           </label>
@@ -1328,7 +1328,7 @@
       </label>
       <textarea
         bind:value={sourceDataInput}
-        class="w-full h-64 bg-black text-green-500 font-mono p-2 border border-gray-700 focus:outline-none focus:border-red-500 custom-scrollbar text-xs"
+        class="w-full h-64 bg-black text-green-500 p-2 border border-gray-700 focus:outline-none focus:border-red-500 custom-scrollbar text-xs"
       ></textarea>
     </div>
 
@@ -1431,7 +1431,7 @@
                     </div>
                     <div class="text">MAG</div>
                   </div>
-                  <div class="decal">
+                  <div class="decal h-full">
                     <StripeBar
                       className="w-full h-full"
                       size={"100%"}
@@ -1631,7 +1631,7 @@
                       <div class="text -characters">{agi.readableMag}</div>
                       <div class="text">MAG</div>
                     </div>
-                    <div class="decal">
+                    <div class="decal h-full">
                       <StripeBar
                         className="w-full h-full"
                         size={"100%"}
@@ -1821,7 +1821,7 @@
                     </div>
                     <div class="text">MAG</div>
                   </div>
-                  <div class="decal">
+                  <div class="decal h-full">
                     <StripeBar
                       className="w-full h-full"
                       size={"100%"}
@@ -2133,7 +2133,7 @@
                     </div>
                     <div class="text">MAG</div>
                   </div>
-                  <div class="decal">
+                  <div class="decal h-full">
                     <StripeBar
                       className="w-full h-full"
                       size={"100%"}

@@ -19,7 +19,10 @@
   let mapContainer: HTMLDivElement;
   let map: mapboxgl.Map;
   const mapLayerService = new MapLayerService();
-  const xmlParser = new XMLParser({ ignoreAttributes: false, attributeNamePrefix: "@_" });
+  const xmlParser = new XMLParser({
+    ignoreAttributes: false,
+    attributeNamePrefix: "@_",
+  });
 
   // center of Indonesia — fallback only, akan di-override oleh bbox dari mapStore
   let lng = 118.0;
@@ -84,7 +87,9 @@
       let timeOk = true;
       if (time) {
         const diffHours = (Date.now() - new Date(time).getTime()) / 3_600_000;
-        timeOk = diffHours >= filters.timeMinHours && diffHours <= filters.timeMaxHours;
+        timeOk =
+          diffHours >= filters.timeMinHours &&
+          diffHours <= filters.timeMaxHours;
       }
       return magOk && depthOk && timeOk;
     });
@@ -161,7 +166,9 @@
       if (!origin) continue;
 
       const lat = parseFloat(origin?.latitude?.value ?? origin?.latitude ?? 0);
-      const lng = parseFloat(origin?.longitude?.value ?? origin?.longitude ?? 0);
+      const lng = parseFloat(
+        origin?.longitude?.value ?? origin?.longitude ?? 0,
+      );
       const depthM = parseFloat(origin?.depth?.value ?? origin?.depth ?? 0);
       const depthKm = depthM > 1000 ? depthM / 1000 : depthM; // QuakeML depth is in metres
       const time: string = origin?.time?.value ?? origin?.time ?? "";
@@ -180,13 +187,11 @@
       let descriptions: any[] = ev["description"] ?? [];
       if (!Array.isArray(descriptions)) descriptions = [descriptions];
       const regionDesc = descriptions.find(
-        (d: any) => d?.type === "region name" || d?.type === "Flinn-Engdahl region",
+        (d: any) =>
+          d?.type === "region name" || d?.type === "Flinn-Engdahl region",
       );
       const place: string =
-        regionDesc?.text ??
-        descriptions[0]?.text ??
-        origin?.region ??
-        "";
+        regionDesc?.text ?? descriptions[0]?.text ?? origin?.region ?? "";
 
       // ── Event ID ──────────────────────────────────────────────────────
       const id: string =
@@ -212,7 +217,10 @@
     try {
       const results = await Promise.allSettled(
         mapStore.dataSources.map(async (source) => {
-          const res = await fdsnFetch(buildFdsnUrl(source.baseUrl), "/api/fdsn/event");
+          const res = await fdsnFetch(
+            buildFdsnUrl(source.baseUrl),
+            "/api/fdsn/event",
+          );
           if (!res.ok) throw new Error(`${source.name}: HTTP ${res.status}`);
           return parseQuakeML(await res.text());
         }),
@@ -223,7 +231,11 @@
 
       results.forEach((result) => {
         if (result.status === "rejected") {
-          errors.push(result.reason instanceof Error ? result.reason.message : String(result.reason));
+          errors.push(
+            result.reason instanceof Error
+              ? result.reason.message
+              : String(result.reason),
+          );
           return;
         }
         result.value.forEach((feature) => {
@@ -265,10 +277,14 @@
         "circle-stroke-width": 2,
         "circle-color": [
           "case",
-          ["<=", ["to-number", ["get", "depth"]], 50], "red",
-          ["<=", ["to-number", ["get", "depth"]], 100], "orange",
-          ["<=", ["to-number", ["get", "depth"]], 250], "yellow",
-          ["<=", ["to-number", ["get", "depth"]], 600], "green",
+          ["<=", ["to-number", ["get", "depth"]], 50],
+          "red",
+          ["<=", ["to-number", ["get", "depth"]], 100],
+          "orange",
+          ["<=", ["to-number", ["get", "depth"]], 250],
+          "yellow",
+          ["<=", ["to-number", ["get", "depth"]], 600],
+          "green",
           "blue",
         ],
         "circle-stroke-color": "white",
@@ -291,8 +307,16 @@
         place: d.place ?? "-",
       });
       new AnimatedPopup({
-        openingAnimation: { duration: 100, easing: "easeOutSine", transform: "scale" },
-        closingAnimation: { duration: 100, easing: "easeInOutSine", transform: "scale" },
+        openingAnimation: {
+          duration: 100,
+          easing: "easeOutSine",
+          transform: "scale",
+        },
+        closingAnimation: {
+          duration: 100,
+          easing: "easeInOutSine",
+          transform: "scale",
+        },
       })
         .setDOMContent(placeholder)
         .setLngLat(coords)
@@ -352,7 +376,7 @@
   });
 </script>
 
-<div class="min-h-screen bg-black font-mono relative overflow-hidden">
+<div class="min-h-screen bg-black relative overflow-hidden">
   <div bind:this={mapContainer} class="w-full h-screen"></div>
 
   <!-- DESKTOP MENU -->
@@ -420,34 +444,80 @@
     <div class="flex flex-col gap-6 p-4 text-sm bg-[#050505]">
       <!-- Magnitude -->
       <div class="flex flex-col gap-2">
-        <label class="font-bold flex justify-between uppercase" style="color:var(--orange)">
+        <label
+          class="font-bold flex justify-between uppercase"
+          style="color:var(--orange)"
+        >
           <span>Magnitude</span>
-          <span style="color:var(--red)">{filters.magMin.toFixed(1)} - {filters.magMax.toFixed(1)} M</span>
+          <span style="color:var(--red)"
+            >{filters.magMin.toFixed(1)} - {filters.magMax.toFixed(1)} M</span
+          >
         </label>
-        <RangeSlider min={0} max={10} step={0.1} bind:low={filters.magMin} bind:high={filters.magMax} />
+        <RangeSlider
+          min={0}
+          max={10}
+          step={0.1}
+          bind:low={filters.magMin}
+          bind:high={filters.magMax}
+        />
       </div>
 
       <!-- Depth -->
       <div class="flex flex-col gap-2">
-        <label class="font-bold flex justify-between uppercase" style="color:var(--orange)">
+        <label
+          class="font-bold flex justify-between uppercase"
+          style="color:var(--orange)"
+        >
           <span>Depth</span>
-          <span style="color:var(--red)">{filters.depthMin} - {filters.depthMax} KM</span>
+          <span style="color:var(--red)"
+            >{filters.depthMin} - {filters.depthMax} KM</span
+          >
         </label>
-        <RangeSlider min={0} max={1000} step={10} bind:low={filters.depthMin} bind:high={filters.depthMax} />
+        <RangeSlider
+          min={0}
+          max={1000}
+          step={10}
+          bind:low={filters.depthMin}
+          bind:high={filters.depthMax}
+        />
       </div>
 
       <!-- Time -->
       <div class="flex flex-col gap-2">
-        <label class="font-bold flex justify-between uppercase" style="color:var(--orange)">
+        <label
+          class="font-bold flex justify-between uppercase"
+          style="color:var(--orange)"
+        >
           <span>Time Offset (Last 7 Days)</span>
-          <span style="color:var(--red)">{formatHours(filters.timeMinHours)} - {formatHours(filters.timeMaxHours)} ago</span>
+          <span style="color:var(--red)"
+            >{formatHours(filters.timeMinHours)} - {formatHours(
+              filters.timeMaxHours,
+            )} ago</span
+          >
         </label>
-        <RangeSlider min={0} max={168} step={1} bind:low={filters.timeMinHours} bind:high={filters.timeMaxHours} />
+        <RangeSlider
+          min={0}
+          max={168}
+          step={1}
+          bind:low={filters.timeMinHours}
+          bind:high={filters.timeMaxHours}
+        />
       </div>
 
-      <div class="flex justify-between mt-4 pt-3" style="border-top: 1px solid rgba(var(--danger-glow-rgb), 0.3)">
-        <button class="ews-btn ews-btn-danger" onclick={resetFilters}>RESET FILTER</button>
-        <button class="ews-btn ews-btn-primary" onclick={() => { showFilterModal = false; reloadData(); }}>
+      <div
+        class="flex justify-between mt-4 pt-3"
+        style="border-top: 1px solid rgba(var(--danger-glow-rgb), 0.3)"
+      >
+        <button class="ews-btn ews-btn-danger" onclick={resetFilters}
+          >RESET FILTER</button
+        >
+        <button
+          class="ews-btn ews-btn-primary"
+          onclick={() => {
+            showFilterModal = false;
+            reloadData();
+          }}
+        >
           APPLY & RELOAD
         </button>
       </div>
@@ -457,12 +527,12 @@
   <!-- SOURCE MODAL -->
   <Modal bind:show={showSourceModal} title="DATA SOURCE" variant="large">
     <div class="flex flex-col gap-4 p-4">
-      <p class="font-bold uppercase text-xs" style="color:var(--orange)">FDSN DATA SOURCE</p>
+      <p class="font-bold uppercase text-xs" style="color:var(--orange)">
+        FDSN DATA SOURCE
+      </p>
       <HexGrid variant="flat" hexWidth={150} hexHeight={88} gap={6}>
         {#each DATA_SOURCES as ds}
-          <label
-            class="w-full h-full cursor-pointer select-none relative"
-          >
+          <label class="w-full h-full cursor-pointer select-none relative">
             <input
               type="checkbox"
               value={ds.id}
@@ -472,12 +542,21 @@
             />
             <HexShape
               clipContent={true}
-              color={mapStore.isDataSourceSelected(ds.id) ? "fdsn-selected" : ""}
+              color={mapStore.isDataSourceSelected(ds.id)
+                ? "fdsn-selected"
+                : ""}
               className="w-full h-full transition-all duration-150 hover:brightness-125"
             >
-              <div class="w-full h-full flex flex-col items-center justify-center text-center text-black px-5">
-                <span class="text-[11px] sm:text-xs font-black uppercase tracking-wide leading-tight truncate max-w-full">{ds.name}</span>
-                <span class="text-[9px] mt-0.5 opacity-85 truncate max-w-full font-mono">{ds.baseUrl}</span>
+              <div
+                class="w-full h-full flex flex-col items-center justify-center text-center text-black px-5"
+              >
+                <span
+                  class="text-[11px] sm:text-xs font-black uppercase tracking-wide leading-tight truncate max-w-full"
+                  >{ds.name}</span
+                >
+                <span class="text-[9px] mt-0.5 opacity-85 truncate max-w-full"
+                  >{ds.baseUrl}</span
+                >
               </div>
             </HexShape>
           </label>
@@ -486,13 +565,23 @@
 
       <p class="text-xs text-gray-500 uppercase leading-relaxed">
         Data is fetched directly from the selected FDSN provider at<br />
-        <span class="text-orange-500">{mapStore.dataSources.map((source) => source.baseUrl).join(", ")}/fdsnws/event/1/query</span>
+        <span class="text-orange-500"
+          >{mapStore.dataSources
+            .map((source) => source.baseUrl)
+            .join(", ")}/fdsnws/event/1/query</span
+        >
       </p>
     </div>
 
     {#snippet footer()}
       <div class="flex justify-end gap-2">
-        <button class="ews-btn ews-btn-primary" onclick={() => { showSourceModal = false; reloadData(); }}>
+        <button
+          class="ews-btn ews-btn-primary"
+          onclick={() => {
+            showSourceModal = false;
+            reloadData();
+          }}
+        >
           SAVE & RELOAD
         </button>
       </div>
@@ -506,17 +595,25 @@
       id="loading-screen"
     >
       <span class="loader"></span>
-      <p class="my-2 red-color p-2">LOADING FDSN EVENT DATA — {mapStore.dataSources.map((source) => source.name).join(", ")}</p>
+      <p class="my-2 red-color p-2">
+        LOADING FDSN EVENT DATA — {mapStore.dataSources
+          .map((source) => source.name)
+          .join(", ")}
+      </p>
     </div>
   {/if}
 
   <!-- ERROR NOTICE -->
   {#if loadingError && !loadingScreen}
-    <div class="fixed bottom-4 left-1/2 -translate-x-1/2 z-20 max-w-sm w-full px-4">
+    <div
+      class="fixed bottom-4 left-1/2 -translate-x-1/2 z-20 max-w-sm w-full px-4"
+    >
       <div class="ews-card ews-card-red p-3 text-xs text-red-400 text-center">
         <p class="font-bold mb-1">⚠ DATA LOAD ERROR</p>
         <p>{loadingError}</p>
-        <button class="ews-btn ews-btn-danger mt-2 w-full" onclick={reloadData}>RETRY</button>
+        <button class="ews-btn ews-btn-danger mt-2 w-full" onclick={reloadData}
+          >RETRY</button
+        >
       </div>
     </div>
   {/if}
@@ -528,14 +625,10 @@
       style="font-size:9px"
     >
       <div class="ews-card p-2 flex flex-col gap-1 opacity-80">
-        <p class="font-bold uppercase mb-1" style="color:var(--orange)">DEPTH LEGEND</p>
-        {#each [
-          { color: "red",    label: "≤ 50 km" },
-          { color: "orange", label: "51 – 100 km" },
-          { color: "yellow", label: "101 – 250 km" },
-          { color: "green",  label: "251 – 600 km" },
-          { color: "blue",   label: "> 600 km" },
-        ] as item}
+        <p class="font-bold uppercase mb-1" style="color:var(--orange)">
+          DEPTH LEGEND
+        </p>
+        {#each [{ color: "red", label: "≤ 50 km" }, { color: "orange", label: "51 – 100 km" }, { color: "yellow", label: "101 – 250 km" }, { color: "green", label: "251 – 600 km" }, { color: "blue", label: "> 600 km" }] as item}
           <div class="flex items-center gap-2">
             <span
               class="inline-block w-3 h-3 rounded-full border border-white"
@@ -555,7 +648,9 @@
   >
     <span class="font-bold" style="color:var(--orange)">FDSN:</span>
     <span>{mapStore.dataSources.map((source) => source.name).join(", ")}</span>
-    <span class="text-gray-500">{mapStore.dataSources.map((source) => source.baseUrl).join(", ")}</span>
+    <span class="text-gray-500"
+      >{mapStore.dataSources.map((source) => source.baseUrl).join(", ")}</span
+    >
     {#if eventCount > 0}
       <span style="color:var(--orange)">· {eventCount} events</span>
     {/if}

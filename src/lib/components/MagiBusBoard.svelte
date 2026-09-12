@@ -1330,7 +1330,7 @@
     <!-- Detailed Node Tooltip HUD (on hover) -->
     <!-- {#if hoveredNode}
       <div
-        class="fixed bottom-4 left-6 px-3.5 py-2.5 bg-black/95 border border-orange-500 text-white font-mono text-xs rounded shadow-2xl pointer-events-none z-50 flex flex-col gap-1 backdrop-blur max-w-sm"
+        class="fixed bottom-4 left-6 px-3.5 py-2.5 bg-black/95 border border-orange-500 text-white  text-xs rounded shadow-2xl pointer-events-none z-50 flex flex-col gap-1 backdrop-blur max-w-sm"
       >
         <div class="flex items-center justify-between gap-4">
           <div class="flex items-center gap-1.5">

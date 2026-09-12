@@ -23,7 +23,7 @@
     async function fetchStatuses() {
         // Clear existing statuses
         statuses = [];
-        
+
         // URL with selected data source
         // const url = `${mapStore.dataSource.baseUrl}/fdsnws/station/1/query?${mapStore.urlParams}&level=station&nodata=404&channel=BH?,SH?`;
 
@@ -31,7 +31,8 @@
             mapStore.dataSources.map(async (source) => {
                 const url = `${source.baseUrl}/fdsnws/station/1/query?${mapStore.urlParams}&level=station&nodata=404&channel=BH?,SH?`;
                 const response = await fdsnFetch(url, "/api/fdsn/station");
-                if (!response.ok) throw new Error(`${source.name}: HTTP ${response.status}`);
+                if (!response.ok)
+                    throw new Error(`${source.name}: HTTP ${response.status}`);
                 return {
                     source,
                     data: xmlToJson(await response.text()),
@@ -57,39 +58,37 @@
                   ? [networksList]
                   : [];
             networks.forEach((networkNode) => {
-                    const netCode =
-                        (networkNode["@attributes"] as any)?.code || "UNKNOWN";
-                    const stationsList = networkNode.Station as JsonNode[];
+                const netCode =
+                    (networkNode["@attributes"] as any)?.code || "UNKNOWN";
+                const stationsList = networkNode.Station as JsonNode[];
 
-                    // Handle both single station and multiple stations
-                    const stations = Array.isArray(stationsList)
-                        ? stationsList
-                        : [stationsList];
+                // Handle both single station and multiple stations
+                const stations = Array.isArray(stationsList)
+                    ? stationsList
+                    : [stationsList];
 
-                    stations.forEach((stationNode) => {
-                        // console.log(stationNode);
-                        const staCode =
-                            (stationNode["@attributes"] as any)?.code ||
-                            "UNKNOWN";
-                        const startDate = (stationNode["@attributes"] as any)
-                            ?.startDate;
-                        const endDate = (stationNode["@attributes"] as any)
-                            ?.endDate;
+                stations.forEach((stationNode) => {
+                    // console.log(stationNode);
+                    const staCode =
+                        (stationNode["@attributes"] as any)?.code || "UNKNOWN";
+                    const startDate = (stationNode["@attributes"] as any)
+                        ?.startDate;
+                    const endDate = (stationNode["@attributes"] as any)
+                        ?.endDate;
 
-                        statuses.push({
-                            id: `${netCode}-${staCode}`,
-                            title: `${netCode}-${staCode}`,
-                            status: endDate ? "OFFLINE" : "ACTIVE",
-                            type: endDate ? "danger" : "normal",
-                            stationCode: `${staCode}`,
-                            networkCode: `${netCode}`,
-                            site: `${(stationNode["Site"] as any)?.Name || "UNKNOWN"}`,
-                            source: sourceHost,
-                        });
+                    statuses.push({
+                        id: `${netCode}-${staCode}`,
+                        title: `${netCode}-${staCode}`,
+                        status: endDate ? "OFFLINE" : "ACTIVE",
+                        type: endDate ? "danger" : "normal",
+                        stationCode: `${staCode}`,
+                        networkCode: `${netCode}`,
+                        site: `${(stationNode["Site"] as any)?.Name || "UNKNOWN"}`,
+                        source: sourceHost,
                     });
                 });
+            });
         });
-        
 
         // fdsnFetch(url, "/api/fdsn/station")
         //     .then((response) => {
@@ -170,7 +169,7 @@
 </svelte:head>
 
 <div
-    class="min-h-screen py-1 md:py-4 flex flex-col items-center overflow-x-hidden overflow-y-auto font-mono"
+    class="min-h-screen py-1 md:py-4 flex flex-col items-center overflow-x-hidden overflow-y-auto"
 >
     <div
         class="flex no-snapshot fixed right-2 translate-y-0 top-2 left-0 right-0 m-auto flex-row justify-center items-center z-100 gap-2 pointer-events-none"
@@ -185,9 +184,9 @@
             href="/status-map">STATION MAP</a
         >
         <a
-        class="ews-btn ews-btn-primary scale-75 md:scale-100 pointer-events-auto"
-        href="/magi">MAGI</a
-      >
+            class="ews-btn ews-btn-primary scale-75 md:scale-100 pointer-events-auto"
+            href="/magi">MAGI</a
+        >
     </div>
 
     <div
@@ -218,7 +217,8 @@
             item: any,
             { side, delay }: { side: string; delay: number },
         )}
-            <div title={item.site}
+            <div
+                title={item.site}
                 class="slide-fade-in ews-rib-node {side === 'right'
                     ? 'flip'
                     : ''} {item.type === 'danger' ? 'danger' : ''}"

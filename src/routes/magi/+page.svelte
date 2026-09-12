@@ -160,7 +160,7 @@
 </svelte:head>
 
 <div
-    class="min-h-screen flex flex-col items-center overflow-x-hidden overflow-hidden font-mono"
+    class="min-h-screen flex flex-col items-center overflow-x-hidden overflow-hidden"
 >
     <!-- TOP NAVIGATION BAR -->
     <div

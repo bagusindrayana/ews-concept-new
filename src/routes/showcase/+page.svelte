@@ -493,12 +493,9 @@
               HexGrid Reveal Animation System
             </h3>
             <p class="text-xs text-gray-400">
-              Active Variant: <span class="text-white font-mono"
-                >{demoHexVariant}</span
-              >
+              Active Variant: <span class="text-white">{demoHexVariant}</span>
               | Reverse:
-              <span class="text-white font-mono"
-                >{demoHexReverse ? "true" : "false"}</span
+              <span class="text-white">{demoHexReverse ? "true" : "false"}</span
               >
             </p>
           </div>

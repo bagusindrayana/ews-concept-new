@@ -63,7 +63,7 @@
     {#if error}
         <div
             transition:fade
-            class="bg-red-950/80 border border-red-500/50 text-red-400 px-3 py-1 text-[10px] font-mono uppercase"
+            class="bg-red-950/80 border border-red-500/50 text-red-400 px-3 py-1 text-[10px] uppercase"
         >
             ERROR: {error}
         </div>

@@ -47,7 +47,8 @@
             mapStore.dataSources.map(async (source) => {
                 const url = `${source.baseUrl}/fdsnws/station/1/query?${mapStore.urlParams}&level=station&nodata=404&channel=BH?,SH?`;
                 const response = await fdsnFetch(url, "/api/fdsn/station");
-                if (!response.ok) throw new Error(`${source.name}: HTTP ${response.status}`);
+                if (!response.ok)
+                    throw new Error(`${source.name}: HTTP ${response.status}`);
                 return xmlToJson(await response.text());
             }),
         );
@@ -68,7 +69,8 @@
                   : [];
 
             networks.forEach((networkNode) => {
-                const networkCode = (networkNode["@attributes"] as any)?.code || "UNKNOWN";
+                const networkCode =
+                    (networkNode["@attributes"] as any)?.code || "UNKNOWN";
                 const stationsList = networkNode.Station as JsonNode[];
                 const stations = Array.isArray(stationsList)
                     ? stationsList
@@ -84,12 +86,14 @@
                 };
 
                 stations.forEach((stationNode) => {
-                    const stationCode = (stationNode["@attributes"] as any)?.code || "UNKNOWN";
+                    const stationCode =
+                        (stationNode["@attributes"] as any)?.code || "UNKNOWN";
                     const stationKey = `${networkCode}-${stationCode}`;
                     if (stationKeys.has(stationKey)) return;
                     stationKeys.add(stationKey);
 
-                    const endDate = (stationNode["@attributes"] as any)?.endDate;
+                    const endDate = (stationNode["@attributes"] as any)
+                        ?.endDate;
                     stats.total_channel++;
                     if (endDate) stats.inactive_channel++;
                     else stats.active_channel++;
@@ -103,9 +107,14 @@
                         offset: 14,
                         closeButton: true,
                         closeOnClick: true,
-                    }).setHTML(`<div class="bordered" style="background-color: black; padding: 5px;"><h3 style="margin: 0 0 5px 0; font-size: 16px;"><a class="underline" href="/realtime?networkCode=${networkCode}&stationCode=${stationCode}" target="_blank">${networkCode} - ${stationCode}</a></h3><p style="margin: 0; font-size: 14px;">${(stationNode as any).Site?.Name || "UNKNOWN"}</p></div>`);
+                    }).setHTML(
+                        `<div class="bordered" style="background-color: black; padding: 5px;"><h3 style="margin: 0 0 5px 0; font-size: 16px;"><a class="underline" href="/realtime?networkCode=${networkCode}&stationCode=${stationCode}" target="_blank">${networkCode} - ${stationCode}</a></h3><p style="margin: 0; font-size: 14px;">${(stationNode as any).Site?.Name || "UNKNOWN"}</p></div>`,
+                    );
 
-                    const marker = new mapboxgl.Marker({ element: markerEl, anchor: "bottom" })
+                    const marker = new mapboxgl.Marker({
+                        element: markerEl,
+                        anchor: "bottom",
+                    })
                         .setLngLat([
                             parseFloat((stationNode as any).Longitude),
                             parseFloat((stationNode as any).Latitude),
@@ -141,7 +150,6 @@
         map.touchZoomRotate.disable();
         fetchStations();
     }
-
 
     onMount(() => {
         const mapboxAccessToken = env.PUBLIC_MAPBOX_ACCESS_TOKEN ?? "";
@@ -208,12 +216,12 @@
         });
     });
 
-        // Refetch stations when data source changes
-        // $effect(() => {
-        //     if (map) {
-        //         fetchStations();
-        //     }
-        // });
+    // Refetch stations when data source changes
+    // $effect(() => {
+    //     if (map) {
+    //         fetchStations();
+    //     }
+    // });
     onDestroy(() => {
         if (map) map.remove();
     });
@@ -224,7 +232,7 @@
 </svelte:head>
 
 <div
-    class="min-h-screen py-1 md:py-4 flex flex-col items-center overflow-x-hidden overflow-y-auto font-mono"
+    class="min-h-screen py-1 md:py-4 flex flex-col items-center overflow-x-hidden overflow-y-auto"
 >
     <div
         class="flex no-snapshot fixed right-2 translate-y-0 top-2 left-0 right-0 m-auto flex-row justify-center items-center z-100 gap-2 pointer-events-none"
@@ -239,9 +247,9 @@
             href="/status-ui">STATION STATUS</a
         >
         <a
-        class="ews-btn ews-btn-primary scale-75 md:scale-100 pointer-events-auto"
-        href="/magi">MAGI</a
-      >
+            class="ews-btn ews-btn-primary scale-75 md:scale-100 pointer-events-auto"
+            href="/magi">MAGI</a
+        >
     </div>
     <div
         class="mb-2 text-center p-2 z-10 w-full bordered flex justify-center items-center relative show-pop-up mt-6"
@@ -335,8 +343,8 @@
                             <p
                                 class="text-[9px] text-gray-400 mt-1 leading-tight"
                             >
-                                PANNING & ZOOMING ENABLED. ADJUST VIEWPORT
-                                AND CONFIRM.
+                                PANNING & ZOOMING ENABLED. ADJUST VIEWPORT AND
+                                CONFIRM.
                             </p>
                         </div>
                     </div>
@@ -383,7 +391,9 @@
 >
     <span class="loader"></span>
     <p class="my-2 red-color p-2">
-        THIS IS A CONCEPT DESIGN - DATA STATION DARI {mapStore.dataSources.map((source) => source.name).join(", ")}
+        THIS IS A CONCEPT DESIGN - DATA STATION DARI {mapStore.dataSources
+            .map((source) => source.name)
+            .join(", ")}
     </p>
 </div>
 
