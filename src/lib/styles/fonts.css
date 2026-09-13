@@ -1,24 +1,51 @@
 @import url(//fonts.googleapis.com/css?family=Roboto+Condensed:400,600,700);
+
 @font-face {
     font-family: "DS-Digital";
-    src: url("/ds_digital/DIGITAL.TXT");
+    src: url("/fonts/ds_digital/DS-DIGI.TTF");
 }
 
 @font-face {
     font-family: "DS-Digital";
-    src: url("/ds_digital/DS-DIGIB.TTF");
+    src: url("/fonts/ds_digital/DS-DIGIB.TTF");
     font-weight: bold;
 }
 
 @font-face {
     font-family: "DS-Digital";
-    src: url("/ds_digital/DS-DIGII.TTF");
+    src: url("/fonts/ds_digital/DS-DIGII.TTF");
     font-style: italic, oblique;
 }
 
 @font-face {
     font-family: "DS-Digital";
-    src: url("/ds_digital/DS-DIGIT.TTF");
+    src: url("/fonts/ds_digital/DS-DIGIT.TTF");
+    font-weight: bold;
+    font-style: italic, oblique;
+}
+
+
+/* Helvetica */
+@font-face {
+    font-family: "Helvetica";
+    src: url("/fonts/helvetica-255/Helvetica.ttf");
+}
+
+@font-face {
+    font-family: "Helvetica";
+    src: url("/fonts/helvetica-255/Helvetica-Bold.ttf");
+    font-weight: bold;
+}
+
+@font-face {
+    font-family: "Helvetica";
+    src: url("/fonts/helvetica-255/Helvetica-Oblique.ttf");
+    font-style: italic, oblique;
+}
+
+@font-face {
+    font-family: "Helvetica";
+    src: url("/fonts/helvetica-255/Helvetica-BoldOblique.ttf");
     font-weight: bold;
     font-style: italic, oblique;
 }
