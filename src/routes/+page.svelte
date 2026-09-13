@@ -664,10 +664,12 @@
         // Set master store references
         geoJsonTitikGempa = geoJson;
 
-        let ntg: TitikGempa[] = infoList.map(
-          (info: any) => new TitikGempa(info.id, info),
-        );
-        tgs = ntg;
+        if (infoList) {
+          let ntg: TitikGempa[] = infoList.map(
+            (info: any) => new TitikGempa(info.id, info),
+          );
+          tgs = ntg;
+        }
 
         // Ensure loading screen is removed
         setTimeout(() => {
