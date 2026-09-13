@@ -142,10 +142,11 @@
                 status: null,
             }),
         );
-        const el = document.getElementById("loading-screen");
-        if (el) el.style.display = "none";
-        isLoading = false;
+
         setTimeout(() => {
+            const el = document.getElementById("loading-screen");
+            if (el) el.style.display = "none";
+            isLoading = false;
             fetchStatuses();
         }, 1000);
     });
