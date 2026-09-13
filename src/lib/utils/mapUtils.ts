@@ -31,8 +31,8 @@ export function createGempaPopupHTML(data: {
           </tbody>
         </table>
       </div>
-      <div class="ews-card-footer p-1 lg:p-2 text-sm w-full">
-        <button class="ews-btn ews-btn-primary w-full open-3d-map" data-json='${JSON.stringify(data)}' style="padding-bottom:4px; padding-top:12px;">3D MAP</button>
+      <div class="ews-card-footer flex flex-col gap-1">
+        <a href="/event-detail/${data.id}" class="ews-btn ews-btn-primary overflow-hidden truncate w-full block text-center">DETAIL</a>
       </div>
     </div>`
     .trim()
