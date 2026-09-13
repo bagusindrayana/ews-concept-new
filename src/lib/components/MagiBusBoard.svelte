@@ -662,12 +662,12 @@
 </script>
 
 <div
-  class="magi-board-view relative w-full bg-[#c85a03] {className} {animateReveal
+  class="magi-board-view relative w-full bg-[#fc5706] {className} {animateReveal
     ? 'with-reveal-anim'
     : ''}"
 >
   <!-- Main SVG MAGI Circuit Canvas with Dynamic Multi-Column & Multi-Row Grid -->
-  <div class="relative w-full overflow-auto bg-[#c85a03] transition-all">
+  <div class="relative w-full overflow-auto bg-[#fc5706] transition-all">
     <svg
       class="block cursor-default {viewMode === 'fit' ? 'w-full h-auto' : ''}"
       style={viewMode === "scroll"
