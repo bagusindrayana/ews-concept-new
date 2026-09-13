@@ -222,7 +222,7 @@ export class TitikGempa {
             ]
         };
 
-        if (!this.setting.map?.getSource('wave-source-' + this.id)) {
+        if (this.setting.map != undefined && !this.setting.map.getSource('wave-source-' + this.id)) {
             this.setting.map.addSource('wave-source-' + this.id, {
                 type: 'geojson',
                 data: circles
