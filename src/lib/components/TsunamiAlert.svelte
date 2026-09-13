@@ -114,7 +114,7 @@
         revealMaxDelay={800}
         revealDuration={300}
       >
-        {#each { length: Math.max(window.screen.width / 2 + 10, window.screen.height / 2 + 10) / 2 } as _}
+        {#each { length: Math.max(window.screen.width / 2 + 20, window.screen.height / 2 + 20) / 2 } as _}
           <div class="w-full h-full cursor-pointer select-none relative">
             <img src="/images/warning_hex_red.png" alt="" />
           </div>
@@ -167,24 +167,18 @@
             <div
               class="absolute w-full h-2 m-auto top-0 left-0 right-0 overflow-hidden"
             >
-              <StripeBar color="red" loop={true} className="w-full h-2"
-              ></StripeBar>
+              <StripeBar loop={true} className="w-full h-2"></StripeBar>
             </div>
             <div
               class="absolute w-full h-2 m-auto bottom-0 left-0 right-0 overflow-hidden"
             >
-              <StripeBar
-                color="red"
-                loop={true}
-                reverse={true}
-                className="w-full h-2"
+              <StripeBar loop={true} reverse={true} className="w-full h-2"
               ></StripeBar>
             </div>
             <div
               class="absolute w-2 h-full m-auto top-0 bottom-0 left-0 overflow-hidden"
             >
               <StripeBar
-                color="red"
                 orientation="vertical"
                 reverse={true}
                 loop={true}
@@ -195,7 +189,6 @@
               class="absolute w-2 h-full m-auto top-0 bottom-0 right-0 overflow-hidden"
             >
               <StripeBar
-                color="red"
                 orientation="vertical"
                 loop={true}
                 className="w-2 h-full"
