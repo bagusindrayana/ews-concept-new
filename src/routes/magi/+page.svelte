@@ -203,12 +203,8 @@
         class="flex flex-col lg:flex-row gap-4 w-full items-stretch h-full relative h-screen"
     >
         {#if !isLoading}
-            <div class="absolute w-[110%] top-[-50px] left-[-50px]">
-                <HexGrid
-                    variant="flat"
-                    align="center"
-                    revealVariant="diagonal-top-left"
-                >
+            <div class="absolute w-[110%] top-[-50%] left-[-50px]">
+                <HexGrid variant="flat" align="center" revealVariant="center">
                     {#each hexStatus as hex, hexIndex}
                         {@const isSelected = mapStore.isDataSourceSelected(
                             hex.id.toString(),
