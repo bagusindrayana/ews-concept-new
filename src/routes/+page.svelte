@@ -64,6 +64,8 @@
   let lastGempaId = "";
   let lastGempaKecilId = "";
 
+  let hasAlert: boolean = $state(false);
+
   let detailInfoGempa: InfoGempa | null = $state(null);
   let loadingScreen = $state(true);
   let events = $state.raw<TitikGempa[]>([]);
@@ -78,6 +80,7 @@
   $effect(() => {
     if (alertTsunami?.infoTsunami) {
       activeTsunamiAlert = alertTsunami.infoTsunami;
+      hasAlert = true;
     }
   });
 
@@ -289,8 +292,13 @@
 
     demoStore.triggerGempa(nig);
 
+    hasAlert = true;
+    alertGempaBumi = null;
+
     await new Promise((r) => setTimeout(r, 6000));
     events = [...tgs];
+
+    hasAlert = false;
 
     // Take snapshot automatically after 4 seconds (allow UI to settle) only if enabled
     if (autoSnapshot) {
@@ -791,7 +799,9 @@
           lastGempaKecilId = kecilInfo.info.id;
           if (earthquakeService.isRecentUtc(kecilInfo.sentTime)) {
             var notif = new Audio(SOUNDS.SMALL_EARTHQUAKE);
-            notif.play();
+            try {
+              notif.play();
+            } catch (error) {}
             alertGempaBumi = new TitikGempa(kecilInfo.info.id, kecilInfo.info);
           }
           GempaTerakhir = new TitikGempa(kecilInfo.info.id, kecilInfo.info, {
@@ -817,7 +827,9 @@
     if (lastGempaKecilId != nig.id) {
       lastGempaKecilId = nig.id;
       var notif = new Audio(SOUNDS.SMALL_EARTHQUAKE);
-      notif.play();
+      try {
+        notif.play();
+      } catch (error) {}
       if (!map) return;
 
       if (
@@ -1423,9 +1435,9 @@
     id="gempa-bumi-alert"
     class="fixed top-6 md:top-3 left-6 md:left-3 right-0 flex gap-2 justify-start items-start pointer-events-none"
   >
-    {#if !loadingScreen && alertGempaBumi != undefined && alertGempaBumi != null}
+    {#if !loadingScreen && alertGempaBumi != undefined && alertGempaBumi != null && !hasAlert}
       <Card
-        className="realtime-earthquake hidden md:block show-pop-up ews-card no-snapshot w-1/2 max-w-[360px] pointer-events-auto bordered-red"
+        className="realtime-earthquake hidden md:block show-pop-up ews-card no-snapshot w-1/2 max-w-[360px] pointer-events-auto bordered"
       >
         {#snippet title()}
           <StripeBar color="red" loop={true} reverse={true} duration={20}>
@@ -1614,7 +1626,7 @@
     {/if}
 
     <!-- ALERT EARTHQUAKES LIST -->
-    {#if !loadingScreen}
+    {#if !loadingScreen && !hasAlert}
       {#each alertGempaBumis as agi, i (agi.id)}
         <Card
           className="hidden md:block show-pop-up pointer-events-auto w-1/2 max-w-[360px]"
@@ -1747,7 +1759,7 @@
   </div>
 
   <!-- EVENT LOG -->
-  {#if !loadingScreen && showEventLog}
+  {#if !loadingScreen && showEventLog && !hasAlert}
     <Card
       className="no-snapshot fixed top-1 left-2 right-2 md:left-auto md:right-3 md:top-3 md:w-1/3 lg:w-1/4 show-pop-up ews-card ews-card-red ews-card-float"
     >
@@ -1807,7 +1819,7 @@
     id="gempa-bumi-dirasakan"
     class="fixed bottom-6 left-2 right-2 md:right-3 md:left-3 flex flex-row md:flex-col-reverse lg:flex-row gap-2 justify-center md:justify-start lg:items-end items-end pointer-events-none"
   >
-    {#if !loadingScreen && GempaDirasakan != undefined && GempaDirasakan != null && showGempaDirasakan}
+    {#if !loadingScreen && GempaDirasakan != undefined && GempaDirasakan != null && showGempaDirasakan && !hasAlert}
       <Card
         className="no-snapshot block show-pop-up w-1/2 max-w-[360px] pointer-events-auto bordered"
       >
@@ -1924,7 +1936,7 @@
     {/if}
 
     <!-- LAST DETECTED EARTHQUAKE -->
-    {#if !loadingScreen && GempaTerakhir != undefined && GempaTerakhir != null && showGempaTerdeteksi}
+    {#if !loadingScreen && GempaTerakhir != undefined && GempaTerakhir != null && showGempaTerdeteksi && !hasAlert}
       <Card
         className="block show-pop-up w-1/2 max-w-[300px] pointer-events-auto"
       >
@@ -2283,6 +2295,7 @@
       onClose={() => {
         activeTsunamiAlert = null;
         alertTsunami = null;
+        hasAlert = false;
       }}
     />
   {/if}
