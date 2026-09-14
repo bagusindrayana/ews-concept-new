@@ -1,23 +1,23 @@
 <script lang="ts">
-  import { onMount, onDestroy } from 'svelte';
+  import { onMount, onDestroy } from "svelte";
   import {
     generateContours,
     formatCoordinateDMS,
     formatDegree,
     type ContourLine,
-    type GeoBbox
-  } from '$lib/utils/contourUtils';
-  import type { StationItem } from '$lib/utils/mmiParser';
+    type GeoBbox,
+  } from "$lib/utils/contourUtils";
+  import type { StationItem } from "$lib/utils/mmiParser";
 
   let {
     lat = -5.81,
     lng = 106.56,
     mag = 5.9,
-    depth = '376 Km',
-    place = 'KEPSERIBU-DKI',
+    depth = "376 Km",
+    place = "KEPSERIBU-DKI",
     stations = [],
     selectedStation = null,
-    onSelectStation
+    onSelectStation,
   }: {
     lat?: number;
     lng?: number;
@@ -66,7 +66,7 @@
     south: centerLat - spanDeg / 2,
     north: centerLat + spanDeg / 2,
     west: centerLng - spanDeg / 2,
-    east: centerLng + spanDeg / 2
+    east: centerLng + spanDeg / 2,
   });
 
   // Keep centered when props lat/lng change
@@ -81,8 +81,10 @@
 
   async function fetchAndComputeContours() {
     const curBbox = bbox;
-    const distanceMoved =
-      Math.hypot(centerLat - lastFetchedCenter.lat, centerLng - lastFetchedCenter.lng);
+    const distanceMoved = Math.hypot(
+      centerLat - lastFetchedCenter.lat,
+      centerLng - lastFetchedCenter.lng,
+    );
     const spanRatio = spanDeg / (lastFetchedCenter.span || 1);
 
     if (
@@ -103,34 +105,44 @@
 
     for (let r = 0; r < GRID_SIZE; r++) {
       for (let c = 0; c < GRID_SIZE; c++) {
-        const pLat = curBbox.south + (r / (GRID_SIZE - 1)) * (curBbox.north - curBbox.south);
-        const pLng = curBbox.west + (c / (GRID_SIZE - 1)) * (curBbox.east - curBbox.west);
+        const pLat =
+          curBbox.south +
+          (r / (GRID_SIZE - 1)) * (curBbox.north - curBbox.south);
+        const pLng =
+          curBbox.west + (c / (GRID_SIZE - 1)) * (curBbox.east - curBbox.west);
         locs.push(`${pLat.toFixed(5)},${pLng.toFixed(5)}`);
       }
     }
 
     try {
       // Query our enhanced server proxy with GEBCO 2020 (covers bathymetry + topography)
-      const res = await fetch('/api/map-data', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const res = await fetch("/api/map-data", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          type: 'bathymetry',
-          dataset: 'gebco2020',
-          locations: locs.join('|')
-        })
+          type: "bathymetry",
+          dataset: "gebco2020",
+          locations: locs.join("|"),
+        }),
       });
 
       if (res.ok) {
         const data = await res.json();
-        const elevations = (data.results || []).map((r: any) => r.elevation ?? 0);
+        const elevations = (data.results || []).map(
+          (r: any) => r.elevation ?? 0,
+        );
         gridPointsCount = elevations.length;
 
         // Extract 2D contours
-        contourLines = generateContours(elevations, GRID_SIZE, GRID_SIZE, curBbox);
+        contourLines = generateContours(
+          elevations,
+          GRID_SIZE,
+          GRID_SIZE,
+          curBbox,
+        );
       }
     } catch (err) {
-      console.warn('Contour fetch failed:', err);
+      console.warn("Contour fetch failed:", err);
     } finally {
       isLoading = false;
       render();
@@ -138,31 +150,43 @@
   }
 
   // Coordinate Conversion
-  function geoToCanvas(gLat: number, gLng: number, width: number, height: number) {
+  function geoToCanvas(
+    gLat: number,
+    gLng: number,
+    width: number,
+    height: number,
+  ) {
     const curBbox = bbox;
     const x = ((gLng - curBbox.west) / (curBbox.east - curBbox.west)) * width;
-    const y = ((curBbox.north - gLat) / (curBbox.north - curBbox.south)) * height;
+    const y =
+      ((curBbox.north - gLat) / (curBbox.north - curBbox.south)) * height;
     return { x, y };
   }
 
-  function pointToCanvas(p: { x: number; y: number }, width: number, height: number) {
+  function pointToCanvas(
+    p: { x: number; y: number },
+    width: number,
+    height: number,
+  ) {
     const curBbox = bbox;
     const x = ((p.x - curBbox.west) / (curBbox.east - curBbox.west)) * width;
-    const y = ((curBbox.north - p.y) / (curBbox.north - curBbox.south)) * height;
+    const y =
+      ((curBbox.north - p.y) / (curBbox.north - curBbox.south)) * height;
     return { x, y };
   }
 
   function canvasToGeo(px: number, py: number, width: number, height: number) {
     const curBbox = bbox;
     const gLng = curBbox.west + (px / width) * (curBbox.east - curBbox.west);
-    const gLat = curBbox.north - (py / height) * (curBbox.north - curBbox.south);
+    const gLat =
+      curBbox.north - (py / height) * (curBbox.north - curBbox.south);
     return { lat: gLat, lng: gLng };
   }
 
   // Main Render Loop
   function render() {
     if (!canvasEl) return;
-    const ctx = canvasEl.getContext('2d');
+    const ctx = canvasEl.getContext("2d");
     if (!ctx) return;
 
     const dpr = window.devicePixelRatio || 1;
@@ -179,17 +203,17 @@
       20,
       width / 2,
       height / 2,
-      Math.max(width, height) * 0.8
+      Math.max(width, height) * 0.8,
     );
-    bgGrad.addColorStop(0, '#0a1017');
-    bgGrad.addColorStop(1, '#05070a');
+    bgGrad.addColorStop(0, "#0a1017");
+    bgGrad.addColorStop(1, "#05070a");
     ctx.fillStyle = bgGrad;
     ctx.fillRect(0, 0, width, height);
 
     // 2. Render Contours
     for (const cLine of contourLines) {
-      if (cLine.type === 'land' && !showLand) continue;
-      if (cLine.type === 'sea' && !showSea) continue;
+      if (cLine.type === "land" && !showLand) continue;
+      if (cLine.type === "sea" && !showSea) continue;
 
       ctx.beginPath();
       for (const [p1, p2] of cLine.segments) {
@@ -199,13 +223,13 @@
         ctx.lineTo(sc2.x, sc2.y);
       }
 
-      if (cLine.type === 'land') {
+      if (cLine.type === "land") {
         // Green land contours
         const intensity = Math.min(1, Math.max(0.2, cLine.iso / 1000));
         ctx.strokeStyle = `rgba(34, 197, 94, ${0.4 + intensity * 0.5})`;
         ctx.lineWidth = cLine.iso % 250 === 0 ? 1.6 : 1.0;
         ctx.stroke();
-      } else if (cLine.type === 'sea') {
+      } else if (cLine.type === "sea") {
         // Orange ocean depth contours
         const depthRatio = Math.min(1, Math.abs(cLine.iso) / 2000);
         ctx.strokeStyle = `rgba(249, 115, 22, ${0.35 + depthRatio * 0.55})`;
@@ -213,9 +237,9 @@
         ctx.stroke();
       } else {
         // Coastline (iso 0): Distinct turquoise boundary
-        ctx.strokeStyle = '#2dd4bf';
+        ctx.strokeStyle = "#2dd4bf";
         ctx.lineWidth = 2.0;
-        ctx.shadowColor = '#2dd4bf';
+        ctx.shadowColor = "#2dd4bf";
         ctx.shadowBlur = 4;
         ctx.stroke();
         ctx.shadowBlur = 0;
@@ -244,13 +268,13 @@
   function renderCoordinateGrid(
     ctx: CanvasRenderingContext2D,
     width: number,
-    height: number
+    height: number,
   ) {
     const curBbox = bbox;
     ctx.save();
     ctx.font = '10px "Roboto Condensed", monospace';
-    ctx.fillStyle = '#94a3b8';
-    ctx.strokeStyle = 'rgba(148, 163, 184, 0.35)';
+    ctx.fillStyle = "#94a3b8";
+    ctx.strokeStyle = "rgba(148, 163, 184, 0.35)";
     ctx.lineWidth = 0.9;
 
     // Grid interval dynamically scaled to zoom
@@ -275,9 +299,9 @@
       // Label on left margin with dark backing
       const labelText = formatDegree(gLat, true);
       const textW = ctx.measureText(labelText).width;
-      ctx.fillStyle = 'rgba(5, 7, 10, 0.7)';
+      ctx.fillStyle = "rgba(5, 7, 10, 0.7)";
       ctx.fillRect(4, pos.y - 11, textW + 6, 12);
-      ctx.fillStyle = '#cbd5e1';
+      ctx.fillStyle = "#cbd5e1";
       ctx.fillText(labelText, 7, pos.y - 2);
     }
 
@@ -294,9 +318,9 @@
       // Label on bottom margin with dark backing
       const labelText = formatDegree(gLng, false);
       const textW = ctx.measureText(labelText).width;
-      ctx.fillStyle = 'rgba(5, 7, 10, 0.7)';
+      ctx.fillStyle = "rgba(5, 7, 10, 0.7)";
       ctx.fillRect(pos.x + 2, height - 16, textW + 6, 12);
-      ctx.fillStyle = '#cbd5e1';
+      ctx.fillStyle = "#cbd5e1";
       ctx.fillText(labelText, pos.x + 5, height - 7);
     }
 
@@ -304,7 +328,7 @@
     for (let gLat = startLat; gLat <= endLat; gLat += gridStep) {
       for (let gLng = startLng; gLng <= endLng; gLng += gridStep) {
         const pos = geoToCanvas(gLat, gLng, width, height);
-        ctx.strokeStyle = 'rgba(248, 250, 252, 0.5)';
+        ctx.strokeStyle = "rgba(248, 250, 252, 0.5)";
         ctx.lineWidth = 1.2;
         ctx.beginPath();
         ctx.moveTo(pos.x - 5, pos.y);
@@ -321,7 +345,7 @@
   function renderEpicenter(
     ctx: CanvasRenderingContext2D,
     width: number,
-    height: number
+    height: number,
   ) {
     const pt = geoToCanvas(lat, lng, width, height);
     if (pt.x < -100 || pt.x > width + 100 || pt.y < -100 || pt.y > height + 100)
@@ -344,19 +368,19 @@
     // Epicenter core reticle
     ctx.beginPath();
     ctx.arc(pt.x, pt.y, 7, 0, Math.PI * 2);
-    ctx.fillStyle = '#ef4444';
-    ctx.shadowColor = '#ef4444';
+    ctx.fillStyle = "#ef4444";
+    ctx.shadowColor = "#ef4444";
     ctx.shadowBlur = 12;
     ctx.fill();
 
     ctx.beginPath();
     ctx.arc(pt.x, pt.y, 14, 0, Math.PI * 2);
-    ctx.strokeStyle = '#f87171';
+    ctx.strokeStyle = "#f87171";
     ctx.lineWidth = 1.8;
     ctx.stroke();
 
     // Crosshairs through epicenter
-    ctx.strokeStyle = '#fca5a5';
+    ctx.strokeStyle = "#fca5a5";
     ctx.lineWidth = 1.5;
     ctx.beginPath();
     ctx.moveTo(pt.x - 24, pt.y);
@@ -375,13 +399,13 @@
     const tagText = `EPICENTER M${Number(mag).toFixed(1)}`;
     const tagW = ctx.measureText(tagText).width;
 
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.9)';
+    ctx.fillStyle = "rgba(0, 0, 0, 0.9)";
     ctx.fillRect(pt.x + 14, pt.y - 22, tagW + 12, 18);
-    ctx.strokeStyle = '#ef4444';
+    ctx.strokeStyle = "#ef4444";
     ctx.lineWidth = 1.2;
     ctx.strokeRect(pt.x + 14, pt.y - 22, tagW + 12, 18);
 
-    ctx.fillStyle = '#fca5a5';
+    ctx.fillStyle = "#fca5a5";
     ctx.fillText(tagText, pt.x + 20, pt.y - 9);
 
     ctx.restore();
@@ -390,7 +414,7 @@
   function renderStations(
     ctx: CanvasRenderingContext2D,
     width: number,
-    height: number
+    height: number,
   ) {
     ctx.save();
     ctx.font = '9px "Roboto Condensed", monospace';
@@ -414,9 +438,9 @@
         // Highlighting halo
         ctx.beginPath();
         ctx.arc(pt.x, pt.y, 9, 0, Math.PI * 2);
-        ctx.strokeStyle = isSelected ? '#ff0055' : '#38bdf8';
+        ctx.strokeStyle = isSelected ? "#ff0055" : "#38bdf8";
         ctx.lineWidth = 2;
-        ctx.shadowColor = isSelected ? '#ff0055' : '#38bdf8';
+        ctx.shadowColor = isSelected ? "#ff0055" : "#38bdf8";
         ctx.shadowBlur = 8;
         ctx.stroke();
         ctx.shadowBlur = 0;
@@ -428,21 +452,25 @@
       ctx.rotate(Math.PI / 4);
 
       ctx.fillStyle = isSelected
-        ? '#ff0055'
+        ? "#ff0055"
         : isHovered
-          ? '#38bdf8'
-          : sta.status === 'ACTIVE'
-            ? '#0ea5e9'
-            : '#e11d48';
+          ? "#38bdf8"
+          : sta.status === "ACTIVE"
+            ? "#0ea5e9"
+            : "#e11d48";
       ctx.fillRect(-3, -3, 6, 6);
 
-      ctx.strokeStyle = '#000000';
+      ctx.strokeStyle = "#000000";
       ctx.lineWidth = 1;
       ctx.strokeRect(-3, -3, 6, 6);
       ctx.restore();
 
       // Station code label
-      ctx.fillStyle = isSelected ? '#ff80ab' : isHovered ? '#7dd3fc' : '#94a3b8';
+      ctx.fillStyle = isSelected
+        ? "#ff80ab"
+        : isHovered
+          ? "#7dd3fc"
+          : "#94a3b8";
       ctx.fillText(sta.stationCode, pt.x + 6, pt.y + 3);
     }
 
@@ -452,10 +480,10 @@
   function renderTacticalHUD(
     ctx: CanvasRenderingContext2D,
     width: number,
-    height: number
+    height: number,
   ) {
     ctx.save();
-    ctx.strokeStyle = '#f97316';
+    ctx.strokeStyle = "#f97316";
     ctx.lineWidth = 1.5;
     const len = 12;
 
@@ -631,15 +659,12 @@
   <div
     class="flex-shrink-0 flex items-center justify-between px-3 py-1.5 bg-neutral-950/90 border-b border-neutral-800 text-[10px] font-mono text-neutral-300 z-10"
   >
-    <div class="flex items-center gap-2">
-      <span class="inline-block w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
-      <span class="font-bold text-emerald-400 tracking-wider">CONTOUR RADAR</span>
-      <span class="text-neutral-500">//</span>
-      <span class="text-neutral-400">GEBCO BATHYMETRY</span>
-    </div>
+    <div class="flex items-center gap-2"></div>
 
     {#if isLoading}
-      <span class="text-amber-400 animate-pulse text-[10px]">UPDATING GRID...</span>
+      <span class="text-amber-400 animate-pulse text-[10px]"
+        >UPDATING GRID...</span
+      >
     {:else}
       <span class="text-neutral-500">{contourLines.length} ISOLINES</span>
     {/if}
@@ -668,17 +693,23 @@
         class="absolute top-4 left-4 z-20 px-2.5 py-1.5 bg-black/90 border border-sky-500 rounded text-white text-[11px] font-mono shadow-xl pointer-events-none backdrop-blur"
       >
         <div class="flex items-center gap-2">
-          <span class="font-bold text-sky-400">{hoveredStation.stationCode}</span>
+          <span class="font-bold text-sky-400"
+            >{hoveredStation.stationCode}</span
+          >
           <span class="text-[9px] px-1 bg-sky-950 text-sky-300 rounded">
-            {hoveredStation.mmi ? `MMI ${hoveredStation.mmi}` : 'SENSOR'}
+            {hoveredStation.mmi ? `MMI ${hoveredStation.mmi}` : "SENSOR"}
           </span>
         </div>
         <div class="text-neutral-300 text-[10px] truncate max-w-[200px]">
           {hoveredStation.site}
         </div>
         <div class="text-[9px] text-neutral-400 mt-0.5">
-          DIST: <span class="text-neutral-200">{hoveredStation.distance} km</span> |
-          SITE: <span class="text-neutral-200">{hoveredStation.siteClass || '-'}</span>
+          DIST: <span class="text-neutral-200"
+            >{hoveredStation.distance} km</span
+          >
+          | SITE:
+          <span class="text-neutral-200">{hoveredStation.siteClass || "-"}</span
+          >
         </div>
       </div>
     {/if}
