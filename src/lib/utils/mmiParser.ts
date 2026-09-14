@@ -189,34 +189,61 @@ export async function loadEarthquakeDetail(
     if (eqRes.ok) {
       const eqData = await eqRes.json();
       const list: any[] = eqData.infoList || [];
+      const targetSlug = String(slug).trim();
+      const targetLower = targetSlug.toLowerCase();
       const cleanSlug = slug.replace(/\D/g, '');
 
-      matchedEq = list.find(
-        (e: any) =>
-          e.id === slug ||
-          String(e.mmi) === slug ||
-          String(e.mmi) === cleanSlug ||
-          (e.time && e.time.replace(/\D/g, '') === cleanSlug) ||
-          (e.id && e.id.toLowerCase() === slug.toLowerCase())
-      );
+      // 1. Primary match: EXACT ID match in infoList (case-insensitive)
+      matchedEq = list.find((e: any) => {
+        if (!e || e.id === undefined || e.id === null) return false;
+        return String(e.id).trim().toLowerCase() === targetLower;
+      });
 
+      // 2. Exact match in geoJson.features by properties.id
       if (!matchedEq && eqData.geoJson?.features) {
-        const feat = eqData.geoJson.features.find(
-          (f: any) =>
-            f.properties?.id === slug ||
-            f.properties?.id?.toLowerCase() === slug.toLowerCase()
-        );
+        const feat = eqData.geoJson.features.find((f: any) => {
+          const propId = String(f.properties?.id ?? '').trim().toLowerCase();
+          return propId === targetLower;
+        });
         if (feat) {
           matchedEq = {
-            id: feat.properties.id,
-            mag: parseFloat(feat.properties.mag),
-            lat: feat.geometry.coordinates[1],
-            lng: feat.geometry.coordinates[0],
-            depth: feat.properties.depth,
-            place: feat.properties.place,
-            time: feat.properties.time
+            id: feat.properties?.id || slug,
+            mag: parseFloat(feat.properties?.mag) || 5.0,
+            lat: parseFloat(feat.geometry?.coordinates?.[1]) || 0,
+            lng: parseFloat(feat.geometry?.coordinates?.[0]) || 0,
+            depth: feat.properties?.depth || '10 Km',
+            place: feat.properties?.place || 'Indonesia Region',
+            time: feat.properties?.time || new Date().toLocaleString()
           };
         }
+      }
+
+      // 3. Exact match in dirasakanInfo
+      if (!matchedEq && eqData.dirasakanInfo?.info) {
+        const dInfo = eqData.dirasakanInfo.info;
+        const dId = String(dInfo.id ?? '').trim().toLowerCase();
+        if (dId === targetLower) {
+          matchedEq = {
+            id: dInfo.id,
+            mag: parseFloat(dInfo.mag) || 5.0,
+            lat: parseFloat(dInfo.lat) || 0,
+            lng: parseFloat(dInfo.lng) || 0,
+            depth: String(dInfo.depth || '10 Km'),
+            place: dInfo.place || 'Indonesia Region',
+            time: dInfo.time || new Date().toLocaleString()
+          };
+        }
+      }
+
+      // 4. Fallback timestamp matching ONLY if cleanSlug has at least 10 digits (e.g. YYYYMMDDhhmmss)
+      // Never match short 4-digit years like '2026'!
+      if (!matchedEq && cleanSlug.length >= 10) {
+        matchedEq = list.find((e: any) => {
+          if (!e) return false;
+          const eMmi = String(e.mmi ?? '');
+          const eTimeClean = e.time ? String(e.time).replace(/\D/g, '') : '';
+          return eMmi === cleanSlug || eTimeClean === cleanSlug;
+        });
       }
     }
   } catch (err) {
@@ -269,12 +296,18 @@ export async function loadEarthquakeDetail(
   const defaultLng = matchedEq?.lng ?? 106.56;
   const closestStations = await fetchClosestGlobalSensors(defaultLat, defaultLng);
 
+  const depthStr = matchedEq?.depth
+    ? typeof matchedEq.depth === 'string' && matchedEq.depth.includes('Km')
+      ? matchedEq.depth
+      : `${Math.round(parseFloat(String(matchedEq.depth)) || 10)} Km`
+    : '10 Km';
+
   return {
     id: slug,
-    mag: matchedEq?.mag ?? 5.9,
+    mag: matchedEq?.mag ? parseFloat(Number(matchedEq.mag).toFixed(1)) : 5.0,
     lat: defaultLat,
     lng: defaultLng,
-    depth: matchedEq?.depth ?? '10 Km',
+    depth: depthStr,
     place: matchedEq?.place ?? 'Indonesia Region',
     time: matchedEq?.time ?? new Date().toLocaleString(),
     sourceType: 'sensor_global_fallback',

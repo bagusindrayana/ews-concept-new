@@ -8,10 +8,14 @@
     type EarthquakeDetailInfo,
     type StationItem,
   } from "$lib/utils/mmiParser";
+  import MentalToxicityLevel from "$lib/components/MentalToxicityLevel.svelte";
+  import { type NetworkData } from "$lib/components/MentalToxicityLevel.svelte";
+  import Card from "$lib/components/Card.svelte";
 
   let { data }: { data: { slug: string } } = $props();
 
   let isLoading = $state(true);
+  let isDataLoaded = $state(false);
   let errorMsg = $state("");
   let eqInfo = $state<EarthquakeDetailInfo>({
     id: "",
@@ -19,8 +23,8 @@
     lat: -5.81,
     lng: 106.56,
     depth: "376 Km",
-    place: "Kepulauan Seribu",
-    time: "2026-09-12 04:23:56 WIB",
+    place: "Memuat data gempa...",
+    time: "...",
     sourceType: "mmi_stationlist",
     stations: [],
   });
@@ -28,6 +32,8 @@
   let selectedStation = $state<StationItem | null>(null);
   let searchQuery = $state("");
   let activeTab = $state<"board" | "table">("board");
+
+  let stationList = $state<NetworkData[]>([]);
 
   let activeSlug = "";
   $effect(() => {
@@ -59,15 +65,56 @@
       : eqInfo.stations,
   );
 
+  function romanToNumber(roman: string) {
+    const values: Record<string, number> = {
+      I: 1,
+      V: 5,
+      X: 10,
+      L: 50,
+      C: 100,
+      D: 500,
+      M: 1000,
+    };
+
+    let result = 0;
+
+    for (let i = 0; i < roman.length; i++) {
+      const current = values[roman[i]];
+      const next = values[roman[i + 1]];
+
+      if (current < next) {
+        result -= current;
+      } else {
+        result += current;
+      }
+    }
+
+    return result;
+  }
+
   async function loadData(slug: string) {
     if (!slug) return;
     isLoading = true;
+    isDataLoaded = false;
     errorMsg = "";
     try {
       const detail = await loadEarthquakeDetail(slug);
       eqInfo = detail;
+      isDataLoaded = true;
       if (detail.stations.length > 0) {
         selectedStation = detail.stations[0];
+      }
+
+      for (const station of eqInfo.stations) {
+        stationList.push({
+          id: station.id,
+          name: station.stationCode,
+          subject_name: `MMI : ${station.mmi}`,
+          subject_label: station.networkCode,
+          active_channel: 10 - romanToNumber(station.mmi),
+          inactive_channel: romanToNumber(station.mmi),
+          total_channel: 10,
+        });
       }
     } catch (err: any) {
       console.error("Failed to load earthquake detail:", err);
@@ -105,10 +152,11 @@
   </title>
 </svelte:head>
 
-<div class="min-h-screen bg-neutral-950 text-white font-mono flex flex-col">
+<div
+  class="min-h-screen bg-neutral-950 text-white font-mono flex flex-col py-1 md:py-4"
+>
   <!-- Top Navigation & Alert Header -->
-  <header class="w-full bg-black border-b border-neutral-800 z-30 sticky top-0">
-    <!-- Earthquake Telemetry Header Banner -->
+  <!-- <header class="w-full bg-black border-b border-neutral-800 z-30 sticky top-0">
     <div
       class="bg-neutral-900/90 border-t border-neutral-800 px-3 sm:px-6 py-2"
     >
@@ -148,35 +196,77 @@
         </div>
       </div>
     </div>
-  </header>
+  </header> -->
+
+  <div
+    class="flex no-snapshot fixed right-2 translate-y-0 top-2 left-0 right-0 m-auto flex-row justify-center items-center z-100 gap-2 pointer-events-none"
+    style="width:fit-content"
+  >
+    <a
+      class="ews-btn ews-btn-primary scale-75 md:scale-100 pointer-events-auto"
+      href="/">HOME</a
+    >
+  </div>
+  <div
+    class="mb-2 text-center p-2 z-10 w-full bordered flex justify-center items-center relative show-pop-up mt-6"
+  >
+    <div class="overflow-hidden">
+      <StripeBar loop={true} duration={20} color="red"></StripeBar>
+      <div
+        class="absolute top-0 bottom-0 left-0 right-0 flex justify-center items-center"
+      >
+        <h1
+          class="text-xl p-1 font-bold ews-title text-3xl danger uppercase bg-black"
+        >
+          EPICENTER MAP
+        </h1>
+      </div>
+    </div>
+  </div>
 
   <!-- Main 2-Column Layout (30% / 70% Proportion) -->
-  <main
-    class="flex-1 w-full mx-auto p-3 sm:p-4 flex flex-col lg:flex-row gap-4"
-  >
+  <main class="flex-1 w-full mx-auto flex flex-col lg:flex-row gap-4">
     <!-- ============================================================== -->
     <!-- KOLOM KIRI (30%): PETA CANVAS KONTUR DARATAN & KEDALAMAN LAUT  -->
     <!-- ============================================================== -->
     <section
-      class="w-full lg:w-[30%] flex flex-col gap-3 min-w-[320px] max-w-full lg:max-w-[32%]"
+      class="w-full lg:w-[50%] flex flex-col gap-3 min-w-[320px] max-w-full lg:max-w-[50%]"
     >
-      <!-- Canvas Contour Map Component -->
-      <div
-        class="h-[480px] lg:h-[540px] w-full flex-shrink-0 relative overflow-hidden"
-      >
-        <ContourMapCanvas
-          lat={eqInfo.lat}
-          lng={eqInfo.lng}
-          mag={eqInfo.mag}
-          depth={eqInfo.depth}
-          place={eqInfo.place}
-          stations={eqInfo.stations}
-          {selectedStation}
-          onSelectStation={(sta) => {
-            selectedStation = sta;
-          }}
-        />
-      </div>
+      <Card className="w-full">
+        {#snippet title()}
+          <h1>EPICENTER MAP</h1>
+        {/snippet}
+        <!-- Canvas Contour Map Component -->
+        <div
+          class="h-[480px] lg:h-[540px] w-full flex-shrink-0 relative overflow-hidden"
+        >
+          {#if isDataLoaded}
+            <ContourMapCanvas
+              lat={eqInfo.lat}
+              lng={eqInfo.lng}
+              mag={eqInfo.mag}
+              depth={eqInfo.depth}
+              place={eqInfo.place}
+              stations={eqInfo.stations}
+              {selectedStation}
+              onSelectStation={(sta) => {
+                selectedStation = sta;
+              }}
+            />
+          {:else}
+            <div
+              class="w-full h-full flex flex-col items-center justify-center bg-black/70 border border-neutral-800 rounded font-mono text-xs gap-3"
+            >
+              <div
+                class="w-8 h-8 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin"
+              ></div>
+              <span class="text-neutral-400 animate-pulse tracking-wider">
+                MEMUAT TELEMETRI KONTUR...
+              </span>
+            </div>
+          {/if}
+        </div>
+      </Card>
 
       <!-- Epicenter Tactical Info Card -->
       <div
@@ -237,12 +327,11 @@
     <!-- ============================================================== -->
     <!-- KOLOM KANAN (70%): LIST STASIUN GEMPA (MAGI BUS BOARD / TABLE) -->
     <!-- ============================================================== -->
-    <section class="w-full lg:w-[70%] flex flex-col gap-3 flex-1">
+    <section class="w-full lg:w-[50%] flex flex-col gap-3 flex-1">
       <!-- Section Controls & Telemetry Header -->
-      <div
+      <!-- <div
         class="bg-black border border-neutral-800 rounded p-3 flex flex-wrap items-center justify-between gap-3"
       >
-        <!-- Telemetry Sync Stats -->
         <div class="flex flex-wrap items-center gap-4 text-xs">
           <div class="flex items-center gap-2">
             <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
@@ -265,8 +354,6 @@
             <span class="text-sky-400 font-bold">{syncPercentage}%</span>
           </div>
         </div>
-
-        <!-- Search & View Toggle Buttons -->
         <div class="flex items-center gap-2 text-xs">
           <input
             type="text"
@@ -294,29 +381,52 @@
             </button>
           </div>
         </div>
-      </div>
+      </div> -->
 
       <!-- Main Station Content Display Area -->
-      <div class="flex-1 w-full relative min-h-[480px]">
-        {#if isLoading}
-          <div
-            class="w-full h-96 flex flex-col items-center justify-center gap-3 bg-neutral-900/60 border border-neutral-800 rounded"
-          >
-            <div
-              class="w-8 h-8 border-2 border-orange-500 border-t-transparent rounded-full animate-spin"
-            ></div>
-            <span
-              class="text-xs tracking-wider text-orange-400 font-bold animate-pulse"
-            >
-              LOADING 31 SEISMIC STATIONS TELEMETRY...
-            </span>
+      <Card className="w-full">
+        {#snippet title()}
+          <div class="flex justify-between">
+            <h1>INTENSITY STATION</h1>
+            <div class="flex border border-neutral-700 rounded overflow-hidden">
+              <button
+                onclick={() => (activeTab = "board")}
+                class="px-2.5 py-1 transition {activeTab === 'board'
+                  ? 'bg-orange-600 text-black font-bold'
+                  : 'bg-neutral-900 text-neutral-400 hover:text-white'}"
+              >
+                INTENSITY CHART
+              </button>
+              <button
+                onclick={() => (activeTab = "table")}
+                class="px-2.5 py-1 transition {activeTab === 'table'
+                  ? 'bg-orange-600 text-black font-bold'
+                  : 'bg-neutral-900 text-neutral-400 hover:text-white'}"
+              >
+                MATRIX TABLE
+              </button>
+            </div>
           </div>
-        {:else if activeTab === "board"}
-          <!-- TAB 1: AUTHENTIC MAGI BUS CIRCUIT BOARD (Matching status-node/+page.svelte) -->
-          <div
-            class="relative w-full overflow-hidden border border-neutral-800 rounded bg-[#fc5706]"
-          >
-            <MagiBusBoard
+        {/snippet}
+        <div class="flex-1 w-full relative min-h-[480px]">
+          {#if isLoading}
+            <div
+              class="w-full h-96 flex flex-col items-center justify-center gap-3 bg-neutral-900/60 border border-neutral-800 rounded"
+            >
+              <div
+                class="w-8 h-8 border-2 border-orange-500 border-t-transparent rounded-full animate-spin"
+              ></div>
+              <span
+                class="text-xs tracking-wider text-orange-400 font-bold animate-pulse"
+              >
+                LOADING SEISMIC STATIONS TELEMETRY...
+              </span>
+            </div>
+          {:else if activeTab === "board"}
+            <!-- TAB 1: AUTHENTIC MAGI BUS CIRCUIT BOARD (Matching status-node/+page.svelte) -->
+
+            <div class="overflow-y-auto h-[80vh] custom-scrollbar w-full">
+              <!-- <MagiBusBoard
               items={eqInfo.stations}
               maxColumns={2}
               revealDelayMs={10}
@@ -328,90 +438,107 @@
               onSelectNode={handleSelectNode}
               onToggle={handleToggleNode}
               minRows={1}
-            />
-          </div>
-        {:else}
-          <!-- TAB 2: TELEMETRY MATRIX TABLE -->
-          <div
-            class="w-full overflow-x-auto bg-neutral-900 border border-neutral-800 rounded"
-          >
-            <table class="w-full text-left text-xs border-collapse">
-              <thead
-                class="bg-black text-[11px] text-neutral-400 border-b border-neutral-800 uppercase tracking-wider"
-              >
-                <tr>
-                  <th class="p-2.5 text-center">No</th>
-                  <th class="p-2.5">IdSta</th>
-                  <th class="p-2.5">Stasiun / Lokasi</th>
-                  <th class="p-2.5">Jarak</th>
-                  <th class="p-2.5 text-center">MMI</th>
-                  <th class="p-2.5 text-right">PGA-EW</th>
-                  <th class="p-2.5 text-right">PGA-NS</th>
-                  <th class="p-2.5 text-right">PGA-UD</th>
-                  <th class="p-2.5 text-center">Site</th>
-                  <th class="p-2.5 text-center">Status</th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-neutral-800/60 font-mono">
-                {#each filteredStations as sta}
-                  <tr
-                    onclick={() => (selectedStation = sta)}
-                    class="cursor-pointer transition hover:bg-neutral-800/80 {selectedStation?.stationCode ===
-                    sta.stationCode
-                      ? 'bg-orange-950/40 text-orange-200 border-l-2 border-l-orange-500'
-                      : 'text-neutral-300'}"
-                  >
-                    <td class="p-2 text-center text-neutral-500">{sta.no}</td>
-                    <td class="p-2 font-bold text-orange-400"
-                      >{sta.stationCode}</td
-                    >
-                    <td
-                      class="p-2 font-sans truncate max-w-[220px]"
-                      title={sta.site}
-                    >
-                      {sta.site}
-                    </td>
-                    <td class="p-2 text-neutral-300">{sta.distance} km</td>
-                    <td class="p-2 text-center">
-                      {#if sta.mmi && sta.mmi !== "-"}
-                        <span
-                          class="px-1.5 py-0.5 rounded bg-amber-950 text-amber-300 font-bold text-[10px]"
-                        >
-                          {sta.mmi}
-                        </span>
-                      {:else}
-                        <span class="text-neutral-600">-</span>
-                      {/if}
-                    </td>
-                    <td class="p-2 text-right">
-                      {sta.pgaEw !== null ? sta.pgaEw.toFixed(3) : "-"}
-                    </td>
-                    <td class="p-2 text-right">
-                      {sta.pgaNs !== null ? sta.pgaNs.toFixed(3) : "-"}
-                    </td>
-                    <td class="p-2 text-right">
-                      {sta.pgaUd !== null ? sta.pgaUd.toFixed(3) : "-"}
-                    </td>
-                    <td class="p-2 text-center text-neutral-400">
-                      {sta.siteClass || "-"}
-                    </td>
-                    <td class="p-2 text-center">
-                      <span
-                        class="px-1.5 py-0.5 rounded text-[10px] font-bold {sta.status ===
-                        'ACTIVE'
-                          ? 'bg-emerald-950 text-emerald-400'
-                          : 'bg-rose-950 text-rose-400'}"
-                      >
-                        {sta.status}
-                      </span>
-                    </td>
+            /> -->
+              <MentalToxicityLevel
+                subjectLabel="INTENSITY"
+                networks={stationList}
+                percent_labels={[
+                  { label: "I", value: 10 },
+                  { label: "II", value: 20 },
+                  { label: "III", value: 30 },
+                  { label: "IV", value: 40 },
+                  { label: "V", value: 50 },
+                  { label: "VI", value: 60 },
+                  { label: "VII", value: 70 },
+                  { label: "VIII", value: 80 },
+                  { label: "IX", value: 90 },
+                  { label: "X", value: 100 },
+                ]}
+              />
+            </div>
+          {:else}
+            <!-- TAB 2: TELEMETRY MATRIX TABLE -->
+            <div
+              class="w-full overflow-x-auto bg-neutral-900 border border-neutral-800 rounded"
+            >
+              <table class="w-full text-left text-xs border-collapse">
+                <thead
+                  class="bg-black text-[11px] text-neutral-400 border-b border-neutral-800 uppercase tracking-wider"
+                >
+                  <tr>
+                    <th class="p-2.5 text-center">No</th>
+                    <th class="p-2.5">IdSta</th>
+                    <th class="p-2.5">Stasiun / Lokasi</th>
+                    <th class="p-2.5">Jarak</th>
+                    <th class="p-2.5 text-center">MMI</th>
+                    <th class="p-2.5 text-right">PGA-EW</th>
+                    <th class="p-2.5 text-right">PGA-NS</th>
+                    <th class="p-2.5 text-right">PGA-UD</th>
+                    <th class="p-2.5 text-center">Site</th>
+                    <th class="p-2.5 text-center">Status</th>
                   </tr>
-                {/each}
-              </tbody>
-            </table>
-          </div>
-        {/if}
-      </div>
+                </thead>
+                <tbody class="divide-y divide-neutral-800/60 font-mono">
+                  {#each filteredStations as sta}
+                    <tr
+                      onclick={() => (selectedStation = sta)}
+                      class="cursor-pointer transition hover:bg-neutral-800/80 {selectedStation?.stationCode ===
+                      sta.stationCode
+                        ? 'bg-orange-950/40 text-orange-200 border-l-2 border-l-orange-500'
+                        : 'text-neutral-300'}"
+                    >
+                      <td class="p-2 text-center text-neutral-500">{sta.no}</td>
+                      <td class="p-2 font-bold text-orange-400"
+                        >{sta.stationCode}</td
+                      >
+                      <td
+                        class="p-2 font-sans truncate max-w-[220px]"
+                        title={sta.site}
+                      >
+                        {sta.site}
+                      </td>
+                      <td class="p-2 text-neutral-300">{sta.distance} km</td>
+                      <td class="p-2 text-center">
+                        {#if sta.mmi && sta.mmi !== "-"}
+                          <span
+                            class="px-1.5 py-0.5 rounded bg-amber-950 text-amber-300 font-bold text-[10px]"
+                          >
+                            {sta.mmi}
+                          </span>
+                        {:else}
+                          <span class="text-neutral-600">-</span>
+                        {/if}
+                      </td>
+                      <td class="p-2 text-right">
+                        {sta.pgaEw !== null ? sta.pgaEw.toFixed(3) : "-"}
+                      </td>
+                      <td class="p-2 text-right">
+                        {sta.pgaNs !== null ? sta.pgaNs.toFixed(3) : "-"}
+                      </td>
+                      <td class="p-2 text-right">
+                        {sta.pgaUd !== null ? sta.pgaUd.toFixed(3) : "-"}
+                      </td>
+                      <td class="p-2 text-center text-neutral-400">
+                        {sta.siteClass || "-"}
+                      </td>
+                      <td class="p-2 text-center">
+                        <span
+                          class="px-1.5 py-0.5 rounded text-[10px] font-bold {sta.status ===
+                          'ACTIVE'
+                            ? 'bg-emerald-950 text-emerald-400'
+                            : 'bg-rose-950 text-rose-400'}"
+                        >
+                          {sta.status}
+                        </span>
+                      </td>
+                    </tr>
+                  {/each}
+                </tbody>
+              </table>
+            </div>
+          {/if}
+        </div>
+      </Card>
     </section>
   </main>
 </div>

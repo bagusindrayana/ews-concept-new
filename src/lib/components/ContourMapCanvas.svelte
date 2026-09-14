@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { onMount, onDestroy } from "svelte";
+  import { onMount, onDestroy, untrack } from "svelte";
   import {
     generateContours,
     formatCoordinateDMS,
@@ -70,17 +70,44 @@
   });
 
   // Keep centered when props lat/lng change
+  let lastHandledLat: number | null = null;
+  let lastHandledLng: number | null = null;
+  let isFetching = false;
+
   $effect(() => {
-    centerLat = lat;
-    centerLng = lng;
-    fetchAndComputeContours();
+    const currentLat = lat;
+    const currentLng = lng;
+
+    if (
+      typeof currentLat === 'number' &&
+      typeof currentLng === 'number' &&
+      (currentLat !== lastHandledLat || currentLng !== lastHandledLng)
+    ) {
+      lastHandledLat = currentLat;
+      lastHandledLng = currentLng;
+
+      // Untrack mutations and fetch calls to prevent Svelte 5 reactive feedback loop
+      untrack(() => {
+        centerLat = currentLat;
+        centerLng = currentLng;
+        lastFetchedCenter = { lat: 0, lng: 0, span: 0 };
+        fetchAndComputeContours();
+      });
+    }
   });
 
   // Re-fetch contours when bbox expands significantly
   let lastFetchedCenter = { lat: 0, lng: 0, span: 0 };
 
   async function fetchAndComputeContours() {
-    const curBbox = bbox;
+    if (isFetching) return;
+
+    const curBbox: GeoBbox = {
+      south: centerLat - spanDeg / 2,
+      north: centerLat + spanDeg / 2,
+      west: centerLng - spanDeg / 2,
+      east: centerLng + spanDeg / 2,
+    };
     const distanceMoved = Math.hypot(
       centerLat - lastFetchedCenter.lat,
       centerLng - lastFetchedCenter.lng,
@@ -89,6 +116,7 @@
 
     if (
       contourLines.length > 0 &&
+      lastFetchedCenter.span > 0 &&
       distanceMoved < spanDeg * 0.25 &&
       spanRatio > 0.75 &&
       spanRatio < 1.3
@@ -97,6 +125,7 @@
       return;
     }
 
+    isFetching = true;
     isLoading = true;
     lastFetchedCenter = { lat: centerLat, lng: centerLng, span: spanDeg };
 
@@ -144,6 +173,7 @@
     } catch (err) {
       console.warn("Contour fetch failed:", err);
     } finally {
+      isFetching = false;
       isLoading = false;
       render();
     }

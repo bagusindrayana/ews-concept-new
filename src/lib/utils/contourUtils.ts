@@ -42,17 +42,76 @@ export function haversineDistance(
 }
 
 /**
- * 2D Marching Squares contour generator from a regular elevation / depth grid.
+/**
+ * Upsamples an elevation grid using smooth Hermite cubic interpolation.
+ * Transforms a coarse grid (e.g. 10x10) into a high-fidelity smooth grid (e.g. 37x37),
+ * eliminating blocky/jagged triangular polygons and yielding realistic curved coastlines.
+ */
+export function resampleElevationGrid(
+  grid: number[],
+  srcCols: number,
+  srcRows: number,
+  dstCols: number,
+  dstRows: number
+): number[] {
+  if (srcCols === dstCols && srcRows === dstRows) return grid;
+  const out = new Float64Array(dstCols * dstRows);
+
+  for (let r = 0; r < dstRows; r++) {
+    const srcR = (r / (dstRows - 1)) * (srcRows - 1);
+    const r0 = Math.floor(srcR);
+    const r1 = Math.min(srcRows - 1, r0 + 1);
+    const tr = srcR - r0;
+    // Smoothstep Hermite curve
+    const st_r = tr * tr * (3 - 2 * tr);
+
+    for (let c = 0; c < dstCols; c++) {
+      const srcC = (c / (dstCols - 1)) * (srcCols - 1);
+      const c0 = Math.floor(srcC);
+      const c1 = Math.min(srcCols - 1, c0 + 1);
+      const tc = srcC - c0;
+      const st_c = tc * tc * (3 - 2 * tc);
+
+      const v00 = grid[r0 * srcCols + c0];
+      const v01 = grid[r0 * srcCols + c1];
+      const v10 = grid[r1 * srcCols + c0];
+      const v11 = grid[r1 * srcCols + c1];
+
+      const top = v00 * (1 - st_c) + v01 * st_c;
+      const bot = v10 * (1 - st_c) + v11 * st_c;
+      out[r * dstCols + c] = top * (1 - st_r) + bot * st_r;
+    }
+  }
+
+  return Array.from(out);
+}
+
+/**
+ * 2D Marching Squares contour generator from an elevation / depth grid.
  */
 export function generateContours(
-  grid: number[],
+  rawGrid: number[],
   cols: number,
   rows: number,
   bbox: GeoBbox,
-  isovalues?: number[]
+  isovalues?: number[],
+  smoothGrid = true
 ): ContourLine[] {
-  if (!grid || grid.length < cols * rows || cols < 2 || rows < 2) {
+  if (!rawGrid || rawGrid.length < cols * rows || cols < 2 || rows < 2) {
     return [];
+  }
+
+  // Smooth coarse grids (e.g. 10x10 -> 37x37) to eliminate boxy artifacts
+  let grid = rawGrid;
+  let activeCols = cols;
+  let activeRows = rows;
+
+  if (smoothGrid && cols < 32 && rows < 32) {
+    const targetCols = Math.min(46, (cols - 1) * 4 + 1);
+    const targetRows = Math.min(46, (rows - 1) * 4 + 1);
+    grid = resampleElevationGrid(rawGrid, cols, rows, targetCols, targetRows);
+    activeCols = targetCols;
+    activeRows = targetRows;
   }
 
   // If no custom isovalues, generate meaningful land and sea intervals
@@ -75,15 +134,15 @@ export function generateContours(
   const result: ContourLine[] = [];
 
   function getVal(c: number, r: number): number {
-    return grid[r * cols + c];
+    return grid[r * activeCols + c];
   }
 
   function getLon(c: number): number {
-    return bbox.west + (c / (cols - 1)) * (bbox.east - bbox.west);
+    return bbox.west + (c / (activeCols - 1)) * (bbox.east - bbox.west);
   }
 
   function getLat(r: number): number {
-    return bbox.south + (r / (rows - 1)) * (bbox.north - bbox.south);
+    return bbox.south + (r / (activeRows - 1)) * (bbox.north - bbox.south);
   }
 
   function lerp(
@@ -106,8 +165,8 @@ export function generateContours(
   for (const iso of targetIsovalues) {
     const segments: ContourSegment[] = [];
 
-    for (let r = 0; r < rows - 1; r++) {
-      for (let c = 0; c < cols - 1; c++) {
+    for (let r = 0; r < activeRows - 1; r++) {
+      for (let c = 0; c < activeCols - 1; c++) {
         const bl_val = getVal(c, r);
         const br_val = getVal(c + 1, r);
         const tr_val = getVal(c + 1, r + 1);

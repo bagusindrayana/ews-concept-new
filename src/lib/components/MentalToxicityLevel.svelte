@@ -1,7 +1,9 @@
 <script lang="ts">
-    interface NetworkData {
+    export interface NetworkData {
         id: string;
         name: string;
+        subject_name?: string;
+        subject_label?: string;
         active_channel: number;
         inactive_channel: number;
         total_channel: number;
@@ -10,6 +12,8 @@
     interface Props {
         title?: string;
         headerInfo?: { label: string; value: string }[];
+        percent_labels?: { label: string; value: number }[];
+        subjectLabel?: string;
         networks?: NetworkData[];
         className?: string;
     }
@@ -20,6 +24,14 @@
             { label: "ELAPSED TIME", value: "120 min." },
             { label: "L.C.L. PURITY", value: "99.9999989%" },
         ],
+        percent_labels = [
+            { label: "0%", value: 0 },
+            { label: "25%", value: 25 },
+            { label: "50%", value: 50 },
+            { label: "75%", value: 75 },
+            { label: "100%", value: 100 },
+        ],
+        subjectLabel = "NETWORK",
         networks = [
             {
                 id: "network-1",
@@ -106,11 +118,17 @@
         <div class="ews-mtl-scale-label-area"></div>
         <div class="ews-mtl-scale-bar">
             <div class="ews-mtl-scale-marks">
-                <span class="ews-mtl-scale-mark" style="left: 0%">0%</span>
+                <!-- <span class="ews-mtl-scale-mark" style="left: 0%">0%</span>
                 <span class="ews-mtl-scale-mark" style="left: 25%">25%</span>
                 <span class="ews-mtl-scale-mark" style="left: 50%">50%</span>
                 <span class="ews-mtl-scale-mark" style="left: 75%">75%</span>
-                <span class="ews-mtl-scale-mark" style="left: 100%">100%</span>
+                <span class="ews-mtl-scale-mark" style="left: 100%">100%</span> -->
+                {#each percent_labels as label}
+                    {@const percent = label.value}
+                    <span class="ews-mtl-scale-mark" style="left: {percent}%"
+                        >{label.label}</span
+                    >
+                {/each}
             </div>
             <!-- <div class="ews-mtl-zone-marks">
                 <div class="ews-mtl-zone-caution">
@@ -144,13 +162,15 @@
         </div>
         <div class="ews-mtl-subject-row">
             <div class="ews-mtl-subject-info">
-                <span class="ews-mtl-subject-label">NETWORK</span>
+                <span class="ews-mtl-subject-label"
+                    >{network.subject_label ?? subjectLabel}</span
+                >
                 <span class="ews-mtl-subject-id"
                     >{network.name.toUpperCase()}</span
                 >
                 <!-- <span class="ews-mtl-subject-id">{getSubjectIndex(idx)}</span> -->
                 <span class="ews-mtl-subject-name"
-                    >{network.name.toUpperCase()}</span
+                    >{network.subject_name ?? network.name.toUpperCase()}</span
                 >
             </div>
             <div class="ews-mtl-bar-area">
@@ -340,7 +360,7 @@
     }
 
     .ews-mtl-subject-info {
-        width: 100px;
+        width: 120px;
         flex-shrink: 0;
         display: flex;
         flex-direction: column;
