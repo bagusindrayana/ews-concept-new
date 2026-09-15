@@ -77,6 +77,7 @@
     };
 
     let result = 0;
+    if (roman === "" || roman === "-") return 0;
 
     for (let i = 0; i < roman.length; i++) {
       const current = values[roman[i]];
@@ -208,7 +209,7 @@
     >
   </div>
   <div
-    class="mb-2 text-center p-2 z-10 w-full bordered flex justify-center items-center relative show-pop-up mt-6"
+    class="mb-2 text-center p-2 z-10 w-full bordered flex justify-center items-center relative mt-6"
   >
     <div class="overflow-hidden">
       <StripeBar loop={true} duration={20} color="red"></StripeBar>
@@ -237,9 +238,7 @@
           <h1>EPICENTER MAP</h1>
         {/snippet}
         <!-- Canvas Contour Map Component -->
-        <div
-          class="h-[480px] lg:h-[540px] w-full flex-shrink-0 relative overflow-hidden"
-        >
+        <div class="h-[68vh] w-full flex-shrink-0 relative overflow-hidden">
           {#if isDataLoaded}
             <ContourMapCanvas
               lat={eqInfo.lat}
@@ -266,62 +265,58 @@
             </div>
           {/if}
         </div>
+        {#snippet footer()}
+          <div class="text-xs">
+            <div
+              class="flex items-center justify-between border-b border-neutral-800 pb-2 mb-2"
+            >
+              <span class="text-[11px] font-bold text-red-400 tracking-wider">
+                EPISENTER SUMMARY
+              </span>
+              <span class="text-[10px] text-neutral-400"
+                >{eqInfo.depth} DEPTH</span
+              >
+            </div>
+
+            <table class="w-full text-[11px]">
+              <tbody>
+                <tr class="border-b border-neutral-800/40">
+                  <td class="py-1 text-neutral-400">Wilayah</td>
+                  <td
+                    class="py-1 text-right text-neutral-200 font-semibold truncate max-w-[180px]"
+                  >
+                    {eqInfo.place}
+                  </td>
+                </tr>
+                <tr class="border-b border-neutral-800/40">
+                  <td class="py-1 text-neutral-400">Latitude</td>
+                  <td class="py-1 text-right text-neutral-200">
+                    {eqInfo.lat.toFixed(4)}° ({Math.abs(eqInfo.lat).toFixed(
+                      2,
+                    )}°{eqInfo.lat < 0 ? "LS" : "LU"})
+                  </td>
+                </tr>
+                <tr class="border-b border-neutral-800/40">
+                  <td class="py-1 text-neutral-400">Longitude</td>
+                  <td class="py-1 text-right text-neutral-200">
+                    {eqInfo.lng.toFixed(4)}° ({Math.abs(eqInfo.lng).toFixed(
+                      2,
+                    )}°{eqInfo.lng < 0 ? "BB" : "BT"})
+                  </td>
+                </tr>
+                <tr class="border-b border-neutral-800/40">
+                  <td class="py-1 text-neutral-400">Magnitudo</td>
+                  <td class="py-1 text-right text-red-400 font-bold">
+                    {Number(eqInfo.mag).toFixed(1)} SR
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        {/snippet}
       </Card>
 
       <!-- Epicenter Tactical Info Card -->
-      <div
-        class="p-3 bg-neutral-900/80 border border-neutral-800 rounded text-xs"
-      >
-        <div
-          class="flex items-center justify-between border-b border-neutral-800 pb-2 mb-2"
-        >
-          <span class="text-[11px] font-bold text-red-400 tracking-wider">
-            EPISENTER SUMMARY
-          </span>
-          <span class="text-[10px] text-neutral-400">{eqInfo.depth} DEPTH</span>
-        </div>
-
-        <table class="w-full text-[11px]">
-          <tbody>
-            <tr class="border-b border-neutral-800/40">
-              <td class="py-1 text-neutral-400">Wilayah</td>
-              <td
-                class="py-1 text-right text-neutral-200 font-semibold truncate max-w-[180px]"
-              >
-                {eqInfo.place}
-              </td>
-            </tr>
-            <tr class="border-b border-neutral-800/40">
-              <td class="py-1 text-neutral-400">Latitude</td>
-              <td class="py-1 text-right text-neutral-200">
-                {eqInfo.lat.toFixed(4)}° ({Math.abs(eqInfo.lat).toFixed(
-                  2,
-                )}°{eqInfo.lat < 0 ? "LS" : "LU"})
-              </td>
-            </tr>
-            <tr class="border-b border-neutral-800/40">
-              <td class="py-1 text-neutral-400">Longitude</td>
-              <td class="py-1 text-right text-neutral-200">
-                {eqInfo.lng.toFixed(4)}° ({Math.abs(eqInfo.lng).toFixed(
-                  2,
-                )}°{eqInfo.lng < 0 ? "BB" : "BT"})
-              </td>
-            </tr>
-            <tr class="border-b border-neutral-800/40">
-              <td class="py-1 text-neutral-400">Magnitudo</td>
-              <td class="py-1 text-right text-red-400 font-bold">
-                {Number(eqInfo.mag).toFixed(1)} SR
-              </td>
-            </tr>
-            <tr>
-              <td class="py-1 text-neutral-400">Stasiun Terpantau</td>
-              <td class="py-1 text-right text-emerald-400 font-bold">
-                {eqInfo.stations.length} Stasiun (Maks. 31)
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
     </section>
 
     <!-- ============================================================== -->
@@ -408,10 +403,10 @@
             </div>
           </div>
         {/snippet}
-        <div class="flex-1 w-full relative min-h-[480px]">
+        <div class="flex-1 w-full relative h-[80vh]">
           {#if isLoading}
             <div
-              class="w-full h-96 flex flex-col items-center justify-center gap-3 bg-neutral-900/60 border border-neutral-800 rounded"
+              class="w-full h-full flex flex-col items-center justify-center gap-3 bg-neutral-900/60 border border-neutral-800 rounded"
             >
               <div
                 class="w-8 h-8 border-2 border-orange-500 border-t-transparent rounded-full animate-spin"
@@ -454,6 +449,9 @@
                   { label: "IX", value: 90 },
                   { label: "X", value: 100 },
                 ]}
+                pulse={true}
+                pulseRange={[-5, 5]}
+                pulseInterval={[50, 100]}
               />
             </div>
           {:else}

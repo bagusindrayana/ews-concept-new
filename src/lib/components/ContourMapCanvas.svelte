@@ -79,8 +79,8 @@
     const currentLng = lng;
 
     if (
-      typeof currentLat === 'number' &&
-      typeof currentLng === 'number' &&
+      typeof currentLat === "number" &&
+      typeof currentLng === "number" &&
       (currentLat !== lastHandledLat || currentLng !== lastHandledLng)
     ) {
       lastHandledLat = currentLat;
@@ -683,10 +683,10 @@
 
 <div
   bind:this={containerEl}
-  class="relative w-full h-full flex flex-col bg-[#05070a] border border-neutral-800 rounded-sm overflow-hidden select-none"
+  class="relative w-full h-full flex flex-col border border-neutral-800 rounded-sm overflow-hidden select-none"
 >
   <!-- Top HUD Status Header -->
-  <div
+  <!-- <div
     class="flex-shrink-0 flex items-center justify-between px-3 py-1.5 bg-neutral-950/90 border-b border-neutral-800 text-[10px] font-mono text-neutral-300 z-10"
   >
     <div class="flex items-center gap-2"></div>
@@ -698,7 +698,7 @@
     {:else}
       <span class="text-neutral-500">{contourLines.length} ISOLINES</span>
     {/if}
-  </div>
+  </div> -->
 
   <!-- Interactive Canvas Container -->
   <!-- svelte-ignore a11y_no_static_element_interactions -->
@@ -823,10 +823,9 @@
   </div>
 
   <!-- Bottom HUD Footer: Coordinate Readout & Legend -->
-  <div
+  <!-- <div
     class="flex items-center justify-between px-3 py-1.5 bg-neutral-950 border-t border-neutral-800 text-[10px] font-mono text-neutral-400 z-10"
   >
-    <!-- Live Coordinates -->
     <div class="flex items-center gap-3">
       <div>
         POS:
@@ -841,7 +840,6 @@
       </div>
     </div>
 
-    <!-- Color Legend -->
     <div class="flex items-center gap-3 text-[9px]">
       <div class="flex items-center gap-1">
         <span class="inline-block w-2.5 h-0.5 bg-emerald-500"></span>
@@ -856,5 +854,5 @@
         <span class="text-red-400">Epicenter</span>
       </div>
     </div>
-  </div>
+  </div> -->
 </div>
