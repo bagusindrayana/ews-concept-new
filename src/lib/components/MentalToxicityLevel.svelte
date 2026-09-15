@@ -16,6 +16,9 @@
         subjectLabel?: string;
         networks?: NetworkData[];
         className?: string;
+        pulse?: boolean;
+        pulseRange?: [number, number] | number;
+        pulseInterval?: [number, number] | number;
     }
 
     let {
@@ -56,21 +59,113 @@
             },
         ],
         className = "",
+        pulse = false,
+        pulseRange = [10, 20],
+        pulseInterval = [50, 150],
     }: Props = $props();
 
     // Total bars per row — always fills 100%
     const totalBars = 50;
+    let pulseOffsets = $state<Record<string, number>>({});
+
+    function getNetworkKey(network: NetworkData, index?: number): string {
+        return (
+            network.id ||
+            network.name ||
+            (index !== undefined ? String(index) : "")
+        );
+    }
+
+    $effect(() => {
+        if (!pulse || !networks || networks.length === 0) {
+            pulseOffsets = {};
+            return;
+        }
+
+        const [minRange, maxRange] = Array.isArray(pulseRange)
+            ? pulseRange
+            : [pulseRange * 0.7, pulseRange];
+        const rangeSpan = Math.max(0, maxRange - minRange);
+
+        const [minInterval, maxInterval] = Array.isArray(pulseInterval)
+            ? pulseInterval
+            : [pulseInterval, pulseInterval];
+        const intervalSpan = Math.max(0, maxInterval - minInterval);
+
+        let active = true;
+        const timeouts = new Map<string, number>();
+
+        networks.forEach((network, idx) => {
+            const key = getNetworkKey(network, idx);
+            let currentOffset = 0;
+            // Target offset in percentage points
+            const initialRange = Math.random() * rangeSpan + minRange;
+            let targetOffset = (Math.random() * 2 - 1) * initialRange;
+
+            const runStep = () => {
+                if (!active) return;
+
+                // Move smoothly towards target offset with slight jitter
+                currentOffset +=
+                    (targetOffset - currentOffset) * 0.45 +
+                    (Math.random() - 0.5) * 3;
+
+                // When near target or randomly with 20% probability, pick a new random target
+                if (
+                    Math.abs(targetOffset - currentOffset) < 2.5 ||
+                    Math.random() < 0.2
+                ) {
+                    const range = Math.random() * rangeSpan + minRange;
+                    targetOffset = (Math.random() * 2 - 1) * range;
+                }
+
+                pulseOffsets[key] = currentOffset;
+
+                // Random interval based on pulseInterval prop
+                const nextInterval =
+                    Math.floor(Math.random() * intervalSpan) + minInterval;
+                const timerId = window.setTimeout(runStep, nextInterval);
+                timeouts.set(key, timerId);
+            };
+
+            // Stagger initial start so each row updates at slightly different times
+            const initialDelay = Math.floor(
+                Math.random() * Math.min(80, minInterval),
+            );
+            const timerId = window.setTimeout(runStep, initialDelay);
+            timeouts.set(key, timerId);
+        });
+
+        return () => {
+            active = false;
+            timeouts.forEach((timerId) => clearTimeout(timerId));
+            timeouts.clear();
+        };
+    });
 
     // Get inactive percentage
-    function getInactivePercent(network: NetworkData): number {
-        if (network.total_channel === 0) return 0;
-        return (network.inactive_channel / network.total_channel) * 100;
+    function getInactivePercent(network: NetworkData, index?: number): number {
+        let result = 0;
+        if (network.total_channel > 0) {
+            result = (network.inactive_channel / network.total_channel) * 100;
+        }
+
+        if (pulse) {
+            const key = getNetworkKey(network, index);
+            const offset = pulseOffsets[key] ?? 0;
+            result += offset;
+        }
+        return Math.max(0, Math.min(100, result));
     }
 
     // Color: continuous gradient from light blue/cyan to purple
     // based on bar position across the full 100% width
-    function getBarColor(barIndex: number, network: NetworkData): string {
-        const inactivePct = getInactivePercent(network);
+    function getBarColor(
+        barIndex: number,
+        network: NetworkData,
+        index?: number,
+    ): string {
+        const inactivePct = getInactivePercent(network, index);
         const fillBarsCount = Math.round((inactivePct / 100) * totalBars);
 
         // If the current bar index is greater than the percentage it should fill, hide it
@@ -146,7 +241,7 @@
 
     <!-- Network Rows -->
     {#each networks as network, idx}
-        {@const inactivePct = getInactivePercent(network)}
+        {@const inactivePct = getInactivePercent(network, idx)}
         {@const activeStart = getInactiveStartPosition(network)}
         <div class="flex flex-row-reverse gap-6">
             <div>
@@ -178,7 +273,11 @@
                     {#each { length: totalBars } as _, i}
                         <div
                             class="ews-mtl-bar"
-                            style="background-color: {getBarColor(i, network)};"
+                            style="background-color: {getBarColor(
+                                i,
+                                network,
+                                idx,
+                            )};"
                         ></div>
                     {/each}
                 </div>
@@ -411,6 +510,7 @@
         min-width: 5px;
         border-radius: 1px;
         box-shadow: 0 0 3px rgba(0, 200, 220, 0.15);
+        transition: background-color 0.08s ease-out;
     }
 
     /* Row zone markers */
