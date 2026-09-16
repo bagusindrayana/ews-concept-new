@@ -213,21 +213,45 @@
     return { lat: gLat, lng: gLng };
   }
 
-  // Main Render Loop
-  function render() {
-    if (!canvasEl) return;
-    const ctx = canvasEl.getContext("2d");
-    if (!ctx) return;
+  // High-performance static layer caching (background, contours, grid, stations)
+  let offscreenCanvas: HTMLCanvasElement | null = null;
+  let needsStaticRedraw = true;
 
-    const dpr = window.devicePixelRatio || 1;
-    const width = canvasEl.width / dpr;
-    const height = canvasEl.height / dpr;
+  $effect(() => {
+    // Invalidate static layers only when relevant map/station data changes
+    const _cLat = centerLat;
+    const _cLng = centerLng;
+    const _span = spanDeg;
+    const _contours = contourLines;
+    const _stations = stations;
+    const _sel = selectedStation;
+    const _hov = hoveredStation;
+    const _land = showLand;
+    const _sea = showSea;
+    const _grid = showGrid;
+    const _showSta = showStations;
+    needsStaticRedraw = true;
+  });
 
-    ctx.save();
-    ctx.scale(dpr, dpr);
+  function renderStaticLayers(width: number, height: number, dpr: number) {
+    if (!offscreenCanvas) {
+      offscreenCanvas = document.createElement("canvas");
+    }
+    const targetW = Math.round(width * dpr);
+    const targetH = Math.round(height * dpr);
+    if (offscreenCanvas.width !== targetW || offscreenCanvas.height !== targetH) {
+      offscreenCanvas.width = targetW;
+      offscreenCanvas.height = targetH;
+    }
+
+    const sCtx = offscreenCanvas.getContext("2d");
+    if (!sCtx) return;
+
+    sCtx.save();
+    sCtx.scale(dpr, dpr);
 
     // 1. Dark Cybernetic Sea Background
-    const bgGrad = ctx.createRadialGradient(
+    const bgGrad = sCtx.createRadialGradient(
       width / 2,
       height / 2,
       20,
@@ -237,59 +261,85 @@
     );
     bgGrad.addColorStop(0, "#0a1017");
     bgGrad.addColorStop(1, "#05070a");
-    ctx.fillStyle = bgGrad;
-    ctx.fillRect(0, 0, width, height);
+    sCtx.fillStyle = bgGrad;
+    sCtx.fillRect(0, 0, width, height);
 
     // 2. Render Contours
     for (const cLine of contourLines) {
       if (cLine.type === "land" && !showLand) continue;
       if (cLine.type === "sea" && !showSea) continue;
 
-      ctx.beginPath();
+      sCtx.beginPath();
       for (const [p1, p2] of cLine.segments) {
         const sc1 = pointToCanvas(p1, width, height);
         const sc2 = pointToCanvas(p2, width, height);
-        ctx.moveTo(sc1.x, sc1.y);
-        ctx.lineTo(sc2.x, sc2.y);
+        sCtx.moveTo(sc1.x, sc1.y);
+        sCtx.lineTo(sc2.x, sc2.y);
       }
 
       if (cLine.type === "land") {
         // Green land contours
         const intensity = Math.min(1, Math.max(0.2, cLine.iso / 1000));
-        ctx.strokeStyle = `rgba(34, 197, 94, ${0.4 + intensity * 0.5})`;
-        ctx.lineWidth = cLine.iso % 250 === 0 ? 1.6 : 1.0;
-        ctx.stroke();
+        sCtx.strokeStyle = `rgba(34, 197, 94, ${0.4 + intensity * 0.5})`;
+        sCtx.lineWidth = cLine.iso % 250 === 0 ? 1.6 : 1.0;
+        sCtx.stroke();
       } else if (cLine.type === "sea") {
         // Orange ocean depth contours
         const depthRatio = Math.min(1, Math.abs(cLine.iso) / 2000);
-        ctx.strokeStyle = `rgba(249, 115, 22, ${0.35 + depthRatio * 0.55})`;
-        ctx.lineWidth = Math.abs(cLine.iso) % 500 === 0 ? 1.6 : 1.0;
-        ctx.stroke();
+        sCtx.strokeStyle = `rgba(249, 115, 22, ${0.35 + depthRatio * 0.55})`;
+        sCtx.lineWidth = Math.abs(cLine.iso) % 500 === 0 ? 1.6 : 1.0;
+        sCtx.stroke();
       } else {
         // Coastline (iso 0): Distinct turquoise boundary
-        ctx.strokeStyle = "#2dd4bf";
-        ctx.lineWidth = 2.0;
-        ctx.shadowColor = "#2dd4bf";
-        ctx.shadowBlur = 4;
-        ctx.stroke();
-        ctx.shadowBlur = 0;
+        sCtx.strokeStyle = "#2dd4bf";
+        sCtx.lineWidth = 2.0;
+        sCtx.shadowColor = "#2dd4bf";
+        sCtx.shadowBlur = 4;
+        sCtx.stroke();
+        sCtx.shadowBlur = 0;
       }
     }
 
     // 3. Render Coordinate Grid Overlay
     if (showGrid) {
-      renderCoordinateGrid(ctx, width, height);
+      renderCoordinateGrid(sCtx, width, height);
     }
 
-    // 4. Render Epicenter Marker
+    // 4. Render Stations
+    if (showStations) {
+      renderStations(sCtx, width, height);
+    }
+
+    sCtx.restore();
+    needsStaticRedraw = false;
+  }
+
+  // Main Render Loop: Blits cached offscreen canvas and renders only dynamic shockwave/HUD
+  function render() {
+    if (!canvasEl) return;
+    const ctx = canvasEl.getContext("2d");
+    if (!ctx) return;
+
+    const dpr = window.devicePixelRatio || 1;
+    const width = canvasEl.width / dpr;
+    const height = canvasEl.height / dpr;
+
+    if (needsStaticRedraw || !offscreenCanvas) {
+      renderStaticLayers(width, height, dpr);
+    }
+
+    ctx.save();
+    ctx.scale(dpr, dpr);
+
+    // Blit pre-rendered static contours & grid instantaneously via GPU copy
+    if (offscreenCanvas) {
+      ctx.drawImage(offscreenCanvas, 0, 0, width, height);
+    }
+
+    // Dynamic Epicenter Shockwave Ring
     renderEpicenter(ctx, width, height);
 
-    // 5. Render Stations
-    if (showStations) {
-      renderStations(ctx, width, height);
-    }
-
-    // 6. Corner Reticle Brackets (Evangelion tactical view)
+    // Tactical Reticle Brackets
     renderTacticalHUD(ctx, width, height);
 
     ctx.restore();
@@ -551,8 +601,10 @@
   // Animation Frame Loop
   function startAnimation() {
     function loop() {
-      pulseRadius += 1.2;
-      render();
+      if (!document.hidden) {
+        pulseRadius += 1.2;
+        render();
+      }
       animFrameId = requestAnimationFrame(loop);
     }
     animFrameId = requestAnimationFrame(loop);
@@ -584,6 +636,7 @@
 
       centerLng = dragStartCenterLng + dLng;
       centerLat = dragStartCenterLat + dLat;
+      needsStaticRedraw = true;
       render();
       return;
     }
@@ -599,7 +652,9 @@
         break;
       }
     }
-    hoveredStation = foundStation;
+    if (hoveredStation !== foundStation) {
+      hoveredStation = foundStation;
+    }
   }
 
   function handleMouseUp() {

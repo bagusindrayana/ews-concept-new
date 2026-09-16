@@ -66,6 +66,15 @@
 
     // Total bars per row — always fills 100%
     const totalBars = 50;
+    // Precompute constant bar colors once instead of recomputing thousands of times per second
+    const barColorPalette: string[] = Array.from({ length: totalBars }, (_, barIndex) => {
+        const t = barIndex / (totalBars - 1);
+        const hue = 190 + t * 90;
+        const sat = 100 - t * 15;
+        const light = 55 - t * 10;
+        return `hsl(${hue}, ${sat}%, ${light}%)`;
+    });
+
     let pulseOffsets = $state<Record<string, number>>({});
 
     function getNetworkKey(network: NetworkData, index?: number): string {
@@ -90,56 +99,62 @@
         const [minInterval, maxInterval] = Array.isArray(pulseInterval)
             ? pulseInterval
             : [pulseInterval, pulseInterval];
-        const intervalSpan = Math.max(0, maxInterval - minInterval);
 
-        let active = true;
-        const timeouts = new Map<string, number>();
+        // Track internal state per network in regular memory
+        interface NetPulseState {
+            current: number;
+            target: number;
+            nextTick: number;
+        }
+
+        const states = new Map<string, NetPulseState>();
+        const now = Date.now();
 
         networks.forEach((network, idx) => {
             const key = getNetworkKey(network, idx);
-            let currentOffset = 0;
-            // Target offset in percentage points
             const initialRange = Math.random() * rangeSpan + minRange;
-            let targetOffset = (Math.random() * 2 - 1) * initialRange;
-
-            const runStep = () => {
-                if (!active) return;
-
-                // Move smoothly towards target offset with slight jitter
-                currentOffset +=
-                    (targetOffset - currentOffset) * 0.45 +
-                    (Math.random() - 0.5) * 3;
-
-                // When near target or randomly with 20% probability, pick a new random target
-                if (
-                    Math.abs(targetOffset - currentOffset) < 2.5 ||
-                    Math.random() < 0.2
-                ) {
-                    const range = Math.random() * rangeSpan + minRange;
-                    targetOffset = (Math.random() * 2 - 1) * range;
-                }
-
-                pulseOffsets[key] = currentOffset;
-
-                // Random interval based on pulseInterval prop
-                const nextInterval =
-                    Math.floor(Math.random() * intervalSpan) + minInterval;
-                const timerId = window.setTimeout(runStep, nextInterval);
-                timeouts.set(key, timerId);
-            };
-
-            // Stagger initial start so each row updates at slightly different times
-            const initialDelay = Math.floor(
-                Math.random() * Math.min(80, minInterval),
-            );
-            const timerId = window.setTimeout(runStep, initialDelay);
-            timeouts.set(key, timerId);
+            states.set(key, {
+                current: 0,
+                target: (Math.random() * 2 - 1) * initialRange,
+                nextTick: now + Math.floor(Math.random() * Math.min(60, minInterval)),
+            });
         });
+
+        let active = true;
+        // High-performance single master ticker: runs once every 60ms (~16 FPS)
+        // Eliminates hundreds of concurrent timer interrupts and batch-updates Svelte state
+        const masterIntervalId = window.setInterval(() => {
+            if (!active) return;
+            const currentNow = Date.now();
+            let changed = false;
+
+            states.forEach((st, key) => {
+                if (currentNow >= st.nextTick) {
+                    st.current +=
+                        (st.target - st.current) * 0.45 +
+                        (Math.random() - 0.5) * 3;
+
+                    if (
+                        Math.abs(st.target - st.current) < 2.5 ||
+                        Math.random() < 0.2
+                    ) {
+                        const range = Math.random() * rangeSpan + minRange;
+                        st.target = (Math.random() * 2 - 1) * range;
+                    }
+
+                    const randomDelay =
+                        Math.floor(Math.random() * (maxInterval - minInterval + 1)) +
+                        minInterval;
+                    st.nextTick = currentNow + randomDelay;
+                    pulseOffsets[key] = st.current;
+                    changed = true;
+                }
+            });
+        }, 60);
 
         return () => {
             active = false;
-            timeouts.forEach((timerId) => clearTimeout(timerId));
-            timeouts.clear();
+            clearInterval(masterIntervalId);
         };
     });
 
@@ -159,7 +174,7 @@
     }
 
     // Color: continuous gradient from light blue/cyan to purple
-    // based on bar position across the full 100% width
+    // based on precomputed palette
     function getBarColor(
         barIndex: number,
         network: NetworkData,
@@ -168,19 +183,11 @@
         const inactivePct = getInactivePercent(network, index);
         const fillBarsCount = Math.round((inactivePct / 100) * totalBars);
 
-        // If the current bar index is greater than the percentage it should fill, hide it
         if (barIndex >= fillBarsCount) {
             return "transparent";
         }
 
-        const t = barIndex / (totalBars - 1);
-        // Hue: 190 (cyan/light blue) → 280 (purple)
-        const hue = 190 + t * 90;
-        // Saturation: 100% → 85%
-        const sat = 100 - t * 15;
-        // Lightness: 55% → 45%
-        const light = 55 - t * 10;
-        return `hsl(${hue}, ${sat}%, ${light}%)`;
+        return barColorPalette[barIndex];
     }
 
     function getSubjectIndex(idx: number): string {
@@ -242,6 +249,7 @@
     <!-- Network Rows -->
     {#each networks as network, idx}
         {@const inactivePct = getInactivePercent(network, idx)}
+        {@const fillBarsCount = Math.round((inactivePct / 100) * totalBars)}
         {@const activeStart = getInactiveStartPosition(network)}
         <div class="flex flex-row-reverse gap-6">
             <div>
@@ -273,11 +281,7 @@
                     {#each { length: totalBars } as _, i}
                         <div
                             class="ews-mtl-bar"
-                            style="background-color: {getBarColor(
-                                i,
-                                network,
-                                idx,
-                            )};"
+                            style="background-color: {i >= fillBarsCount ? 'transparent' : barColorPalette[i]};"
                         ></div>
                     {/each}
                 </div>
@@ -456,6 +460,8 @@
         align-items: center;
         margin-bottom: 10px;
         position: relative;
+        content-visibility: auto;
+        contain-intrinsic-size: 0 68px;
     }
 
     .ews-mtl-subject-info {
@@ -509,7 +515,6 @@
         flex: 1;
         min-width: 5px;
         border-radius: 1px;
-        box-shadow: 0 0 3px rgba(0, 200, 220, 0.15);
         transition: background-color 0.08s ease-out;
     }
 
