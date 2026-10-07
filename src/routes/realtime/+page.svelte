@@ -667,7 +667,7 @@
             href="/status-ui">STATION STATUS</a
         >
     </div>
-    <div class="w-full flex flex-col-reverse lg:flex-row gap-2 justify-center">
+    <div class="w-full flex flex-col-reverse lg:flex-row gap-2 justify-center pt-2">
         {#if stationData != null && stationData.Network.Station != undefined && !Array.isArray(stationData.Network.Station)}
             <div class="flex flex-col gap-4 w-auto h-full items-stretch">
                 <Card className=" w-full lg:w-md ">
