@@ -187,6 +187,10 @@
             class="ews-btn ews-btn-primary scale-75 md:scale-100 pointer-events-auto"
             href="/magi">MAGI</a
         >
+        <a
+            class="ews-btn ews-btn-primary scale-75 md:scale-100 pointer-events-auto"
+            href="/esp-sdr-web">ESP-SDR</a
+        >
     </div>
 
     <div

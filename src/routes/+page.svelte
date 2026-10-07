@@ -1085,6 +1085,7 @@
         }}>SNAPSHOTS</button
       >
       <a class="ews-btn ews-btn-primary" href="/status-ui">STATION</a>
+      <a class="ews-btn ews-btn-primary" href="/esp-sdr-web">ESP-SDR</a>
     </div>
 
     <!-- MENU / X toggle button -->
@@ -1131,8 +1132,11 @@
     >
       <Icon icon="ic:baseline-camera" width="20" height="20" />
     </button>
-    <a class="ews-btn-primary p-1" href="/status-ui">
+    <a class="ews-btn-primary p-1" href="/status-ui" title="Station Status">
       <Icon icon="zondicons:station" width="20" height="20" />
+    </a>
+    <a class="ews-btn-primary p-1" href="/esp-sdr-web" title="ESP-SDR Receiver">
+      <Icon icon="lucide:radio" width="20" height="20" />
     </a>
   </div>
 
