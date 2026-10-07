@@ -302,10 +302,11 @@
       ctx.strokeStyle = waveformColor;
       if (enableGlow) {
         ctx.shadowColor = waveformColor;
-        ctx.shadowBlur = 12;
+        // High resolution (1024, 2048) has smooth ambient glow; lower resolution (256, 512) has tight crisp glow
+        ctx.shadowBlur = len <= 512 ? 4 : 10;
       }
-      ctx.lineWidth = 2.5;
-      ctx.lineJoin = "round";
+      ctx.lineWidth = len <= 256 ? 1.8 : 2.2;
+      ctx.lineJoin = len <= 256 ? "miter" : "round";
       ctx.beginPath();
 
       for (let i = 0; i < len; i++) {
@@ -317,6 +318,20 @@
         else ctx.lineTo(x, y);
       }
       ctx.stroke();
+
+      // For coarse FFT (256 bins or less), render small discrete vertex points on active bins
+      // This visually emphasizes the simpler, stepped resolution!
+      if (len <= 256) {
+        ctx.fillStyle = waveformColor;
+        for (let i = 0; i < len; i += 2) {
+          if (spec[i] > floor + 18) {
+            const x = leftPadding + (i / (len - 1)) * drawWidth;
+            const normY = 1 - (spec[i] - floor) / range;
+            const y = topPadding + Math.max(0, Math.min(drawHeight, normY * drawHeight));
+            ctx.fillRect(x - 1, y - 1, 2.5, 2.5);
+          }
+        }
+      }
       ctx.restore();
 
       // Update Cursor coordinate readout

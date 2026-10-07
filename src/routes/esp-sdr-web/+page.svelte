@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { onMount, onDestroy } from "svelte";
+  import { onMount, onDestroy, untrack } from "svelte";
   import Card from "$lib/components/Card.svelte";
   import StripeBar from "$lib/components/StripeBar.svelte";
   import HexGrid from "$lib/components/HexGrid.svelte";
@@ -17,8 +17,11 @@
   } from "$lib/esp-sdr/radioDriver";
   import Icon from "@iconify/svelte";
 
-  // Connection & Driver State
-  let driver = $state<EspSdrDriver | null>(null);
+  // Connection & Driver State (keep driver instance outside Svelte state tracking)
+  let driver: EspSdrDriver | null = null;
+  let isSimulating = $state(false);
+  let driverIdentity = $state("");
+  let hasSpec = $state(false);
   let connectionStatus = $state<"disconnected" | "connecting" | "connected" | "streaming" | "error">("disconnected");
   let isWebSerialSupported = $state(true);
   let latestFrame = $state<SpectrumFrame | null>(null);
@@ -82,12 +85,14 @@
     { label: "80M", rate: 80000000 },
     { label: "40M", rate: 40000000 },
     { label: "20M", rate: 20000000 },
+    { label: "16M", rate: 16000000 },
     { label: "10M", rate: 10000000 },
     { label: "8M",  rate: 8000000 },
     { label: "4M",  rate: 4000000 }
   ];
 
   const fftPresets = [
+    { label: "256", bins: 256 },
     { label: "512", bins: 512 },
     { label: "1024", bins: 1024 },
     { label: "2048", bins: 2048 },
@@ -137,6 +142,10 @@
     try {
       addLog("info", `Initiating WebSerial connection at ${baudRate / 1e6} MBaud...`);
       await driver.connect(baudRate);
+      if (driver) {
+        driverIdentity = driver.identity || "";
+        hasSpec = driver.hasSpec;
+      }
       if (driver.isConnected) {
         addLog("success", "Connection handshake completed! Starting RF spectrum stream...");
         await driver.startStream(config);
@@ -151,6 +160,7 @@
     try {
       addLog("info", "Disconnecting ESP-SDR...");
       await driver.disconnect();
+      isSimulating = false;
       addLog("success", "Device safely disconnected.");
     } catch (err: any) {
       addLog("error", `Disconnect error: ${err.message}`);
@@ -161,10 +171,12 @@
     if (!driver) return;
     if (driver.isSimulating) {
       driver.stopSimulation();
+      isSimulating = false;
       addLog("info", "Simulation stopped.");
     } else {
       addLog("info", "Starting synthetic 2.4 GHz WiFi simulation stream...");
       driver.startSimulation(config);
+      isSimulating = true;
     }
   }
 
@@ -182,7 +194,7 @@
 
   function handlePreset(f: number) {
     config.frequency = f;
-    if (driver && driver.isConnected) {
+    if (driver && driver.isConnected && !driver.isStreaming) {
       driver.tune(config.frequency, config.bandwidth).catch((err: any) => {
         addLog("error", `Tune failed (${f} MHz): ${err.message}`);
       });
@@ -190,25 +202,51 @@
     addLog("info", `Selected frequency: ${f} MHz`);
   }
 
-  // Update hardware tuning on parameter change
-  $effect(() => {
-    const f = config.frequency;
-    const bw = config.bandwidth;
-    if (driver && driver.isConnected && driver.isStreaming) {
-      driver.tune(f, bw).catch((err: any) => {
-        addLog("error", `Auto-tune error (${f} MHz): ${err.message}`);
-      });
+  function handleFftChange(bins: number) {
+    config.fft = bins;
+    // On ESP32 hardware on-chip SPEC mode, 80 MS/s only supports 256 bins!
+    // If user selects 1024 or 2048 at 80 MS/s, auto-adjust sample rate to 40 MS/s
+    if (driver?.isConnected && !driver?.isSimulating && config.rate === 80000000 && bins > 256) {
+      config.rate = 40000000;
+      addLog("info", `Sample rate adjusted to 40 MS/s to support FFT ${bins} bins (ESP32 on-chip DSP profile).`);
     }
-  });
+    addLog("info", `FFT Resolution set to ${bins} Bins`);
+  }
 
-  $effect(() => {
-    const gm = config.gainMode;
-    const g = config.gain;
-    if (driver && driver.isConnected && driver.isStreaming) {
-      driver.setGain(gm, g).catch((err: any) => {
-        addLog("error", `Gain adjustment error: ${err.message}`);
-      });
+  function handleRateChange(rate: number) {
+    config.rate = rate;
+    // On ESP32 hardware on-chip SPEC mode, 80 MS/s only supports 256 bins!
+    if (driver?.isConnected && !driver?.isSimulating && rate === 80000000 && config.fft > 256) {
+      config.fft = 256;
+      addLog("info", `FFT clamped to 256 Bins for 80 MS/s (ESP32 on-chip DSP profile).`);
     }
+    addLog("info", `Sample Rate set to ${rate / 1e6} MS/s`);
+  }
+
+  // Update hardware & driver on any configuration parameter change
+  $effect(() => {
+    const c = {
+      frequency: config.frequency,
+      rate: config.rate,
+      fft: config.fft,
+      bandwidth: config.bandwidth,
+      gainMode: config.gainMode,
+      gain: config.gain,
+      maxHold: config.maxHold,
+      dcMode: config.dcMode
+    };
+
+    untrack(() => {
+      if (driver) {
+        if (driver.isStreaming || driver.isSimulating) {
+          driver.updateConfig(c);
+        } else if (driver.isConnected) {
+          driver.tune(c.frequency, c.bandwidth).catch((err: any) => {
+            addLog("error", `Tune failed (${c.frequency} MHz): ${err.message}`);
+          });
+        }
+      }
+    });
   });
 
   let unhandledRejectionListener: ((event: PromiseRejectionEvent) => void) | null = null;
@@ -250,6 +288,14 @@
 
     driver.onStatusChange = (status) => {
       connectionStatus = status;
+      if (driver) {
+        driverIdentity = driver.identity || "";
+        hasSpec = driver.hasSpec;
+        isSimulating = driver.isSimulating;
+      }
+      if (status === "disconnected") {
+        isSimulating = false;
+      }
     };
 
     driver.onDeviceInfo = (info) => {
@@ -258,6 +304,11 @@
 
     driver.onStats = (stats) => {
       deviceStats = stats;
+    };
+
+    driver.onConfigAdjusted = (adj) => {
+      config.rate = adj.rate;
+      config.fft = adj.fft;
     };
 
     if (!isWebSerialSupported) {
@@ -352,7 +403,7 @@
                   <tbody>
                     <tr>
                       <td class="text-left py-[1.5px] text-orange font-semibold">CHIP</td>
-                      <td class="text-right py-[1.5px] font-bold truncate max-w-[125px]" title={deviceInfo?.chipModel || driver?.identity || "ESP32-SDR"}>
+                      <td class="text-right py-[1.5px] font-bold truncate max-w-[125px]" title={deviceInfo?.chipModel || driverIdentity || "ESP32-SDR"}>
                         {#if deviceInfo?.connected}
                           <span class="{deviceInfo.simulated ? 'text-[#fa0]' : 'text-red'} flex items-center justify-end gap-1">
                             {deviceInfo.chipModel}
@@ -523,10 +574,10 @@
 
               <button
                 type="button"
-                class="ews-btn {driver?.isSimulating ? 'ews-btn-alert' : 'ews-btn-outline'} flex items-center justify-center gap-1 text-xs cursor-pointer"
+                class="ews-btn {isSimulating ? 'ews-btn-alert' : 'ews-btn-outline'} flex items-center justify-center gap-1 text-xs cursor-pointer"
                 onclick={handleToggleSimulation}
               >
-                {driver?.isSimulating ? "STOP" : "DEMO"}
+                {isSimulating ? "STOP" : "DEMO"}
               </button>
 
               <button
@@ -624,6 +675,14 @@
             <!-- Active Settings Quick Display -->
             <div class="grid grid-cols-2 gap-1.5 text-xs">
               <div class="p-1.5 bg-[#0b1013] border border-[#22333d] rounded">
+                <div class="text-[10px] text-orange">FFT BINS</div>
+                <div class="text-[#fa0] font-bold text-[11px]">{config.fft} Bins</div>
+              </div>
+              <div class="p-1.5 bg-[#0b1013] border border-[#22333d] rounded">
+                <div class="text-[10px] text-orange">SAMPLE RATE</div>
+                <div class="text-[#fa0] font-bold text-[11px]">{config.rate / 1e6} MS/s</div>
+              </div>
+              <div class="p-1.5 bg-[#0b1013] border border-[#22333d] rounded">
                 <div class="text-[10px] text-orange">dBFS RANGE</div>
                 <div class="text-[#fa0] font-bold text-[11px]">{config.floor} → {ceilingDbfs} dBFS</div>
               </div>
@@ -677,7 +736,7 @@
           centerFreqMhz={config.frequency}
           sampleRateHz={config.rate}
           bins={config.fft}
-          modeName={latestFrame?.mode || (driver?.hasSpec ? "SPEC on-chip" : "Burst IQ")}
+          modeName={latestFrame?.mode || (hasSpec ? "SPEC on-chip" : "Burst IQ")}
           deviceInfo={deviceInfo}
           deviceStats={deviceStats}
         />
@@ -783,58 +842,61 @@
 
       <div class="flex flex-col gap-4 w-full p-3 font-mono text-xs">
         <!-- Sample Rate / Capture Span (Kotak Lebih Tinggi, Orange Default, Red Selected) -->
-            <div class="flex flex-col gap-1.5 pt-2 border-t border-[#1c2930]">
-              <div class="flex justify-between items-center text-[10px] font-mono text-orange uppercase px-1">
-                <p class="text-[#fa0] font-bold uppercase tracking-widest text-xs">Sample Rate / Capture Span:</p>
-                <span class="text-[#fa0] font-bold">{config.rate / 1e6} MS/s</span>
-              </div>
-              <div class="grid grid-cols-4 gap-1.5">
-                {#each ratePresets as r}
-                  <button
-                    type="button"
-                    class="h-8 flex flex-col items-center justify-center font-mono text-[10px] transition-all cursor-pointer {config.rate === r.rate
-                      ? 'bg-red text-white'
-                      : 'bg-orange text-black hover:bg-[#fa0]/30 font-bold'}"
-                    onclick={() => (config.rate = r.rate)}
-                  >
-                    <span class="leading-tight font-bold">{r.label}</span>
-                    <span class="text-[8px] opacity-80">{r.rate / 1e6}M</span>
-                  </button>
-                {/each}
-              </div>
-            </div>
+        <div class="flex flex-col gap-1.5 pt-2 border-t border-[#1c2930]">
+          <div class="flex justify-between items-center text-[10px] font-mono text-orange uppercase px-1">
+            <p class="text-[#fa0] font-bold uppercase tracking-widest text-xs">Sample Rate / Capture Span:</p>
+            <span class="text-[#fa0] font-bold">{config.rate / 1e6} MS/s</span>
+          </div>
+          <div class="grid grid-cols-4 md:grid-cols-7 gap-1.5">
+            {#each ratePresets as r}
+              <button
+                type="button"
+                class="h-8 flex flex-col items-center justify-center font-mono text-[10px] transition-all cursor-pointer {config.rate === r.rate
+                  ? 'bg-red text-white'
+                  : 'bg-orange text-black hover:bg-[#fa0]/30 font-bold'}"
+                onclick={() => handleRateChange(r.rate)}
+              >
+                <span class="leading-tight font-bold">{r.label}</span>
+                <span class="text-[8px] opacity-80">{r.rate / 1e6}M</span>
+              </button>
+            {/each}
+          </div>
+        </div>
 
-            <!-- FFT Resolution & Hold (Kotak Lebih Tinggi, Orange Default, Red Selected) -->
-            <div class="flex flex-col gap-1.5 pt-2 border-t border-[#1c2930]">
-              <div class="flex justify-between items-center text-[10px] font-mono text-orange uppercase px-1">
-                <p class="text-[#fa0] font-bold uppercase tracking-widest text-xs">FFT Resolution & Hold</p>
-                <span class="text-[#fa0] font-bold">{config.fft} Bins</span>
-              </div>
-              <div class="grid grid-cols-4 gap-1.5">
-                {#each fftPresets as f}
-                  <button
-                    type="button"
-                    class="h-8 flex flex-col items-center justify-center font-mono text-[10px] transition-all cursor-pointer {config.fft === f.bins
-                      ? 'bg-red text-white'
-                      : 'bg-orange text-black hover:bg-[#fa0]/30 font-bold'}"
-                    onclick={() => (config.fft = f.bins)}
-                  >
-                    <span class="leading-tight font-bold">{f.label}</span>
-                    <span class="text-[8px] opacity-80">Bins</span>
-                  </button>
-                {/each}
-                <button
-                  type="button"
-                  class="h-8 flex flex-col items-center justify-center font-mono text-[10px] transition-all cursor-pointer {config.maxHold
-                    ? 'bg-red text-white'
-                    : 'bg-orange text-black hover:bg-[#fa0]/30 font-bold'}"
-                  onclick={() => (config.maxHold = !config.maxHold)}
-                >
-                  <span class="leading-tight font-bold">MAX</span>
-                  <span class="text-[8px] opacity-80">{config.maxHold ? 'ON' : 'OFF'}</span>
-                </button>
-              </div>
-            </div>
+        <!-- FFT Resolution & Hold (Kotak Lebih Tinggi, Orange Default, Red Selected) -->
+        <div class="flex flex-col gap-1.5 pt-2 border-t border-[#1c2930]">
+          <div class="flex justify-between items-center text-[10px] font-mono text-orange uppercase px-1">
+            <p class="text-[#fa0] font-bold uppercase tracking-widest text-xs">FFT Resolution & Hold</p>
+            <span class="text-[#fa0] font-bold">{config.fft} Bins</span>
+          </div>
+          <div class="grid grid-cols-3 md:grid-cols-6 gap-1.5">
+            {#each fftPresets as f}
+              <button
+                type="button"
+                class="h-8 flex flex-col items-center justify-center font-mono text-[10px] transition-all cursor-pointer {config.fft === f.bins
+                  ? 'bg-red text-white'
+                  : 'bg-orange text-black hover:bg-[#fa0]/30 font-bold'}"
+                onclick={() => handleFftChange(f.bins)}
+              >
+                <span class="leading-tight font-bold">{f.label}</span>
+                <span class="text-[8px] opacity-80">Bins</span>
+              </button>
+            {/each}
+            <button
+              type="button"
+              class="h-8 flex flex-col items-center justify-center font-mono text-[10px] transition-all cursor-pointer {config.maxHold
+                ? 'bg-red text-white'
+                : 'bg-orange text-black hover:bg-[#fa0]/30 font-bold'}"
+              onclick={() => {
+                config.maxHold = !config.maxHold;
+                addLog("info", `Max Hold: ${config.maxHold ? 'ENABLED' : 'DISABLED'}`);
+              }}
+            >
+              <span class="leading-tight font-bold">MAX</span>
+              <span class="text-[8px] opacity-80">{config.maxHold ? 'ON' : 'OFF'}</span>
+            </button>
+          </div>
+        </div>
         <!-- Section 1: Presets & Grid -->
         <!-- <div class="flex flex-col gap-2">
           <p class="text-[#fa0] font-bold uppercase tracking-widest text-xs">WiFi Channels & Frequency Band (Grid Select):</p>
@@ -977,7 +1039,7 @@
             </div>
             <div>
               <span class="text-[#546e7a] block text-[10px]">FIRMWARE IDENTITY (INFO):</span>
-              <span class="text-[#fa0] font-bold">{deviceInfo?.rawIdentity || driver?.identity || "ESP32SDR"}</span>
+              <span class="text-[#fa0] font-bold">{deviceInfo?.rawIdentity || driverIdentity || "ESP32SDR"}</span>
             </div>
             <div>
               <span class="text-[#546e7a] block text-[10px]">PROTOCOL VERSION & BUFFER:</span>

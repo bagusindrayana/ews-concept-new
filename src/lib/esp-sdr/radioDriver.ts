@@ -527,7 +527,11 @@ export class EspSdrDriver {
   transport: string = 'UART';
   hasSpec: boolean = false;
   hasSpecN: boolean = false;
+  hasSpecStats: boolean = false;
   hasGain: boolean = false;
+  activeConfig: CaptureConfig | null = null;
+  simConfig: CaptureConfig | null = null;
+  private pendingConfigChange: boolean = false;
   specCapabilities: any = null;
   tuneRange: [number, number] | null = null;
   portInfo: { usbVendorId?: number; usbProductId?: number } = {};
@@ -543,6 +547,7 @@ export class EspSdrDriver {
   isStreaming: boolean = false;
   isSimulating: boolean = false;
   simTimer: any = null;
+  simStartTime: number = 0;
 
   // Measurement stats
   sequence: number = 0;
@@ -564,8 +569,17 @@ export class EspSdrDriver {
   onStatusChange?: (status: 'disconnected' | 'connecting' | 'connected' | 'streaming' | 'error') => void;
   onDeviceInfo?: (info: EspDeviceInfo | null) => void;
   onStats?: (stats: EspDeviceStats | null) => void;
+  onConfigAdjusted?: (config: CaptureConfig) => void;
 
   constructor() {}
+
+  spectrumProfiles(rate?: number): number[][] {
+    const list: number[][] = this.specCapabilities?.profiles || [];
+    if (rate !== undefined) {
+      return list.filter((p: any) => p[0] === rate);
+    }
+    return list;
+  }
 
   static isSupported(): boolean {
     return typeof navigator !== 'undefined' && 'serial' in navigator;
@@ -580,7 +594,12 @@ export class EspSdrDriver {
       type,
       message
     };
-    this.onLog?.(entry);
+    if (this.onLog) {
+      const cb = this.onLog;
+      queueMicrotask(() => {
+        try { cb(entry); } catch {}
+      });
+    }
   }
 
   private notifyWake() {
@@ -770,6 +789,7 @@ export class EspSdrDriver {
     this.capsList = capTokens;
     this.hasSpec = capTokens.includes('SPEC');
     this.hasSpecN = capTokens.includes('SPECN');
+    this.hasSpecStats = capTokens.includes('SPECSTAT');
     this.hasGain = capTokens.includes('GAIN');
 
     if (capTokens.includes('UARTBAUD')) {
@@ -815,6 +835,14 @@ export class EspSdrDriver {
         }
       } else if (this.family === 'S3') {
         const profiles = [[16000000, 6, 256, 4, 1], [40000000, 1, 256, 12, 3], [80000000, 0, 256, 48, 5]];
+        if (this.hasSpecN) {
+          profiles.push(
+            [16000000, 6, 1024, 8, 4],
+            [16000000, 6, 2048, 6, 8],
+            [40000000, 1, 1024, 18, 10],
+            [40000000, 1, 2048, 10, 20]
+          );
+        }
         this.specCapabilities = { continuous: true, transports: ['USB'], profiles };
       }
     }
@@ -937,22 +965,22 @@ export class EspSdrDriver {
   }
 
   async tune(frequency: number, bandwidth = 0) {
-    if (!this.isConnected) return;
+    if (!this.isConnected && !this.isSimulating) return;
+    if (this.isSimulating) {
+      this.log('info', `Simulating tune to ${frequency} MHz...`);
+      return;
+    }
+    if (this.isStreaming) {
+      this.updateConfig({ frequency, bandwidth });
+      return;
+    }
     try {
       this.log('info', `Tuning frequency to ${frequency} MHz (bandwidth: ${bandwidth} MHz)...`);
       await this.command(`FREQ ${frequency}`);
-      if (!this.isStreaming) {
+      await this.line('OK');
+      if (bandwidth > 0) {
+        await this.command(`BANDWIDTH ${bandwidth}`);
         await this.line('OK');
-        if (bandwidth > 0) {
-          await this.command(`BANDWIDTH ${bandwidth}`);
-          await this.line('OK');
-        }
-      } else {
-        // While streaming, the ESP32 receives the command and updates PLL on-the-fly.
-        // Awaiting line('OK') would consume binary spectrum frame bytes and fail.
-        if (bandwidth > 0) {
-          await this.command(`BANDWIDTH ${bandwidth}`);
-        }
       }
       this.log('success', `Frequency tuned to ${frequency} MHz.`);
     } catch (err: any) {
@@ -962,17 +990,50 @@ export class EspSdrDriver {
   }
 
   async setGain(mode = 'HARDWARE', code = 40): Promise<{ mode: string; index: number | null }> {
-    if (!this.isConnected || !this.hasGain) return { mode: 'HARDWARE', index: null };
+    if ((!this.isConnected && !this.isSimulating) || !this.hasGain) return { mode: 'HARDWARE', index: null };
+    if (this.isStreaming) {
+      this.updateConfig({ gainMode: mode, gain: code });
+      return { mode, index: mode === 'MANUAL' ? code : null };
+    }
     try {
       const setting = mode === 'MANUAL' ? `MANUAL ${code}` : mode;
       await this.command(`GAIN ${setting}`);
-      if (!this.isStreaming) {
-        await this.line('OK');
-      }
+      await this.line('OK');
       return { mode, index: mode === 'MANUAL' ? code : null };
     } catch (err: any) {
       this.log('error', `Set gain error (${mode}): ${err.message}`);
       return { mode: 'HARDWARE', index: null };
+    }
+  }
+
+  /**
+   * Update active streaming parameters on-the-fly without crashing serial connection
+   */
+  updateConfig(newConfig: Partial<CaptureConfig>) {
+    if (this.isSimulating) {
+      if (this.simConfig) {
+        const oldFft = this.simConfig.fft;
+        Object.assign(this.simConfig, newConfig);
+        if (newConfig.fft && this.smoothedTrace && this.smoothedTrace.length !== newConfig.fft) {
+          this.smoothedTrace = null;
+          this.maxHoldTrace = null;
+        }
+        if (newConfig.fft && newConfig.fft !== oldFft && this.simTimer) {
+          clearInterval(this.simTimer);
+          this.simTimer = setInterval(() => this.runSimulationStep(), this.getSimInterval(this.simConfig.fft));
+        }
+      }
+      this.log('info', `Simulation config updated: FFT=${this.simConfig?.fft} Bins, Freq=${this.simConfig?.frequency} MHz, Rate=${(this.simConfig?.rate || 0) / 1e6} MS/s`);
+      return;
+    }
+    if (this.activeConfig) {
+      Object.assign(this.activeConfig, newConfig);
+      this.pendingConfigChange = true;
+      if (newConfig.fft && this.smoothedTrace && this.smoothedTrace.length !== newConfig.fft) {
+        this.smoothedTrace = null;
+        this.maxHoldTrace = null;
+      }
+      this.log('info', `Hardware config updated: FFT=${this.activeConfig.fft} Bins, Freq=${this.activeConfig.frequency} MHz, Rate=${this.activeConfig.rate / 1e6} MS/s`);
     }
   }
 
@@ -985,106 +1046,199 @@ export class EspSdrDriver {
     }
     if (this.isStreaming) {
       this.stopStream();
+      await yieldTask();
     }
 
-    this.isStreaming = false;
+    this.activeConfig = { ...config };
+    this.pendingConfigChange = false;
+    this.isStreaming = true;
+    this.onStatusChange?.('streaming');
     this.log('info', `Starting spectrum stream: Freq=${config.frequency}MHz, Rate=${config.rate / 1e6}MS/s, FFT=${config.fft}...`);
 
     this.run(async () => {
-      try {
-        await this.tune(config.frequency, config.bandwidth);
-        const gainActual = await this.setGain(config.gainMode, config.gain);
+      while (this.isStreaming && this.isConnected) {
+        if (!this.activeConfig) break;
+        const currentConfig = { ...this.activeConfig };
+        this.pendingConfigChange = false;
 
-        const canSpec = this.hasSpec && this.specCapabilities;
-        if (canSpec) {
-          // On-Chip spectrum streaming
-          this.log('success', 'Using hardware on-chip FFT spectrum mode (SPEC).');
-          const n = config.fft;
-          const decoder = new SpectrumDecoder(n);
+        try {
+          // 1. Tune frequency & gain while device is between stream frames
+          await this.command(`FREQ ${currentConfig.frequency}`);
+          await this.line('OK');
+          if (currentConfig.bandwidth > 0) {
+            await this.command(`BANDWIDTH ${currentConfig.bandwidth}`);
+            await this.line('OK');
+          }
 
-          await this.command(`SPEC 0 1 1 ${config.maxHold ? 1 : 0} 0 ${this.hasSpecN ? n : ''}`);
-          const head = (await this.line('SPEC ')).split(' ');
-          this.log('info', `SPEC header: ${head.join(' ')}`);
+          let gainActual: { mode: string; index: number | null } = {
+            mode: currentConfig.gainMode,
+            index: currentConfig.gainMode === 'MANUAL' ? currentConfig.gain : null
+          };
+          if (this.hasGain) {
+            const setting = currentConfig.gainMode === 'MANUAL' ? `MANUAL ${currentConfig.gain}` : currentConfig.gainMode;
+            await this.command(`GAIN ${setting}`);
+            await this.line('OK');
+          }
 
-          let count = 0;
-          this.lastFpsTimestamp = performance.now();
-          this.fpsCounter = 0;
+          const canSpec = this.hasSpec && this.specCapabilities;
+          if (canSpec) {
+            // On-Chip spectrum streaming: validate requested rate & FFT against chip DSP profile table
+            const allProfiles = this.spectrumProfiles();
+            let profile = allProfiles.filter((p: any) => p[0] === currentConfig.rate).find((p: any) => p[2] === currentConfig.fft);
 
-          // Stream is now fully prepared and active
-          this.isStreaming = true;
-          this.onStatusChange?.('streaming');
-
-          while (this.isStreaming && this.isConnected) {
-            if ((++count & 15) === 0) await yieldTask();
-            const chunk = await this.read(Math.max(1, Math.min(this.queued, 8192)), performance.now() + 5000);
-            const events = decoder.feed(chunk);
-
-            for (const ev of events) {
-              if (ev.stats) {
-                this.deviceStats = {
-                  core0Load: ev.stats.core0,
-                  core1Load: ev.stats.core1,
-                  coverage: ev.stats.coverage,
-                  heapFree: ev.stats.heapFree,
-                  fftsPerSec: ev.stats.fftsPerS,
-                  updatedAt: Date.now()
-                };
-                this.onStats?.(this.deviceStats);
-              }
-              if (ev.header && ev.bins) {
-                const s = specToDbfs(ev.bins, ev.header.step, n, config.dcMode);
-                this.handleProcessedSpectrum(s, config, gainActual, 'SPEC on-chip');
+            if (!profile) {
+              // 1. Check if another rate supports the requested FFT size (e.g. 40 MS/s or 16 MS/s supports 1024 / 2048)
+              const alt = allProfiles.find((p: any) => p[2] === currentConfig.fft);
+              if (alt) {
+                profile = alt;
+                currentConfig.rate = alt[0];
+                if (this.activeConfig) this.activeConfig.rate = alt[0];
+                this.log('info', `Adjusted sample rate to ${alt[0] / 1e6} MS/s to match FFT ${currentConfig.fft} profile on ${this.family || 'ESP32'}.`);
+                this.onConfigAdjusted?.({ ...currentConfig });
+              } else {
+                // 2. FFT size is not in chip profiles at all (e.g. 512 or 4096 in hardware on-chip mode)
+                const rateProfiles = allProfiles.filter((p: any) => p[0] === currentConfig.rate);
+                if (rateProfiles.length > 0) {
+                  profile = rateProfiles.reduce((prev: any, curr: any) =>
+                    Math.abs(curr[2] - currentConfig.fft) < Math.abs(prev[2] - currentConfig.fft) ? curr : prev,
+                    rateProfiles[0]
+                  );
+                  this.log('warn', `FFT ${currentConfig.fft} not supported on-chip at ${currentConfig.rate / 1e6} MS/s. Using closest supported: ${profile[2]} bins.`);
+                } else if (allProfiles.length > 0) {
+                  profile = allProfiles[0];
+                  currentConfig.rate = profile[0];
+                  if (this.activeConfig) this.activeConfig.rate = profile[0];
+                  this.log('warn', `Switched to supported profile: ${profile[0] / 1e6} MS/s, FFT ${profile[2]} bins.`);
+                } else {
+                  profile = [currentConfig.rate, 0, 256, 48, 5];
+                }
+                currentConfig.fft = profile[2];
+                if (this.activeConfig) this.activeConfig.fft = profile[2];
+                this.onConfigAdjusted?.({ ...currentConfig });
               }
             }
-          }
-        } else {
-          // Burst raw IQ streaming
-          this.log('info', 'Using Burst IQ capture with browser FFT.');
-          const divider = Math.max(0, [80000000, 40000000, 20000000, 10000000, 8000000, 4000000].indexOf(config.rate));
 
-          this.isStreaming = true;
-          this.onStatusChange?.('streaming');
+            const specBins = profile[2];
+            const divider = profile[1];
+            const step = profile[3];
+            const profileUpf = profile[4];
+            const upf = Math.min(1000, Math.max(profileUpf || 1, 1));
+            const n = specBins;
+            const decoder = new SpectrumDecoder(n);
 
-          while (this.isStreaming && this.isConnected) {
+            await this.command(`SPEC 0 ${step} ${upf} ${currentConfig.maxHold ? 1 : 0} ${divider}${this.hasSpecN ? ' ' + specBins : ''}${this.hasSpecN && this.hasSpecStats ? ' 1' : ''}`);
+            const head = (await this.line('SPEC ')).split(' ');
+            this.log('success', `Active spectrum tuned to ${currentConfig.frequency} MHz (SPEC on-chip, FFT ${specBins} bins @ ${currentConfig.rate / 1e6} MS/s).`);
+
+            let count = 0;
+            let ended = false;
+            let stopping = false;
+
+            while (!ended && this.isStreaming && this.isConnected) {
+              if ((++count & 15) === 0) await yieldTask();
+
+              // Check if user changed any tuning/filter settings
+              const changed = this.pendingConfigChange || (this.activeConfig && (
+                this.activeConfig.frequency !== currentConfig.frequency ||
+                this.activeConfig.rate !== currentConfig.rate ||
+                this.activeConfig.fft !== currentConfig.fft ||
+                this.activeConfig.gainMode !== currentConfig.gainMode ||
+                this.activeConfig.gain !== currentConfig.gain ||
+                this.activeConfig.bandwidth !== currentConfig.bandwidth
+              ));
+
+              if (!stopping && (!this.isStreaming || !this.isConnected || changed)) {
+                stopping = true;
+                // An empty line halts hardware SPEC stream and returns SPECEND report
+                await this.command('');
+              }
+
+              const chunk = await this.read(Math.max(1, Math.min(this.queued, 8192)), performance.now() + 5000);
+              const events = decoder.feed(chunk);
+
+              for (const ev of events) {
+                if (ev.report) {
+                  ended = true;
+                  break;
+                }
+                if (ev.stats) {
+                  this.deviceStats = {
+                    core0Load: ev.stats.core0,
+                    core1Load: ev.stats.core1,
+                    coverage: ev.stats.coverage,
+                    heapFree: ev.stats.heapFree,
+                    fftsPerSec: ev.stats.fftsPerS,
+                    updatedAt: Date.now()
+                  };
+                  this.onStats?.(this.deviceStats);
+                }
+                if (ev.header && ev.bins) {
+                  const s = specToDbfs(ev.bins, ev.header.step, n, currentConfig.dcMode);
+                  this.handleProcessedSpectrum(s, currentConfig, gainActual, 'SPEC on-chip');
+                }
+              }
+            }
+
+            // Drain any pending trailing bytes after stopping until SPECEND is consumed
+            if (!ended && this.isConnected && this.writer) {
+              try {
+                await this.command('');
+                const deadline = performance.now() + 2000;
+                while (!ended) {
+                  const chunk = await this.read(Math.max(1, Math.min(this.queued, 8192)), deadline);
+                  const events = decoder.feed(chunk);
+                  ended = events.some((e: any) => e.report);
+                }
+              } catch {
+                // Drain boundary reached
+              }
+            }
+          } else {
+            // Burst raw IQ streaming
+            const divider = Math.max(0, [80000000, 40000000, 20000000, 10000000, 8000000, 4000000].indexOf(currentConfig.rate));
             const startT = performance.now();
-            const n = config.fft;
-            await this.command(`CAP${config.bits * 2} ${n} ${divider}`);
+            const n = currentConfig.fft;
+            await this.command(`CAP${currentConfig.bits * 2} ${n} ${divider}`);
             const header = await this.line();
             const h = /^DATA (\d+) ([0-9a-fA-F]{1,8}) (\d+)$/.exec(header);
-            if (!h) continue;
+            if (h) {
+              const byteCount = Math.ceil(n * currentConfig.bits * 2 / 8);
+              const bytes = await this.read(byteCount, performance.now() + 5000, 500);
+              const crcValid = crc32(bytes) === parseInt(h[2], 16);
 
-            const byteCount = Math.ceil(n * config.bits * 2 / 8);
-            const bytes = await this.read(byteCount, performance.now() + 5000, 500);
-            const crcValid = crc32(bytes) === parseInt(h[2], 16);
+              const iq = new Float32Array(n * 2);
+              for (let j = 0; j < n; j++) {
+                let i = bytes[j * 2], q = bytes[j * 2 + 1];
+                if (i >= 128) i -= 256;
+                if (q >= 128) q -= 256;
+                iq[2 * j] = (i * 4) / 512;
+                iq[2 * j + 1] = -(q * 4) / 512;
+              }
 
-            // Unpack IQ samples
-            const iq = new Float32Array(n * 2);
-            for (let j = 0; j < n; j++) {
-              let i = bytes[j * 2], q = bytes[j * 2 + 1];
-              if (i >= 128) i -= 256;
-              if (q >= 128) q -= 256;
-              iq[2 * j] = (i * 4) / 512;
-              iq[2 * j + 1] = -(q * 4) / 512;
+              const ps = computeSpectrum(iq, n);
+              const elapsed = performance.now() - startT;
+              this.handleProcessedSpectrum(ps, currentConfig, gainActual, 'Burst IQ', elapsed, crcValid);
             }
-
-            const ps = computeSpectrum(iq, n);
-            const elapsed = performance.now() - startT;
-
-            this.handleProcessedSpectrum(ps, config, gainActual, 'Burst IQ', elapsed, crcValid);
             await yieldTask();
           }
+        } catch (err: any) {
+          if (!this.isStreaming) break;
+          this.log('error', `Streaming error: ${err.message}`);
+          await new Promise(r => setTimeout(r, 600));
         }
-      } catch (err: any) {
-        this.log('error', `Streaming error: ${err.message}`);
-        this.stopStream();
+      }
+
+      if (this.isConnected) {
+        this.onStatusChange?.('connected');
       }
     }).catch((err: any) => {
-      this.log('error', `Stream background task error: ${err.message}`);
+      this.log('error', `Stream coordinator error: ${err.message}`);
     });
   }
 
   stopStream() {
     this.isStreaming = false;
+    this.pendingConfigChange = false;
     if (this.isConnected) {
       this.command('').catch(() => {});
       this.onStatusChange?.('connected');
@@ -1205,112 +1359,131 @@ export class EspSdrDriver {
       hasSpecN: true,
       hasGain: true,
       tuneRange: [2400, 5850],
-      specCapabilities: { continuous: true, transports: ['USB'], profiles: [[16000000, 6, 256, 4, 1], [40000000, 1, 256, 12, 3], [80000000, 0, 256, 48, 5]] },
+      specCapabilities: {
+        continuous: true,
+        transports: ['USB'],
+        profiles: [
+          [16000000, 6, 256, 4, 1],
+          [16000000, 6, 1024, 8, 4],
+          [16000000, 6, 2048, 6, 8],
+          [40000000, 1, 256, 12, 3],
+          [40000000, 1, 1024, 18, 10],
+          [40000000, 1, 2048, 10, 20],
+          [80000000, 0, 256, 48, 5]
+        ]
+      },
       rxLimits: 'GAIN 0-60dB BW 20-80MHz'
     };
     this.onDeviceInfo?.(this.deviceInfo);
 
-    const n = config.fft;
-    let simSequence = 0;
-    let simFpsCount = 0;
-    let simLastFpsT = performance.now();
-    let simFps = 45;
+    this.simConfig = { ...config };
+    this.simStartTime = performance.now();
+    const interval = this.getSimInterval(this.simConfig.fft);
+    this.simTimer = setInterval(() => this.runSimulationStep(), interval);
+  }
 
-    // Pre-create synthetic baseline
-    this.simTimer = setInterval(() => {
-      if (!this.isSimulating) return;
+  private getSimInterval(fft: number): number {
+    switch (fft) {
+      case 256: return 11;   // ~90 FPS - very fast waterfall scroll, simple stepped waveform!
+      case 512: return 18;   // ~55 FPS
+      case 1024: return 30;  // ~33 FPS
+      case 2048: return 50;  // ~20 FPS - slow waterfall scroll, smooth high-res waveform
+      case 4096: return 85;  // ~12 FPS - slowest waterfall
+      default: return 30;
+    }
+  }
 
-      const simRaw = new Float32Array(n);
-      const centerBin = Math.floor(n / 2);
-      const spanBins = Math.floor(n * 0.32); // Wi-Fi channel span
+  private runSimulationStep() {
+    if (!this.isSimulating || !this.simConfig) return;
 
-      const timeSec = performance.now() / 1000;
-      // WiFi channel activity pulsing
-      const burstActive = Math.sin(timeSec * 5) > -0.2 || Math.random() < 0.35;
-      const burstPower = burstActive ? -42 + Math.random() * 6 : -74;
+    const cfg = this.simConfig;
+    const n = cfg.fft;
+    const rateMhz = (cfg.rate || 80000000) / 1e6;
+    const freq = cfg.frequency || 2412;
 
-      for (let i = 0; i < n; i++) {
-        // Noise floor around -88 dBFS with rich speckled variance
-        const noise = -88 + (Math.random() - 0.5) * 5;
-        const distFromCenter = Math.abs(i - centerBin);
+    const simRaw = new Float32Array(n);
+    const centerBin = Math.floor(n / 2);
 
-        // 22 MHz Wi-Fi OFDM shape (Channel 1, 2401 to 2423 MHz)
-        let signal = -120;
-        const halfChanBins = Math.floor(n * (11 / 80)); // 11 MHz on each side = 22 MHz channel
-        if (distFromCenter <= halfChanBins * 1.5) {
-          const normDist = distFromCenter / halfChanBins;
-          let shape = 0;
-          if (normDist <= 0.85) {
-            // Flat top with OFDM ripples
-            shape = 1.0 - (normDist ** 2) * 0.15 + (Math.sin(i * 0.8) * 0.05);
-          } else {
-            // Steep spectral mask skirt
-            shape = Math.max(0, 1.0 - (normDist - 0.85) * 1.5);
-          }
-          const basePower = burstActive ? -48 : -68;
-          signal = basePower * shape - (1 - shape) * 88 + (Math.random() - 0.5) * 4;
+    const timeSec = (performance.now() - this.simStartTime) / 1000;
+    // WiFi channel activity pulsing
+    const burstActive = Math.sin(timeSec * 5) > -0.2 || Math.random() < 0.35;
+
+    for (let i = 0; i < n; i++) {
+      // Noise floor with slight processing gain factor
+      const baseNoise = -96 + 10 * Math.log10(2048 / Math.max(64, n));
+      const noise = baseNoise + (Math.random() - 0.5) * 5;
+      const distFromCenter = Math.abs(i - centerBin);
+
+      // 22 MHz Wi-Fi OFDM shape (Channel 1, 2401 to 2423 MHz)
+      let signal = -120;
+      const halfChanBins = Math.floor(n * (11 / rateMhz));
+      if (distFromCenter <= halfChanBins * 1.5) {
+        const normDist = distFromCenter / Math.max(1, halfChanBins);
+        let shape = 0;
+        if (normDist <= 0.85) {
+          // At lower FFT (256/512): subcarriers blend together into a simple, flat trapezoid
+          // At higher FFT (1024/2048/4096): fine individual OFDM subcarrier ripples are resolved!
+          const ripples = n >= 1024 ? (Math.sin(i * 0.8) * 0.06 + Math.sin(i * 0.25) * 0.04) : 0;
+          shape = 1.0 - (normDist ** 2) * 0.15 + ripples;
+        } else {
+          // Steep spectral mask skirt
+          shape = Math.max(0, 1.0 - (normDist - 0.85) * 1.5);
         }
-
-        // Persistent CW carrier line at 2400 MHz (like the bright vertical yellow line in user image)
-        let carrier2400 = -120;
-        const bin2400 = centerBin - Math.floor(n * (12 / 80)); // -12 MHz from 2412 = 2400 MHz
-        if (Math.abs(i - bin2400) <= 1) {
-          carrier2400 = -26 + (Math.random() - 0.5) * 2;
-        }
-
-        // Center DC leakage / LO carrier spike at 2412 MHz
-        let dcSpike = -120;
-        if (distFromCenter <= 1 && config.dcMode !== 'fill') {
-          dcSpike = -22 + (Math.random() - 0.5) * 3;
-        }
-
-        // Occasional subcarrier burst lines
-        let burstSub = -120;
-        if (burstActive && Math.random() < 0.15 && distFromCenter < halfChanBins) {
-          burstSub = -36 + Math.random() * 6;
-        }
-
-        const maxLinear =
-          10 ** (noise / 10) +
-          10 ** (signal / 10) +
-          10 ** (carrier2400 / 10) +
-          10 ** (dcSpike / 10) +
-          10 ** (burstSub / 10);
-        simRaw[i] = 10 * Math.log10(Math.max(1e-14, maxLinear));
+        const basePower = burstActive ? -48 : -68;
+        signal = basePower * shape - (1 - shape) * 88 + (Math.random() - 0.5) * 4;
       }
 
-      simFpsCount++;
-      const now = performance.now();
-      if (now - simLastFpsT >= 1000) {
-        simFps = simFpsCount;
-        simFpsCount = 0;
-        simLastFpsT = now;
+      // Persistent CW carrier line at 2400 MHz
+      let carrier2400 = -120;
+      const bin2400 = centerBin - Math.floor(n * ((freq - 2400) / rateMhz));
+      if (Math.abs(i - bin2400) <= (n >= 1024 ? 1 : 0)) {
+        carrier2400 = -26 + (Math.random() - 0.5) * 2;
       }
 
-      // Simulated on-chip ESP hardware stats
-      if (Math.random() < 0.25) {
-        const core0 = Math.min(100, Math.max(5, Math.round((38 + Math.sin(timeSec * 2) * 9 + Math.random() * 5) * 10) / 10));
-        const core1 = Math.min(100, Math.max(3, Math.round((14 + Math.cos(timeSec * 1.5) * 6 + Math.random() * 4) * 10) / 10));
-        this.deviceStats = {
-          core0Load: core0,
-          core1Load: core1,
-          coverage: Math.round((98.2 + Math.random() * 1.5) * 10) / 10,
-          heapFree: 284160 + Math.floor(Math.sin(timeSec) * 2048),
-          fftsPerSec: 320 + Math.floor(Math.random() * 12),
-          updatedAt: Date.now()
-        };
-        this.onStats?.(this.deviceStats);
+      // Center DC leakage / LO carrier spike at 2412 MHz
+      let dcSpike = -120;
+      if (distFromCenter <= 1 && cfg.dcMode !== 'fill') {
+        dcSpike = -22 + (Math.random() - 0.5) * 3;
       }
 
-      this.handleProcessedSpectrum(
-        simRaw,
-        config,
-        { mode: 'HARDWARE', index: null },
-        'Simulation (WiFi 2.4G)',
-        15,
-        true
-      );
-    }, 25); // ~40 FPS
+      // Occasional subcarrier burst lines
+      let burstSub = -120;
+      if (burstActive && Math.random() < 0.15 && distFromCenter < halfChanBins && n >= 512) {
+        burstSub = -36 + Math.random() * 6;
+      }
+
+      const maxLinear =
+        10 ** (noise / 10) +
+        10 ** (signal / 10) +
+        10 ** (carrier2400 / 10) +
+        10 ** (dcSpike / 10) +
+        10 ** (burstSub / 10);
+      simRaw[i] = 10 * Math.log10(Math.max(1e-14, maxLinear));
+    }
+
+    // Simulated on-chip ESP hardware stats
+    if (Math.random() < 0.25) {
+      const core0 = Math.min(100, Math.max(5, Math.round((38 + Math.sin(timeSec * 2) * 9 + Math.random() * 5) * 10) / 10));
+      const core1 = Math.min(100, Math.max(3, Math.round((14 + Math.cos(timeSec * 1.5) * 6 + Math.random() * 4) * 10) / 10));
+      this.deviceStats = {
+        core0Load: core0,
+        core1Load: core1,
+        coverage: Math.round((98.2 + Math.random() * 1.5) * 10) / 10,
+        heapFree: 284160 + Math.floor(Math.sin(timeSec) * 2048),
+        fftsPerSec: Math.round(1000 / this.getSimInterval(n)) * 8,
+        updatedAt: Date.now()
+      };
+      this.onStats?.(this.deviceStats);
+    }
+
+    this.handleProcessedSpectrum(
+      simRaw,
+      cfg,
+      { mode: 'HARDWARE', index: null },
+      'Simulation (WiFi 2.4G)',
+      Math.round(this.getSimInterval(n)),
+      true
+    );
   }
 
   stopSimulation() {
