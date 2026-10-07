@@ -44,3 +44,19 @@ body {
         --border-width: 1px;
     }
 }
+
+.bg-red {
+    background-color: var(--red);
+}
+
+.bg-orange {
+    background-color: var(--orange);
+}
+
+.text-red {
+    color: var(--red);
+}
+
+.text-orange {
+    color: var(--orange);
+}

@@ -37,6 +37,193 @@ export interface SpectrumFrame {
   gainActual?: { mode: string; index: number | null };
 }
 
+export interface EspDeviceStats {
+  core0Load: number;    // Core 0 CPU %
+  core1Load: number;    // Core 1 CPU %
+  coverage: number;     // % coverage
+  heapFree: number;     // Free heap bytes
+  fftsPerSec: number;   // On-chip FFTs/s
+  updatedAt: number;
+}
+
+export interface EspDeviceInfo {
+  connected: boolean;
+  simulated: boolean;
+  chipModel: string;      // e.g. "ESP32-S3", "ESP32-C3", "ESP32"
+  chipFamily: string;     // e.g. "S3", "C3", "ESP32"
+  chipArch: string;       // e.g. "Xtensa LX7 Dual-Core 240MHz + SIMD"
+  firmware: string;       // e.g. "ESP-SDR (Protocol 6)"
+  rawIdentity: string;    // e.g. "S3SDR 6 burst 16380"
+  maxSamples: number;     // e.g. 16380
+  transport: string;      // "USB" | "UART" | "Virtual WebSerial"
+  baudRate: number;       // e.g. 2000000
+  usbVendor: string;      // e.g. "Espressif Systems"
+  usbProduct: string;     // e.g. "ESP32-S3 Native USB Serial/JTAG"
+  usbVidHex: string;      // e.g. "0x303A"
+  usbPidHex: string;      // e.g. "0x1001"
+  caps: string[];         // e.g. ["SPEC", "SPECN", "GAIN", ...]
+  hasSpec: boolean;
+  hasSpecN: boolean;
+  hasGain: boolean;
+  tuneRange: [number, number] | null;
+  specCapabilities: any;
+  rxLimits?: string | null;
+}
+
+export function identifyUsbDevice(vid?: number, pid?: number): {
+  vendor: string;
+  product: string;
+  vidHex: string;
+  pidHex: string;
+} {
+  const vidHex = vid !== undefined ? `0x${vid.toString(16).toUpperCase().padStart(4, '0')}` : 'N/A';
+  const pidHex = pid !== undefined ? `0x${pid.toString(16).toUpperCase().padStart(4, '0')}` : 'N/A';
+
+  if (!vid) {
+    return {
+      vendor: 'Generic Serial',
+      product: 'UART / USB Serial Controller',
+      vidHex,
+      pidHex
+    };
+  }
+
+  let vendor = 'USB Device';
+  let product = `Serial Bridge (${vidHex}:${pidHex})`;
+
+  switch (vid) {
+    case 0x303a:
+      vendor = 'Espressif Systems';
+      switch (pid) {
+        case 0x1001: product = 'ESP32-S3 / C3 Native USB JTAG/Serial'; break;
+        case 0x1002: product = 'ESP32-C6 Native USB JTAG/Serial'; break;
+        case 0x1003: product = 'ESP32-H2 Native USB JTAG/Serial'; break;
+        case 0x1007: product = 'ESP32-P4 Native USB JTAG/Serial'; break;
+        case 0x0002: product = 'ESP32-S2 Native USB CDC'; break;
+        default: product = 'Espressif Native USB Controller'; break;
+      }
+      break;
+
+    case 0x10c4:
+      vendor = 'Silicon Laboratories';
+      switch (pid) {
+        case 0xea60: product = 'CP2102 / CP2104 USB-to-UART Bridge'; break;
+        case 0xea70: product = 'CP2105 Dual Port USB-to-UART'; break;
+        default: product = 'CP210x USB-to-UART Bridge'; break;
+      }
+      break;
+
+    case 0x1a86:
+      vendor = 'WCH (Nanjing Qinheng)';
+      switch (pid) {
+        case 0x7523: product = 'CH340 USB-to-Serial Bridge'; break;
+        case 0x5523: product = 'CH341 USB-to-Serial Bridge'; break;
+        case 0x55d4: product = 'CH343 / CH9102 High-Speed USB-Serial'; break;
+        case 0x55e5: product = 'CH347 High-Speed USB Bridge'; break;
+        default: product = 'WCH CH34x USB-Serial Controller'; break;
+      }
+      break;
+
+    case 0x0403:
+      vendor = 'FTDI';
+      switch (pid) {
+        case 0x6001: product = 'FT232R USB UART'; break;
+        case 0x6010: product = 'FT2232H Dual USB UART'; break;
+        case 0x6014: product = 'FT232H High-Speed USB UART'; break;
+        case 0x6015: product = 'FT-X Series USB UART'; break;
+        default: product = 'FTDI USB Serial Device'; break;
+      }
+      break;
+
+    case 0x067b:
+      vendor = 'Prolific Technology';
+      switch (pid) {
+        case 0x2303: product = 'PL2303 USB-to-Serial Bridge'; break;
+        default: product = 'Prolific USB-Serial Controller'; break;
+      }
+      break;
+
+    case 0x2e8a:
+      vendor = 'Raspberry Pi';
+      product = 'RP2040 / Pico USB Serial';
+      break;
+  }
+
+  return { vendor, product, vidHex, pidHex };
+}
+
+export function identifyEspChip(family: string): { model: string; arch: string; defaultRange: [number, number] } {
+  const f = (family || '').toUpperCase();
+  switch (f) {
+    case 'ESP32':
+      return {
+        model: 'ESP32',
+        arch: 'Xtensa® LX6 Dual-Core @ 240MHz (Wi-Fi 4 + BT 4.2)',
+        defaultRange: [2400, 2484]
+      };
+    case 'S2':
+      return {
+        model: 'ESP32-S2',
+        arch: 'Xtensa® LX7 Single-Core @ 240MHz (Wi-Fi 4 + USB OTG)',
+        defaultRange: [2400, 2484]
+      };
+    case 'S3':
+      return {
+        model: 'ESP32-S3',
+        arch: 'Xtensa® LX7 Dual-Core @ 240MHz + AI/SIMD Vector (Wi-Fi 4 + BLE 5)',
+        defaultRange: [2400, 2484]
+      };
+    case 'S31':
+      return {
+        model: 'ESP32-S31',
+        arch: 'Xtensa® LX7 Dual-Core with Ethernet PHY Interface',
+        defaultRange: [2400, 2484]
+      };
+    case 'C2':
+      return {
+        model: 'ESP32-C2 / ESP8684',
+        arch: 'RISC-V 32-bit Single-Core @ 120MHz (Wi-Fi 4 + BLE 5)',
+        defaultRange: [2400, 2484]
+      };
+    case 'C3':
+      return {
+        model: 'ESP32-C3',
+        arch: 'RISC-V 32-bit Single-Core @ 160MHz (Wi-Fi 4 + BLE 5)',
+        defaultRange: [2400, 2484]
+      };
+    case 'C5':
+      return {
+        model: 'ESP32-C5',
+        arch: 'RISC-V 32-bit Dual-Band 2.4/5GHz @ 240MHz (Wi-Fi 6 + BLE 5)',
+        defaultRange: [2400, 5850]
+      };
+    case 'C6':
+      return {
+        model: 'ESP32-C6',
+        arch: 'RISC-V 32-bit Single-Core @ 160MHz (Wi-Fi 6 + BLE 5 + 802.15.4)',
+        defaultRange: [2400, 2484]
+      };
+    case 'C61':
+      return {
+        model: 'ESP32-C61',
+        arch: 'RISC-V 32-bit Wi-Fi 6 @ 160MHz',
+        defaultRange: [2400, 2484]
+      };
+    case 'H2':
+      return {
+        model: 'ESP32-H2',
+        arch: 'RISC-V 32-bit @ 96MHz (IEEE 802.15.4 / Thread / Zigbee + BLE 5.4)',
+        defaultRange: [2400, 2484]
+      };
+    default:
+      return {
+        model: family ? `ESP32-${family}` : 'ESP32-SDR',
+        arch: 'Espressif 32-bit Wireless SoC',
+        defaultRange: [2400, 2500]
+      };
+  }
+}
+
 export interface LogEntry {
   id: number;
   timestamp: string;
@@ -328,7 +515,7 @@ export class EspSdrDriver {
   writer: any = null;
   queue: Uint8Array[] = [];
   queued: number = 0;
-  wake: (() => void) | null = null;
+  private wakeListeners: Set<() => void> = new Set();
   failed: Error | null = null;
   tail: Promise<any> = Promise.resolve();
 
@@ -343,6 +530,13 @@ export class EspSdrDriver {
   hasGain: boolean = false;
   specCapabilities: any = null;
   tuneRange: [number, number] | null = null;
+  portInfo: { usbVendorId?: number; usbProductId?: number } = {};
+  capsList: string[] = [];
+  rxLimits: string | null = null;
+
+  // Rich Device Information & On-Chip Telemetry
+  deviceInfo: EspDeviceInfo | null = null;
+  deviceStats: EspDeviceStats | null = null;
 
   // Running status
   isConnected: boolean = false;
@@ -368,6 +562,8 @@ export class EspSdrDriver {
   onLog?: (entry: LogEntry) => void;
   onFrame?: (frame: SpectrumFrame) => void;
   onStatusChange?: (status: 'disconnected' | 'connecting' | 'connected' | 'streaming' | 'error') => void;
+  onDeviceInfo?: (info: EspDeviceInfo | null) => void;
+  onStats?: (stats: EspDeviceStats | null) => void;
 
   constructor() {}
 
@@ -387,6 +583,16 @@ export class EspSdrDriver {
     this.onLog?.(entry);
   }
 
+  private notifyWake() {
+    if (this.wakeListeners.size > 0) {
+      const callbacks = Array.from(this.wakeListeners);
+      this.wakeListeners.clear();
+      for (const cb of callbacks) {
+        try { cb(); } catch {}
+      }
+    }
+  }
+
   private run<T>(f: () => Promise<T>): Promise<T> {
     const p = this.tail.then(f);
     this.tail = p.catch(() => {});
@@ -404,14 +610,14 @@ export class EspSdrDriver {
           if (this.queued > 2 * 1024 * 1024) {
             throw new Error('WebSerial queue overflow (> 2MB)');
           }
-          if (this.wake) this.wake();
+          this.notifyWake();
         }
       }
     } catch (e: any) {
       this.failed = e;
     } finally {
       this.failed ||= new Error('WebSerial connection closed');
-      if (this.wake) this.wake();
+      this.notifyWake();
     }
   }
 
@@ -441,15 +647,17 @@ export class EspSdrDriver {
       }
 
       await new Promise<void>((resolve, reject) => {
-        const timer = setTimeout(() => {
-          this.wake = null;
-          reject(Object.assign(new Error('WebSerial read timed out'), { code: 'SERIAL_TIMEOUT' }));
-        }, ms);
-        this.wake = () => {
-          clearTimeout(timer);
-          this.wake = null;
+        let timer: any = null;
+        const onWake = () => {
+          if (timer) clearTimeout(timer);
+          this.wakeListeners.delete(onWake);
           resolve();
         };
+        timer = setTimeout(() => {
+          this.wakeListeners.delete(onWake);
+          reject(Object.assign(new Error('WebSerial read timed out'), { code: 'SERIAL_TIMEOUT' }));
+        }, ms);
+        this.wakeListeners.add(onWake);
       });
     }
 
@@ -461,19 +669,34 @@ export class EspSdrDriver {
     await this.writer.write(new TextEncoder().encode(s + '\n'));
   }
 
-  private async line(prefix = '', limit = 256): Promise<string> {
+  private async line(prefix = '', limit = 1024): Promise<string> {
     let s = '';
     const end = performance.now() + 5000;
-    for (let j = 0; j < limit; j++) {
+    while (performance.now() < end) {
       const b = (await this.read(1, end))[0];
       if (b === 10) { // '\n'
         s = s.trim();
-        if (!s.startsWith(prefix)) throw new Error(s || 'Empty WebSerial response');
+        if (s.length === 0) continue;
+        if (prefix) {
+          if (s.startsWith(prefix)) return s;
+          // If expecting a specific prefix (e.g. 'SPEC ') but encountered an 'OK'
+          // from a preceding command (or comment), discard it and continue reading
+          if (s === 'OK' || s.startsWith('#') || s.startsWith('//')) {
+            s = '';
+            continue;
+          }
+          throw new Error(s || 'Empty WebSerial response');
+        }
         return s;
       }
-      s += String.fromCharCode(b);
+      if (b !== 13) {
+        s += String.fromCharCode(b);
+        if (s.length > limit) {
+          s = '';
+        }
+      }
     }
-    throw Object.assign(new Error('Invalid WebSerial header / response'), { code: 'CAPTURE_DAMAGED' });
+    throw Object.assign(new Error(`Timed out waiting for response${prefix ? ` '${prefix}'` : ''}`), { code: 'CAPTURE_DAMAGED' });
   }
 
   private async synchronize() {
@@ -544,6 +767,7 @@ export class EspSdrDriver {
     this.log('success', `Capabilities: ${caps}`);
 
     const capTokens = caps.split(' ');
+    this.capsList = capTokens;
     this.hasSpec = capTokens.includes('SPEC');
     this.hasSpecN = capTokens.includes('SPECN');
     this.hasGain = capTokens.includes('GAIN');
@@ -564,6 +788,17 @@ export class EspSdrDriver {
       if (Number.isInteger(lo) && Number.isInteger(hi)) {
         this.tuneRange = [lo, hi];
         this.log('info', `Tuning Range: ${lo} - ${hi} MHz`);
+      }
+    }
+
+    if (capTokens.includes('RXLIMITS')) {
+      try {
+        await this.command('LIMITS?');
+        const lim = await this.line('LIMITS ');
+        this.rxLimits = lim;
+        this.log('info', `Device limits: ${lim}`);
+      } catch {
+        // Optional
       }
     }
 
@@ -612,6 +847,10 @@ export class EspSdrDriver {
     }
 
     const info = port.getInfo ? port.getInfo() : {};
+    this.portInfo = {
+      usbVendorId: info.usbVendorId,
+      usbProductId: info.usbProductId
+    };
     this.log('success', `Selected port: VID 0x${(info.usbVendorId || 0).toString(16)}, PID 0x${(info.usbProductId || 0).toString(16)}`);
 
     return this.run(async () => {
@@ -622,8 +861,36 @@ export class EspSdrDriver {
         await this.synchronize();
         await this.negotiate();
 
+        const usb = identifyUsbDevice(this.portInfo.usbVendorId, this.portInfo.usbProductId);
+        const chip = identifyEspChip(this.family);
+
+        this.deviceInfo = {
+          connected: true,
+          simulated: false,
+          chipModel: chip.model,
+          chipFamily: this.family,
+          chipArch: chip.arch,
+          firmware: `ESP-SDR (Protocol 6)`,
+          rawIdentity: this.identity || `${chip.model} SDR`,
+          maxSamples: this.maxSamples,
+          transport: this.transport,
+          baudRate: this.baudRate,
+          usbVendor: usb.vendor,
+          usbProduct: usb.product,
+          usbVidHex: usb.vidHex,
+          usbPidHex: usb.pidHex,
+          caps: this.capsList,
+          hasSpec: this.hasSpec,
+          hasSpecN: this.hasSpecN,
+          hasGain: this.hasGain,
+          tuneRange: this.tuneRange || chip.defaultRange,
+          specCapabilities: this.specCapabilities,
+          rxLimits: this.rxLimits
+        };
+        this.onDeviceInfo?.(this.deviceInfo);
+
         this.isConnected = true;
-        this.log('success', `Device connected: ESP32-${this.family} (${this.identity})`);
+        this.log('success', `Device connected: ${chip.model} (${this.identity || chip.arch})`);
         this.onStatusChange?.('connected');
       } catch (e: any) {
         this.log('error', `Connection error: ${e.message}`);
@@ -637,6 +904,8 @@ export class EspSdrDriver {
   async disconnect(): Promise<void> {
     this.stopStream();
     this.stopSimulation();
+
+    this.wakeListeners.clear();
 
     if (this.reader) {
       try { await this.reader.cancel(); } catch {}
@@ -658,6 +927,10 @@ export class EspSdrDriver {
     this.failed = null;
     this.smoothedTrace = null;
     this.maxHoldTrace = null;
+    this.deviceInfo = null;
+    this.deviceStats = null;
+    this.onDeviceInfo?.(null);
+    this.onStats?.(null);
 
     this.log('info', 'Disconnected from serial device.');
     this.onStatusChange?.('disconnected');
@@ -665,21 +938,42 @@ export class EspSdrDriver {
 
   async tune(frequency: number, bandwidth = 0) {
     if (!this.isConnected) return;
-    this.log('info', `Tuning frequency to ${frequency} MHz (bandwidth: ${bandwidth} MHz)...`);
-    await this.command(`FREQ ${frequency}`);
-    await this.line('OK');
-    if (bandwidth > 0) {
-      await this.command(`BANDWIDTH ${bandwidth}`);
-      await this.line('OK');
+    try {
+      this.log('info', `Tuning frequency to ${frequency} MHz (bandwidth: ${bandwidth} MHz)...`);
+      await this.command(`FREQ ${frequency}`);
+      if (!this.isStreaming) {
+        await this.line('OK');
+        if (bandwidth > 0) {
+          await this.command(`BANDWIDTH ${bandwidth}`);
+          await this.line('OK');
+        }
+      } else {
+        // While streaming, the ESP32 receives the command and updates PLL on-the-fly.
+        // Awaiting line('OK') would consume binary spectrum frame bytes and fail.
+        if (bandwidth > 0) {
+          await this.command(`BANDWIDTH ${bandwidth}`);
+        }
+      }
+      this.log('success', `Frequency tuned to ${frequency} MHz.`);
+    } catch (err: any) {
+      this.log('error', `Tuning error (${frequency} MHz): ${err.message}`);
+      throw err;
     }
   }
 
   async setGain(mode = 'HARDWARE', code = 40): Promise<{ mode: string; index: number | null }> {
     if (!this.isConnected || !this.hasGain) return { mode: 'HARDWARE', index: null };
-    const setting = mode === 'MANUAL' ? `MANUAL ${code}` : mode;
-    await this.command(`GAIN ${setting}`);
-    await this.line('OK');
-    return { mode, index: mode === 'MANUAL' ? code : null };
+    try {
+      const setting = mode === 'MANUAL' ? `MANUAL ${code}` : mode;
+      await this.command(`GAIN ${setting}`);
+      if (!this.isStreaming) {
+        await this.line('OK');
+      }
+      return { mode, index: mode === 'MANUAL' ? code : null };
+    } catch (err: any) {
+      this.log('error', `Set gain error (${mode}): ${err.message}`);
+      return { mode: 'HARDWARE', index: null };
+    }
   }
 
   /**
@@ -693,8 +987,7 @@ export class EspSdrDriver {
       this.stopStream();
     }
 
-    this.isStreaming = true;
-    this.onStatusChange?.('streaming');
+    this.isStreaming = false;
     this.log('info', `Starting spectrum stream: Freq=${config.frequency}MHz, Rate=${config.rate / 1e6}MS/s, FFT=${config.fft}...`);
 
     this.run(async () => {
@@ -717,12 +1010,27 @@ export class EspSdrDriver {
           this.lastFpsTimestamp = performance.now();
           this.fpsCounter = 0;
 
+          // Stream is now fully prepared and active
+          this.isStreaming = true;
+          this.onStatusChange?.('streaming');
+
           while (this.isStreaming && this.isConnected) {
             if ((++count & 15) === 0) await yieldTask();
             const chunk = await this.read(Math.max(1, Math.min(this.queued, 8192)), performance.now() + 5000);
             const events = decoder.feed(chunk);
 
             for (const ev of events) {
+              if (ev.stats) {
+                this.deviceStats = {
+                  core0Load: ev.stats.core0,
+                  core1Load: ev.stats.core1,
+                  coverage: ev.stats.coverage,
+                  heapFree: ev.stats.heapFree,
+                  fftsPerSec: ev.stats.fftsPerS,
+                  updatedAt: Date.now()
+                };
+                this.onStats?.(this.deviceStats);
+              }
               if (ev.header && ev.bins) {
                 const s = specToDbfs(ev.bins, ev.header.step, n, config.dcMode);
                 this.handleProcessedSpectrum(s, config, gainActual, 'SPEC on-chip');
@@ -733,6 +1041,9 @@ export class EspSdrDriver {
           // Burst raw IQ streaming
           this.log('info', 'Using Burst IQ capture with browser FFT.');
           const divider = Math.max(0, [80000000, 40000000, 20000000, 10000000, 8000000, 4000000].indexOf(config.rate));
+
+          this.isStreaming = true;
+          this.onStatusChange?.('streaming');
 
           while (this.isStreaming && this.isConnected) {
             const startT = performance.now();
@@ -764,11 +1075,11 @@ export class EspSdrDriver {
           }
         }
       } catch (err: any) {
-        if (this.isStreaming) {
-          this.log('error', `Streaming error: ${err.message}`);
-          this.stopStream();
-        }
+        this.log('error', `Streaming error: ${err.message}`);
+        this.stopStream();
       }
+    }).catch((err: any) => {
+      this.log('error', `Stream background task error: ${err.message}`);
     });
   }
 
@@ -872,6 +1183,33 @@ export class EspSdrDriver {
     this.log('info', 'Starting SIMULATION mode (synthetic 2.4GHz ISM Wi-Fi capture)...');
     this.log('success', `Simulating ESP32-C5 at ${config.frequency} MHz, ${config.rate / 1e6} MS/s, ${config.fft} bins.`);
 
+    const usb = identifyUsbDevice(0x303a, 0x1001);
+    const chip = identifyEspChip('C5');
+    this.deviceInfo = {
+      connected: true,
+      simulated: true,
+      chipModel: 'ESP32-C5 (Simulated)',
+      chipFamily: 'C5',
+      chipArch: 'Dual-Band 2.4/5.8GHz RISC-V @ 240MHz (Simulated)',
+      firmware: 'ESP-SDR v6 (Synthetic Engine)',
+      rawIdentity: 'C5SDR 6 burst 16380 [SIMULATION]',
+      maxSamples: 16380,
+      transport: 'Virtual WebSerial',
+      baudRate: this.baudRate,
+      usbVendor: 'Espressif Systems (Simulated)',
+      usbProduct: 'ESP32-C5 USB Virtual Interface',
+      usbVidHex: '0x303A',
+      usbPidHex: '0x1001',
+      caps: ['SPEC', 'SPECN', 'GAIN', 'UARTBAUD', 'TUNEEXT', 'SPECCAPS', 'SIMULATION'],
+      hasSpec: true,
+      hasSpecN: true,
+      hasGain: true,
+      tuneRange: [2400, 5850],
+      specCapabilities: { continuous: true, transports: ['USB'], profiles: [[16000000, 6, 256, 4, 1], [40000000, 1, 256, 12, 3], [80000000, 0, 256, 48, 5]] },
+      rxLimits: 'GAIN 0-60dB BW 20-80MHz'
+    };
+    this.onDeviceInfo?.(this.deviceInfo);
+
     const n = config.fft;
     let simSequence = 0;
     let simFpsCount = 0;
@@ -949,6 +1287,21 @@ export class EspSdrDriver {
         simLastFpsT = now;
       }
 
+      // Simulated on-chip ESP hardware stats
+      if (Math.random() < 0.25) {
+        const core0 = Math.min(100, Math.max(5, Math.round((38 + Math.sin(timeSec * 2) * 9 + Math.random() * 5) * 10) / 10));
+        const core1 = Math.min(100, Math.max(3, Math.round((14 + Math.cos(timeSec * 1.5) * 6 + Math.random() * 4) * 10) / 10));
+        this.deviceStats = {
+          core0Load: core0,
+          core1Load: core1,
+          coverage: Math.round((98.2 + Math.random() * 1.5) * 10) / 10,
+          heapFree: 284160 + Math.floor(Math.sin(timeSec) * 2048),
+          fftsPerSec: 320 + Math.floor(Math.random() * 12),
+          updatedAt: Date.now()
+        };
+        this.onStats?.(this.deviceStats);
+      }
+
       this.handleProcessedSpectrum(
         simRaw,
         config,
@@ -968,6 +1321,10 @@ export class EspSdrDriver {
     this.isSimulating = false;
     this.smoothedTrace = null;
     this.maxHoldTrace = null;
+    this.deviceInfo = null;
+    this.deviceStats = null;
+    this.onDeviceInfo?.(null);
+    this.onStats?.(null);
     this.onStatusChange?.('disconnected');
     this.log('info', 'Simulation stopped.');
   }

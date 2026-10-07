@@ -23,7 +23,7 @@
   let rulerCanvas: HTMLCanvasElement;
 
   let width = $state(800);
-  let height = $state(290);
+  let height = $state(325);
 
   let resizeObserver: ResizeObserver | null = null;
   let lut32: Uint32Array | null = null;
@@ -123,7 +123,7 @@
     if (!container || !waterfallCanvas || !rulerCanvas) return;
     const rect = container.getBoundingClientRect();
     const newW = Math.floor(rect.width);
-    const newH = 290;
+    const newH = 325;
 
     const isMobile = newW < 768;
     const leftPadding = isMobile ? 45 : 70;
@@ -190,7 +190,7 @@
   <!-- Waterfall Header -->
   <div class="flex items-center justify-between px-3 py-1.5 bg-[#080808] border-b border-[#fa0]/40 text-xs font-mono">
     <div class="flex items-center gap-2">
-      <span class="w-2.5 h-2.5 rounded-full bg-[#1e8bb5] shadow-[0_0_8px_#1e8bb5] animate-pulse"></span>
+    
       <span class="text-[#fa0] font-black tracking-wider uppercase">WATERFALL SPECTROGRAM MONITOR</span>
     </div>
     <div class="text-[#fa0] font-bold font-mono">
@@ -199,7 +199,7 @@
   </div>
 
   <!-- Waterfall Canvas Area with Matching Left Orange Ruler -->
-  <div class="relative w-full h-[290px] bg-black flex items-stretch">
+  <div class="relative w-full h-[325px] bg-black flex items-stretch">
     <!-- Left Orange Ruler (Aligns with Spectrum left ruler) -->
     <canvas bind:this={rulerCanvas} class="block shrink-0"></canvas>
 
@@ -210,14 +210,12 @@
       {#if !isConnected && (!frame || frame.sequence === 0)}
         <!-- Empty State Overlay -->
         <div class="absolute inset-0 flex flex-col items-center justify-center bg-black/75 backdrop-blur-xs text-center p-4">
-          <div class="w-12 h-12 rounded-full border-2 border-[#fa0]/60 flex items-center justify-center mb-2 animate-pulse">
-            <span class="text-[#fa0] text-xl font-mono">📡</span>
-          </div>
+          
           <h3 class="text-sm font-bold tracking-widest text-[#fa0] uppercase font-mono mb-1">
             CONNECT ESP-SDR TO START
           </h3>
           <p class="text-[11px] text-[#8a9ba3] max-w-xs font-mono">
-            Connect via WebSerial or launch Demo Simulation to view real-time RF waterfall history.
+            Connect via WebSerial or launch Demo Simulation.
           </p>
         </div>
       {/if}
@@ -229,26 +227,26 @@
 
   <!-- Footer Diagnostic Stats Bar -->
   <div
-    class="flex flex-wrap items-start justify-between gap-x-4 gap-y-1 px-3 py-1.5 bg-[#050505] border-t border-[#fa0]/40 text-[11px] font-mono text-[#8a9ba3]  min-h-[60px]"
+    class="flex flex-wrap items-start justify-between gap-x-4 gap-y-1 px-3 py-1.5 bg-[#050505] border-t border-[#fa0]/40 text-[11px] font-mono text-[#8a9ba3] "
   >
     <div class="flex items-center gap-1.5">
       <span class="text-[#fa0]">SPEED:</span>
-      <b class="text-[#fa0] font-semibold">{frame?.fps || 0} spectra/s</b>
+      <b class="text-red font-semibold">{frame?.fps || 0} spectra/s</b>
     </div>
 
     <div class="flex items-center gap-1.5">
       <span class="text-[#fa0]">THROUGHPUT:</span>
-      <b class="text-[#e2e8eb] font-semibold">{frame?.deliveredKsps || 0} kB/s over USB · {(frame ? frame.rate / 1e6 : 80)} MS/s</b>
+      <b class="text-red font-semibold">{frame?.deliveredKsps || 0} kB/s over USB · {(frame ? frame.rate / 1e6 : 80)} MS/s</b>
     </div>
 
     <div class="flex items-center gap-1.5">
       <span class="text-[#fa0]">LATENCY:</span>
-      <b class="text-[#e2e8eb] font-semibold">{frame?.elapsedMs || 0} ms</b>
+      <b class="text-red font-semibold">{frame?.elapsedMs || 0} ms</b>
     </div>
 
     <div class="flex items-center gap-1.5">
       <span class="text-[#fa0]">PEAK:</span>
-      <b class="text-[#fa0] font-semibold">{(frame ? frame.peakHz / 1e6 : 2412).toFixed(4)} MHz</b>
+      <b class="text-red font-semibold">{(frame ? frame.peakHz / 1e6 : 2412).toFixed(4)} MHz</b>
     </div>
 
     <div class="flex items-center gap-1.5">

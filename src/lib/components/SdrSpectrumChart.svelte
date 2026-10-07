@@ -4,13 +4,13 @@
 
   interface Props {
     frame: SpectrumFrame | null;
-    backgroundColor?: string;   // Default #000000 (same as WaveformChart)
-    gridColor?: string;         // Default #33cc55 (neon green, same as WaveformChart)
-    axesColor?: string;         // Default #fa0 (orange, same as WaveformChart)
-    waveformColor?: string;     // Default #ff9900 (orange, same as WaveformChart)
-    emptyTextColor?: string;    // Default #fa0
-    floor?: number;             // dBFS floor, default -100
-    range?: number;             // dBFS range, default 80
+    backgroundColor?: string; // Default #000000 (same as WaveformChart)
+    gridColor?: string; // Default #33cc55 (neon green, same as WaveformChart)
+    axesColor?: string; // Default #fa0 (orange, same as WaveformChart)
+    waveformColor?: string; // Default #ff9900 (orange, same as WaveformChart)
+    emptyTextColor?: string; // Default #fa0
+    floor?: number; // dBFS floor, default -100
+    range?: number; // dBFS range, default 80
     showMaxHold?: boolean;
     centerFreqMhz?: number;
     sampleRateHz?: number;
@@ -18,6 +18,8 @@
     modeName?: string;
     enableGlow?: boolean;
     showGradientArea?: boolean;
+    deviceInfo?: any;
+    deviceStats?: any;
   }
 
   let {
@@ -35,7 +37,9 @@
     bins = 2048,
     modeName = "SPEC on-chip",
     enableGlow = true,
-    showGradientArea = true
+    showGradientArea = true,
+    deviceInfo = null,
+    deviceStats = null,
   }: Props = $props();
 
   let container: HTMLDivElement;
@@ -62,7 +66,10 @@
   function draw() {
     if (!ctx || !canvas || width <= 0 || height <= 0) return;
 
-    const dpr = Math.min(typeof window !== "undefined" ? window.devicePixelRatio || 1 : 1, 2);
+    const dpr = Math.min(
+      typeof window !== "undefined" ? window.devicePixelRatio || 1 : 1,
+      2,
+    );
 
     const isMobile = width < 768;
     const leftPadding = isMobile ? 45 : 70;
@@ -101,12 +108,20 @@
     const xGridStep = drawWidth / xGridDivs;
     const yGridStep = drawHeight / yGridDivs;
 
-    for (let xPos = leftPadding; xPos <= leftPadding + drawWidth + 0.1; xPos += xGridStep) {
+    for (
+      let xPos = leftPadding;
+      xPos <= leftPadding + drawWidth + 0.1;
+      xPos += xGridStep
+    ) {
       ctx.moveTo(xPos, topPadding);
       ctx.lineTo(xPos, topPadding + drawHeight);
 
       // Draw crosshairs on the vertical grid lines (length: 10px)
-      for (let yPos = topPadding; yPos <= topPadding + drawHeight + 0.1; yPos += yGridStep) {
+      for (
+        let yPos = topPadding;
+        yPos <= topPadding + drawHeight + 0.1;
+        yPos += yGridStep
+      ) {
         ctx.moveTo(xPos - 5, yPos);
         ctx.lineTo(xPos + 5, yPos);
       }
@@ -114,7 +129,11 @@
       // Draw floating crosshairs between the vertical lines (shifted by half grid step)
       if (xPos + xGridStep <= leftPadding + drawWidth + 0.1) {
         const midX = xPos + xGridStep / 2;
-        for (let yPos = topPadding + yGridStep / 2; yPos <= topPadding + drawHeight; yPos += yGridStep) {
+        for (
+          let yPos = topPadding + yGridStep / 2;
+          yPos <= topPadding + drawHeight;
+          yPos += yGridStep
+        ) {
           ctx.moveTo(midX - 5, yPos);
           ctx.lineTo(midX + 5, yPos);
           ctx.moveTo(midX, yPos - 5);
@@ -132,7 +151,9 @@
     ctx.lineTo(leftPadding, topPadding + drawHeight);
 
     ctx.fillStyle = axesColor;
-    ctx.font = isMobile ? 'bold 10px "Inter", sans-serif' : 'bold 14px "Inter", sans-serif';
+    ctx.font = isMobile
+      ? 'bold 10px "Inter", sans-serif'
+      : 'bold 14px "Inter", sans-serif';
     ctx.textAlign = "right";
     ctx.textBaseline = "middle";
 
@@ -145,16 +166,14 @@
       ctx.moveTo(leftPadding - (isMobile ? 4 : 8), y);
       ctx.lineTo(leftPadding, y);
 
-      ctx.fillText(
-        dbVal.toString(),
-        leftPadding - (isMobile ? 6 : 10),
-        y
-      );
+      ctx.fillText(dbVal.toString(), leftPadding - (isMobile ? 6 : 10), y);
     }
     ctx.stroke();
 
     // Unit indicator at top left of ruler
-    ctx.font = isMobile ? 'bold 9px "Inter", sans-serif' : 'bold 11px "Inter", sans-serif';
+    ctx.font = isMobile
+      ? 'bold 9px "Inter", sans-serif'
+      : 'bold 11px "Inter", sans-serif';
     ctx.textAlign = "right";
     ctx.fillText("dBFS", leftPadding - (isMobile ? 6 : 10), topPadding - 8);
 
@@ -166,7 +185,9 @@
     ctx.lineTo(width, topPadding + drawHeight);
 
     ctx.fillStyle = axesColor;
-    ctx.font = isMobile ? 'bold 10px "Inter", sans-serif' : 'bold 12px "Inter", sans-serif';
+    ctx.font = isMobile
+      ? 'bold 10px "Inter", sans-serif'
+      : 'bold 12px "Inter", sans-serif';
     ctx.textAlign = "center";
     ctx.textBaseline = "top";
 
@@ -194,7 +215,9 @@
     ctx.stroke();
 
     // Frequency unit label on top right
-    ctx.font = isMobile ? 'bold 9px "Inter", sans-serif' : 'bold 11px "Inter", sans-serif';
+    ctx.font = isMobile
+      ? 'bold 9px "Inter", sans-serif'
+      : 'bold 11px "Inter", sans-serif';
     ctx.textAlign = "right";
     ctx.fillText("FREQ (MHz)", leftPadding + drawWidth, topPadding - 8);
 
@@ -233,7 +256,8 @@
         for (let i = 0; i < len; i++) {
           const x = leftPadding + (i / (len - 1)) * drawWidth;
           const normY = 1 - (spec[i] - floor) / range;
-          const y = topPadding + Math.max(0, Math.min(drawHeight, normY * drawHeight));
+          const y =
+            topPadding + Math.max(0, Math.min(drawHeight, normY * drawHeight));
           if (i === 0) ctx.moveTo(x, y);
           else ctx.lineTo(x, y);
         }
@@ -241,7 +265,12 @@
         ctx.lineTo(leftPadding, topPadding + drawHeight);
         ctx.closePath();
 
-        const grad = ctx.createLinearGradient(0, topPadding, 0, topPadding + drawHeight);
+        const grad = ctx.createLinearGradient(
+          0,
+          topPadding,
+          0,
+          topPadding + drawHeight,
+        );
         grad.addColorStop(0, "rgba(255, 153, 0, 0.25)");
         grad.addColorStop(1, "rgba(255, 153, 0, 0.01)");
         ctx.fillStyle = grad;
@@ -261,7 +290,8 @@
         for (let i = 0; i < len; i++) {
           const x = leftPadding + (i / (len - 1)) * drawWidth;
           const normY = 1 - (mh[i] - floor) / range;
-          const y = topPadding + Math.max(0, Math.min(drawHeight, normY * drawHeight));
+          const y =
+            topPadding + Math.max(0, Math.min(drawHeight, normY * drawHeight));
           if (i === 0) ctx.moveTo(x, y);
           else ctx.lineTo(x, y);
         }
@@ -281,7 +311,8 @@
       for (let i = 0; i < len; i++) {
         const x = leftPadding + (i / (len - 1)) * drawWidth;
         const normY = 1 - (spec[i] - floor) / range;
-        const y = topPadding + Math.max(0, Math.min(drawHeight, normY * drawHeight));
+        const y =
+          topPadding + Math.max(0, Math.min(drawHeight, normY * drawHeight));
         if (i === 0) ctx.moveTo(x, y);
         else ctx.lineTo(x, y);
       }
@@ -289,7 +320,11 @@
       ctx.restore();
 
       // Update Cursor coordinate readout
-      if (mouseX !== null && mouseX >= leftPadding && mouseX <= leftPadding + drawWidth) {
+      if (
+        mouseX !== null &&
+        mouseX >= leftPadding &&
+        mouseX <= leftPadding + drawWidth
+      ) {
         const frac = (mouseX - leftPadding) / drawWidth;
         const idx = Math.max(0, Math.min(len - 1, Math.floor(frac * len)));
         const hoverHz = curCenterHz + (frac - 0.5) * curSpanHz;
@@ -303,7 +338,11 @@
         ctx.beginPath();
         ctx.moveTo(mouseX, topPadding);
         ctx.lineTo(mouseX, topPadding + drawHeight);
-        if (mouseY !== null && mouseY >= topPadding && mouseY <= topPadding + drawHeight) {
+        if (
+          mouseY !== null &&
+          mouseY >= topPadding &&
+          mouseY <= topPadding + drawHeight
+        ) {
           ctx.moveTo(leftPadding, mouseY);
           ctx.lineTo(leftPadding + drawWidth, mouseY);
         }
@@ -320,10 +359,13 @@
   function resizeCanvas() {
     if (!container || !canvas) return;
     const rect = container.getBoundingClientRect();
-    const dpr = Math.min(typeof window !== "undefined" ? window.devicePixelRatio || 1 : 1, 2);
+    const dpr = Math.min(
+      typeof window !== "undefined" ? window.devicePixelRatio || 1 : 1,
+      2,
+    );
 
     width = Math.floor(rect.width);
-    height = 290;
+    height = 325;
 
     canvas.width = width * dpr;
     canvas.height = height * dpr;
@@ -368,7 +410,9 @@
   });
 
   // Derived measurement bar values
-  let activeCenter = $derived(frame ? frame.frequency * 1e6 : centerFreqMhz * 1e6);
+  let activeCenter = $derived(
+    frame ? frame.frequency * 1e6 : centerFreqMhz * 1e6,
+  );
   let activeSpan = $derived(frame ? frame.rate : sampleRateHz);
   let activeBins = $derived(frame ? frame.spectrum.length : bins);
   let rbwHz = $derived(1.44 * (activeSpan / activeBins));
@@ -379,12 +423,17 @@
   class="w-full flex flex-col bg-black border-2 border-[#fa0] rounded overflow-hidden shadow-2xl select-none"
 >
   <!-- Chart Header Bar (Evangelion Style with Neon Border) -->
-  <div class="flex items-center justify-between px-3 py-1.5 bg-[#080808] border-b-2 border-[#fa0] text-xs font-mono">
+  <div
+    class="flex items-center justify-between px-3 py-1.5 bg-[#080808] border-b-2 border-[#fa0] text-xs font-mono"
+  >
     <div class="flex items-center gap-2">
-      <span class="w-2.5 h-2.5 rounded-full bg-[#ff9900] shadow-[0_0_8px_#ff9900] animate-pulse"></span>
-      <span class="text-[#fa0] font-black tracking-wider uppercase">SPECTRUM WAVEFORM MONITOR</span>
+      <span class="text-[#fa0] font-black tracking-wider uppercase"
+        >SPECTRUM WAVEFORM MONITOR</span
+      >
       {#if showMaxHold}
-        <span class="text-[10px] text-[#e6b969] px-1.5 py-0.2 bg-[#e6b969]/10 rounded border border-[#e6b969]/40">
+        <span
+          class="text-[10px] text-[#e6b969] px-1.5 py-0.2 bg-[#e6b969]/10 rounded border border-[#e6b969]/40"
+        >
           MAX HOLD
         </span>
       {/if}
@@ -402,21 +451,103 @@
     onmouseleave={handleMouseLeave}
   >
     <canvas bind:this={canvas} class="block w-full"></canvas>
+
+    <!-- top left -->
+    <div
+      class="absolute right-2 lg:right-0 lg:top-6 left-4 lg:left-24 pointer-events-none z-5 max-w-100 flex flex-col justify-center items-end lg:items-start gap-1"
+    >
+      <div
+        class="rounded-sm bordered text-3xl bg-black/60 shadow-lg h-10 text-center flex justify-center items-center px-1"
+      >
+        <div class="font-bold md:text-3xl uppercase ews-title">
+          {deviceInfo?.connected ? deviceInfo.chipFamily : "OFFLINE"}
+        </div>
+      </div>
+
+      {#if deviceInfo != null && deviceInfo?.connected}
+        <div class="font-bold tracking-widest text-sm md:text-xl ews-title">
+          BUFFER : {deviceInfo?.maxSamples
+            ? `${deviceInfo.maxSamples.toLocaleString()} spl`
+            : "16,380 spl"}
+        </div>
+
+        <div class="font-bold tracking-widest text-sm md:text-xl ews-title">
+          RF RANGE : {deviceInfo?.tuneRange
+            ? `${deviceInfo.tuneRange[0]}-${deviceInfo.tuneRange[1]} MHz`
+            : "2400-2484 MHz"}
+        </div>
+      {/if}
+    </div>
+
+    <!-- Top Right -->
+    <div
+      class="absolute bottom-16 lg:bottom-auto top-auto lg:top-10 md:top-4 right-2 lg:right-16 pointer-events-none flex flex-col items-end z-5"
+    >
+      <div class="rounded-lg p-1 inline-block bg-black/60 shadow-lg">
+        <div class="bordered px-3 py-1 flex flex-col text-3xl">
+          {#if frame != null}
+            <div
+              class="font-bold text-[10px] md:text-sm tracking-widest leading-none mb-1 ews-title"
+            >
+              FFT SPEED:
+            </div>
+            <div
+              class="font-bold text-lg md:text-xl tracking-widest leading-none text-right ews-title"
+            >
+              <span class="text-[#fa0]"
+                >{deviceStats?.fftsPerSec || (frame?.fps ? frame.fps * 8 : 0)}/s
+                ({frame?.fps || 0} fps)</span
+              >
+            </div>
+          {:else}
+            <div class="font-bold md:text-3xl uppercase ews-title">OFFLINE</div>
+          {/if}
+        </div>
+      </div>
+    </div>
   </div>
 
   <!-- Measurement Specs Row (Evangelion Monospace Palette) -->
   <div
-    class="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 px-3 py-1.5 bg-[#050505] border-t border-[#fa0]/40 text-[11px] font-mono text-[#8a9ba3]  min-h-[60px]"
+    class="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 px-3 py-1.5 bg-[#050505] border-t border-[#fa0]/40 text-[11px] font-mono text-[#8a9ba3]"
   >
-    <div><span class="text-[#fa0]">START:</span> <b class="text-[#e2e8eb]">{fmtHz(activeCenter - activeSpan / 2)}</b></div>
-    <div><span class="text-[#fa0]">CENTER:</span> <b class="text-[#e2e8eb]">{fmtHz(activeCenter)}</b></div>
-    <div><span class="text-[#fa0]">SPAN:</span> <b class="text-[#e2e8eb]">{fmtHz(activeSpan)}</b></div>
-    <div><span class="text-[#fa0]">STOP:</span> <b class="text-[#e2e8eb]">{fmtHz(activeCenter + activeSpan / 2)}</b></div>
-    <div><span class="text-[#fa0]">RBW:</span> <b class="text-[#e2e8eb]">{fmtHz(rbwHz)}</b></div>
-    <div><span class="text-[#fa0]">BINS:</span> <b class="text-[#e2e8eb]">{activeBins}</b></div>
-    <div><span class="text-[#fa0]">REF:</span> <b class="text-[#e2e8eb]">{floor + range} dBFS</b></div>
-    <div><span class="text-[#fa0]">DIV:</span> <b class="text-[#e2e8eb]">{range / 4} dB</b></div>
-    <div><span class="text-[#fa0]">DET:</span> <b class="text-[#e2e8eb]">AVERAGE</b></div>
-    <div><span class="text-[#fa0]">MODE:</span> <b class="text-[#fa0]">{modeName}</b></div>
+    <div>
+      <span class="text-[#fa0]">START:</span>
+      <b class="text-red">{fmtHz(activeCenter - activeSpan / 2)}</b>
+    </div>
+    <div>
+      <span class="text-[#fa0]">CENTER:</span>
+      <b class="text-red">{fmtHz(activeCenter)}</b>
+    </div>
+    <div>
+      <span class="text-[#fa0]">SPAN:</span>
+      <b class="text-red">{fmtHz(activeSpan)}</b>
+    </div>
+    <div>
+      <span class="text-[#fa0]">STOP:</span>
+      <b class="text-red">{fmtHz(activeCenter + activeSpan / 2)}</b>
+    </div>
+    <div>
+      <span class="text-[#fa0]">RBW:</span>
+      <b class="text-red">{fmtHz(rbwHz)}</b>
+    </div>
+    <div>
+      <span class="text-[#fa0]">BINS:</span>
+      <b class="text-red">{activeBins}</b>
+    </div>
+    <div>
+      <span class="text-[#fa0]">REF:</span>
+      <b class="text-red">{floor + range} dBFS</b>
+    </div>
+    <div>
+      <span class="text-[#fa0]">DIV:</span>
+      <b class="text-red">{range / 4} dB</b>
+    </div>
+    <div>
+      <span class="text-[#fa0]">DET:</span> <b class="text-red">AVERAGE</b>
+    </div>
+    <div>
+      <span class="text-[#fa0]">MODE:</span> <b class="text-red">{modeName}</b>
+    </div>
   </div>
 </div>
