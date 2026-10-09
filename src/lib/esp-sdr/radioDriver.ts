@@ -1013,6 +1013,9 @@ export class EspSdrDriver {
     if (this.isSimulating) {
       if (this.simConfig) {
         const oldFft = this.simConfig.fft;
+        const oldFreq = this.simConfig.frequency;
+        const oldRate = this.simConfig.rate;
+        const oldGainMode = this.simConfig.gainMode;
         Object.assign(this.simConfig, newConfig);
         if (newConfig.fft && this.smoothedTrace && this.smoothedTrace.length !== newConfig.fft) {
           this.smoothedTrace = null;
@@ -1022,18 +1025,30 @@ export class EspSdrDriver {
           clearInterval(this.simTimer);
           this.simTimer = setInterval(() => this.runSimulationStep(), this.getSimInterval(this.simConfig.fft));
         }
+        if (newConfig.fft !== oldFft || newConfig.frequency !== oldFreq || newConfig.rate !== oldRate) {
+          this.log('info', `Simulation config updated: FFT=${this.simConfig?.fft} Bins, Freq=${this.simConfig?.frequency} MHz, Rate=${(this.simConfig?.rate || 0) / 1e6} MS/s`);
+        } else if (newConfig.gainMode && newConfig.gainMode !== oldGainMode) {
+          this.log('info', `Simulation Gain Mode: ${newConfig.gainMode}`);
+        }
       }
-      this.log('info', `Simulation config updated: FFT=${this.simConfig?.fft} Bins, Freq=${this.simConfig?.frequency} MHz, Rate=${(this.simConfig?.rate || 0) / 1e6} MS/s`);
       return;
     }
     if (this.activeConfig) {
+      const oldFft = this.activeConfig.fft;
+      const oldFreq = this.activeConfig.frequency;
+      const oldRate = this.activeConfig.rate;
+      const oldGainMode = this.activeConfig.gainMode;
       Object.assign(this.activeConfig, newConfig);
       this.pendingConfigChange = true;
       if (newConfig.fft && this.smoothedTrace && this.smoothedTrace.length !== newConfig.fft) {
         this.smoothedTrace = null;
         this.maxHoldTrace = null;
       }
-      this.log('info', `Hardware config updated: FFT=${this.activeConfig.fft} Bins, Freq=${this.activeConfig.frequency} MHz, Rate=${this.activeConfig.rate / 1e6} MS/s`);
+      if (newConfig.fft !== oldFft || newConfig.frequency !== oldFreq || newConfig.rate !== oldRate) {
+        this.log('info', `Hardware config updated: FFT=${this.activeConfig.fft} Bins, Freq=${this.activeConfig.frequency} MHz, Rate=${this.activeConfig.rate / 1e6} MS/s`);
+      } else if (newConfig.gainMode && newConfig.gainMode !== oldGainMode) {
+        this.log('info', `Hardware Gain Mode: ${newConfig.gainMode}`);
+      }
     }
   }
 
@@ -1408,9 +1423,11 @@ export class EspSdrDriver {
     // WiFi channel activity pulsing
     const burstActive = Math.sin(timeSec * 5) > -0.2 || Math.random() < 0.35;
 
+    const gainOffset = cfg.gainMode === 'MANUAL' ? (cfg.gain - 40) * 0.4 : 0;
+
     for (let i = 0; i < n; i++) {
       // Noise floor with slight processing gain factor
-      const baseNoise = -96 + 10 * Math.log10(2048 / Math.max(64, n));
+      const baseNoise = -96 + 10 * Math.log10(2048 / Math.max(64, n)) + gainOffset * 0.3;
       const noise = baseNoise + (Math.random() - 0.5) * 5;
       const distFromCenter = Math.abs(i - centerBin);
 
@@ -1429,7 +1446,7 @@ export class EspSdrDriver {
           // Steep spectral mask skirt
           shape = Math.max(0, 1.0 - (normDist - 0.85) * 1.5);
         }
-        const basePower = burstActive ? -48 : -68;
+        const basePower = (burstActive ? -48 : -68) + gainOffset;
         signal = basePower * shape - (1 - shape) * 88 + (Math.random() - 0.5) * 4;
       }
 
@@ -1437,7 +1454,7 @@ export class EspSdrDriver {
       let carrier2400 = -120;
       const bin2400 = centerBin - Math.floor(n * ((freq - 2400) / rateMhz));
       if (Math.abs(i - bin2400) <= (n >= 1024 ? 1 : 0)) {
-        carrier2400 = -26 + (Math.random() - 0.5) * 2;
+        carrier2400 = -26 + gainOffset + (Math.random() - 0.5) * 2;
       }
 
       // Center DC leakage / LO carrier spike at 2412 MHz
@@ -1449,7 +1466,7 @@ export class EspSdrDriver {
       // Occasional subcarrier burst lines
       let burstSub = -120;
       if (burstActive && Math.random() < 0.15 && distFromCenter < halfChanBins && n >= 512) {
-        burstSub = -36 + Math.random() * 6;
+        burstSub = -36 + gainOffset + Math.random() * 6;
       }
 
       const maxLinear =
@@ -1479,7 +1496,7 @@ export class EspSdrDriver {
     this.handleProcessedSpectrum(
       simRaw,
       cfg,
-      { mode: 'HARDWARE', index: null },
+      { mode: cfg.gainMode, index: cfg.gainMode === 'MANUAL' ? cfg.gain : null },
       'Simulation (WiFi 2.4G)',
       Math.round(this.getSimInterval(n)),
       true
