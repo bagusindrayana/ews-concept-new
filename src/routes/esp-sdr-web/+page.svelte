@@ -8,6 +8,7 @@
   import SdrSpectrumChart from "$lib/components/SdrSpectrumChart.svelte";
   import SdrWaterfallChart from "$lib/components/SdrWaterfallChart.svelte";
   import SdrSegmentedBarChart from "$lib/components/SdrSegmentedBarChart.svelte";
+  import SdrPolygraphRecorder from "$lib/components/SdrPolygraphRecorder.svelte";
   import {
     EspSdrDriver,
     type CaptureConfig,
@@ -849,6 +850,44 @@
               numBars={11}
               numSegments={24}
               showSafetyBadge={false}
+            />
+          </div>
+        </Card>
+
+        <!-- 5. Continuous Multi-Track Polygraph Recorder (Evangelion MAGI / Seismograph Style) -->
+        <Card className="border-[#ff2200]/40 flex flex-col">
+          {#snippet title()}
+            <div
+              class="flex items-center justify-between w-full font-mono font-bold text-[#ff2200] px-1"
+            >
+              <div class="flex items-center gap-2">
+                <span>RF POLYGRAPH</span>
+              </div>
+              <div
+                class="flex items-center gap-2 text-[10px] text-neutral-400 font-normal"
+              >
+                <span class="text-[#fa0] font-bold"
+                  >CF: {config.frequency} MHz</span
+                >
+                <span>•</span>
+                <span>±30M~±50M (10M/CH)</span>
+               
+              </div>
+            </div>
+          {/snippet}
+
+          <div class="p-2 font-mono flex flex-col gap-2">
+            <SdrPolygraphRecorder
+              frame={latestFrame}
+              centerFreqMhz={config.frequency}
+              sampleRateHz={config.rate}
+              floor={config.floor}
+              ceilingDbfs={10}
+              safetyDbfs={0}
+              stepMhz={10}
+              numChannels={11}
+              isConnected={connectionStatus === "connected" ||
+                connectionStatus === "streaming"}
             />
           </div>
         </Card>

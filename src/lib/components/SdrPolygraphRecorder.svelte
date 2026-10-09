@@ -1,0 +1,596 @@
+<script lang="ts">
+  import { onMount, onDestroy } from "svelte";
+  import type { SpectrumFrame } from "$lib/esp-sdr/radioDriver";
+
+  interface Props {
+    frame: SpectrumFrame | null;
+    centerFreqMhz?: number;
+    sampleRateHz?: number;
+    floor?: number;          // Minimum dBFS (default -100)
+    ceilingDbfs?: number;    // Maximum dBFS (default +10)
+    safetyDbfs?: number;     // Level for SAFETY threshold (default 0)
+    stepMhz?: number;        // Step size per channel in MHz (default 10)
+    numChannels?: number;    // Total channels (default 7 or 11)
+    initialSpeed?: number;   // Scroll speed in px/s (default 50)
+    initialGain?: number;    // Waveform deflection gain (default 1.0)
+    isConnected?: boolean;   // Live connection status from ESP32
+  }
+
+  let {
+    frame = null,
+    centerFreqMhz = 2412,
+    sampleRateHz = 80000000,
+    floor = -100,
+    ceilingDbfs = 10,
+    safetyDbfs = 0,
+    stepMhz = 10,
+    numChannels = 7,         // Default 7 wide channels
+    initialSpeed = 50,
+    initialGain = 1.0,
+    isConnected = false,
+  }: Props = $props();
+
+  let container: HTMLDivElement;
+  let canvas: HTMLCanvasElement;
+  let ctx: CanvasRenderingContext2D | null = null;
+
+  let width = $state(760);
+  let height = $state(320);
+
+  // User interactive controls
+  let isRunning = $state(true);
+  let speed = $state(initialSpeed); // px/sec
+  let gain = $state(initialGain);
+  let channelCount = $state(numChannels); // 7 or 11
+  let hasBreach = $state(false);
+  let hoveredChannel = $state<number | null>(null);
+
+  let mouseX = $state<number | null>(null);
+  let mouseY = $state<number | null>(null);
+
+  const FIXED_HEIGHT = 320;
+  const STEP_Y = 2.0;             // Vertical distance in pixels per history sample
+  const MAX_HISTORY = 260;         // History sample depth per channel
+
+  // History ring buffer: each channel stores historical deflection offsets
+  let history = Array.from({ length: 11 }, () => new Float32Array(MAX_HISTORY));
+  const channelPowers = new Float32Array(11).fill(floor);
+  const channelBreaches = new Uint8Array(11).fill(0);
+  const channelPhases = new Float32Array(11).fill(0);
+
+  // Evangelion MAGI biometric labels from the reference GIF
+  const magiLabels = [
+    "TEMPORAL LOBE",
+    "AMYGDALA",
+    "HIPPOCAMPUS",
+    "PARIETAL LOBE",
+    "MOTOR CORTEX",
+    "SENSORY CORTEX",
+    "FRONTAL LOBE",
+    "OCCIPITAL LOBE",
+    "THALAMUS",
+    "CEREBELLUM",
+    "BRAINSTEM",
+  ];
+
+  let scrollAccumulator = 0;
+  let lastTime = performance.now();
+  let animId = 0;
+  let resizeObserver: ResizeObserver | null = null;
+
+  function resizeCanvas() {
+    if (!container || !canvas) return;
+    const rect = container.getBoundingClientRect();
+    const newWidth = Math.floor(rect.width);
+    if (newWidth <= 0) return;
+
+    const dpr = Math.min(typeof window !== "undefined" ? window.devicePixelRatio || 1 : 1, 2);
+    width = newWidth;
+    height = FIXED_HEIGHT;
+
+    canvas.width = Math.floor(width * dpr);
+    canvas.height = Math.floor(height * dpr);
+    canvas.style.width = "100%";
+    canvas.style.height = `${FIXED_HEIGHT}px`;
+
+    ctx = canvas.getContext("2d");
+    if (ctx) {
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.scale(dpr, dpr);
+    }
+  }
+
+  function handleMouseMove(e: MouseEvent) {
+    const rect = canvas?.getBoundingClientRect();
+    if (!rect) return;
+    mouseX = e.clientX - rect.left;
+    mouseY = e.clientY - rect.top;
+  }
+
+  function handleMouseLeave() {
+    mouseX = null;
+    mouseY = null;
+    hoveredChannel = null;
+  }
+
+  function pushHistorySample(ch: number, deflection: number) {
+    const buf = history[ch];
+    for (let i = MAX_HISTORY - 1; i > 0; i--) {
+      buf[i] = buf[i - 1];
+    }
+    buf[0] = deflection;
+  }
+
+  function draw() {
+    if (!ctx || !canvas || width <= 0 || height <= 0) return;
+
+    const now = performance.now();
+    const dt = Math.min(0.08, (now - lastTime) / 1000);
+    lastTime = now;
+
+    const curChannels = channelCount;
+
+    // 1. Compute frequency bins grouped by 10 MHz around center
+    const roundedCenter = Math.round(centerFreqMhz / stepMhz) * stepMhz;
+    const halfSteps = Math.floor(curChannels / 2);
+    const bucketFreqs: number[] = [];
+    for (let i = -halfSteps; i <= halfSteps; i++) {
+      bucketFreqs.push(roundedCenter + i * stepMhz);
+    }
+
+    // 2. Live spectrum extraction or Disconnected Straight Line
+    const isLive = isConnected && frame !== null && frame.spectrum && frame.spectrum.length > 0;
+    let anyBreach = false;
+
+    if (isLive && frame) {
+      const f = frame;
+      const n = f.spectrum.length;
+      const curCenter = f.frequency;
+      const curRate = f.rate;
+      const centerHz = curCenter * 1e6;
+      const spanHz = curRate;
+      const binWidthHz = spanHz / n;
+      const halfSpanMhz = (spanHz / 1e6) / 2;
+      const minCapMhz = curCenter - halfSpanMhz;
+      const maxCapMhz = curCenter + halfSpanMhz;
+
+      for (let b = 0; b < curChannels; b++) {
+        const bFreq = bucketFreqs[b];
+        const bMin = bFreq - stepMhz / 2;
+        const bMax = bFreq + stepMhz / 2;
+
+        let maxVal = -150;
+        let count = 0;
+
+        if (bMax >= minCapMhz && bMin <= maxCapMhz) {
+          const startBin = Math.max(0, Math.floor((bMin * 1e6 - (centerHz - spanHz / 2)) / binWidthHz));
+          const endBin = Math.min(n - 1, Math.ceil((bMax * 1e6 - (centerHz - spanHz / 2)) / binWidthHz));
+
+          for (let i = startBin; i <= endBin; i++) {
+            if (f.spectrum[i] > maxVal) {
+              maxVal = f.spectrum[i];
+            }
+            count++;
+          }
+        }
+
+        if (count === 0 || maxVal <= floor + 1) {
+          maxVal = floor;
+        }
+
+        channelPowers[b] = maxVal;
+        const isBreached = maxVal >= safetyDbfs;
+        channelBreaches[b] = isBreached ? 1 : 0;
+        if (isBreached) anyBreach = true;
+      }
+    } else {
+      // Disconnected / Stopped: Clean floor values, NO fake random simulation!
+      for (let b = 0; b < curChannels; b++) {
+        channelPowers[b] = floor;
+        channelBreaches[b] = 0;
+      }
+    }
+    hasBreach = anyBreach;
+
+    // 3. Layout geometry
+    const isMobile = width < 600;
+    const rulerWidth = isMobile ? 24 : 32;
+    const rightMargin = 4;
+    const plotWidth = Math.max(10, width - rulerWidth - rightMargin);
+    const colWidth = plotWidth / curChannels;
+    const yLaser = 76; // Horizontal laser reference stylus line (px from top)
+
+    // 4. Update polygraph history buffer when running (continuous paper feed)
+    if (isRunning) {
+      scrollAccumulator += speed * dt;
+
+      while (scrollAccumulator >= STEP_Y) {
+        scrollAccumulator -= STEP_Y;
+
+        for (let ch = 0; ch < curChannels; ch++) {
+          if (!isLive) {
+            // DISCONNECTED / STOPPED: EXACT STRAIGHT LINE (0 deflection, no random values!)
+            pushHistorySample(ch, 0);
+          } else {
+            // CONNECTED: Real measured RF power
+            const pwr = channelPowers[ch];
+            const maxLaneDeflection = (colWidth * 0.42) * gain;
+
+            if (pwr <= floor + 2) {
+              // Below/at noise floor: straight line
+              pushHistorySample(ch, 0);
+            } else {
+              // Actual RF energy received above noise floor:
+              const norm = Math.max(0, Math.min(1.0, (pwr - floor) / (ceilingDbfs - floor)));
+              channelPhases[ch] += 0.25;
+              // Deflection proportional to real signal power
+              const defl = Math.sin(channelPhases[ch]) * (norm * maxLaneDeflection);
+              const limit = colWidth * 0.46;
+              pushHistorySample(ch, Math.max(-limit, Math.min(limit, defl)));
+            }
+          }
+        }
+      }
+    }
+
+    // =========================================================================
+    // 5. RENDER BACKGROUND & ALTERNATING CRIMSON STRIPES (NO BLUR, NO GREEN)
+    // =========================================================================
+    // Pure pitch black base
+    ctx.fillStyle = "#020101";
+    ctx.fillRect(0, 0, width, height);
+
+    for (let ch = 0; ch < curChannels; ch++) {
+      const colX = rulerWidth + ch * colWidth;
+      const isOdd = ch % 2 === 1;
+
+      if (isOdd) {
+        // Crisp deep crimson band
+        ctx.fillStyle = "#2b070a";
+        ctx.fillRect(colX, 0, colWidth, height);
+      } else {
+        // Pitch black band
+        ctx.fillStyle = "#050202";
+        ctx.fillRect(colX, 0, colWidth, height);
+      }
+
+      // Column vertical separator borders in crisp dark crimson
+      ctx.strokeStyle = "rgba(180, 20, 20, 0.25)";
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(colX, 0);
+      ctx.lineTo(colX, height);
+      ctx.stroke();
+
+      // Faint centerline down the column
+      const cx = colX + colWidth / 2;
+      ctx.strokeStyle = "rgba(255, 60, 30, 0.08)";
+      ctx.setLineDash([2, 5]);
+      ctx.beginPath();
+      ctx.moveTo(cx, 0);
+      ctx.lineTo(cx, height);
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
+
+    // =========================================================================
+    // 6. LEFT MICROMETER INSTRUMENT RULER (CRISP AMBER SCALE, NO BLUR)
+    // =========================================================================
+    ctx.strokeStyle = "#ff5500";
+    ctx.lineWidth = 1.3;
+    ctx.beginPath();
+    ctx.moveTo(rulerWidth - 3, 0);
+    ctx.lineTo(rulerWidth - 3, height);
+    ctx.stroke();
+
+    ctx.font = "bold 8px monospace";
+    ctx.textAlign = "right";
+    ctx.textBaseline = "middle";
+
+    for (let y = 0; y < height; y += 5) {
+      const isMajor = y % 25 === 0;
+      const isMedium = y % 10 === 0;
+      const tickLen = isMajor ? 8 : isMedium ? 5 : 3;
+
+      ctx.strokeStyle = isMajor ? "#ff6600" : "rgba(255, 85, 0, 0.65)";
+      ctx.beginPath();
+      ctx.moveTo(rulerWidth - 3, y);
+      ctx.lineTo(rulerWidth - 3 - tickLen, y);
+      ctx.stroke();
+
+      if (isMajor && !isMobile && y >= 20) {
+        const idx = Math.floor(y / 25);
+        ctx.fillStyle = "#ff6600";
+        ctx.fillText(`${idx < 10 ? "-0" + idx : "-" + idx}`, rulerWidth - 11, y);
+      }
+    }
+
+    // =========================================================================
+    // 7. CHANNEL LABELS & ROTATED TYPOGRAPHY (EVANGELION MAGI STYLE)
+    // =========================================================================
+    let hoveredIdx: number | null = null;
+
+    for (let ch = 0; ch < curChannels; ch++) {
+      const colX = rulerWidth + ch * colWidth;
+      const cx = colX + colWidth / 2;
+      const freq = bucketFreqs[ch];
+      const isCenter = freq === roundedCenter;
+      const isBreached = channelBreaches[ch] === 1;
+
+      // Mouse hover detection
+      if (mouseX !== null && mouseY !== null) {
+        if (mouseX >= colX && mouseX < colX + colWidth) {
+          hoveredIdx = ch;
+        }
+      }
+
+      const isHovered = hoveredIdx === ch;
+
+      // Bold Amber Channel Number right above the red laser line (00, 01, 02...)
+      ctx.font = "900 13px monospace";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "bottom";
+      ctx.fillStyle = isBreached
+        ? "#ff0033"
+        : isCenter
+        ? "#ff9900"
+        : isHovered
+        ? "#ffffff"
+        : "#e64a19";
+
+      const chStr = ch < 10 ? `0${ch}` : `${ch}`;
+      ctx.fillText(chStr, cx, yLaser - 14);
+
+      // Rotated Vertical Label running along the column (matching GIF text!)
+      const labelText = magiLabels[ch % magiLabels.length];
+      ctx.save();
+      ctx.translate(cx + (colWidth > 60 ? 14 : 10), yLaser + 92);
+      ctx.rotate(-Math.PI / 2);
+      ctx.font = "900 9px monospace";
+      ctx.textAlign = "right";
+      ctx.textBaseline = "middle";
+      ctx.fillStyle = isBreached
+        ? "#ff0033"
+        : isCenter
+        ? "#ffaa00"
+        : "rgba(230, 74, 25, 0.85)";
+      ctx.fillText(`${labelText} • ${freq}MHz`, 0, 0);
+      ctx.restore();
+
+      // Negative coordinates at the bottom of the track (matching GIF: -00, -01, -02...)
+      ctx.font = "bold 9px monospace";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "bottom";
+      ctx.fillStyle = isCenter ? "#ff9900" : "#a83515";
+      ctx.fillText(`-${chStr}`, cx, height - 6);
+    }
+    hoveredChannel = hoveredIdx;
+
+    // =========================================================================
+    // 8. CRISP PHOSPHOR GREEN POLYGRAPH TRACE LINES (SOLID, NO BLUR/BLOOM)
+    // =========================================================================
+    for (let ch = 0; ch < curChannels; ch++) {
+      const colX = rulerWidth + ch * colWidth;
+      const cx = colX + colWidth / 2;
+      const isBreached = channelBreaches[ch] === 1;
+      const buf = history[ch];
+
+      ctx.save();
+      ctx.lineWidth = isBreached ? 2.0 : 1.7;
+      ctx.lineJoin = "round";
+      ctx.lineCap = "round";
+      ctx.strokeStyle = isBreached ? "#ff0033" : "#33ff66";
+
+      ctx.beginPath();
+      let started = false;
+
+      // Draw through the history points from laser line downwards
+      for (let i = 0; i < MAX_HISTORY; i++) {
+        const ptY = yLaser + i * STEP_Y + scrollAccumulator;
+        if (ptY > height - 12) break;
+
+        const ptX = cx + buf[i];
+
+        if (!started) {
+          ctx.moveTo(ptX, ptY);
+          started = true;
+        } else {
+          ctx.lineTo(ptX, ptY);
+        }
+      }
+
+      ctx.stroke();
+      ctx.restore();
+
+      // Live needle stylus dot at the laser line (crisp, solid, no blur)
+      const liveX = cx + buf[0];
+      ctx.fillStyle = isBreached ? "#ff0033" : "#ffffff";
+      ctx.beginPath();
+      ctx.arc(liveX, yLaser, 2.0, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    // =========================================================================
+    // 9. CRISP HORIZONTAL RED LASER REFERENCE SCANLINE (SOLID, NO BLUR)
+    // =========================================================================
+    ctx.strokeStyle = "#ff1a2b";
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(rulerWidth - 3, yLaser);
+    ctx.lineTo(width - rightMargin, yLaser);
+    ctx.stroke();
+
+    // =========================================================================
+    // 10. INTERACTIVE HOVER TOOLTIP (SOLID, NO BLUR)
+    // =========================================================================
+    if (hoveredIdx !== null) {
+      const hCh = hoveredIdx;
+      const hFreq = bucketFreqs[hCh];
+      const hPwr = channelPowers[hCh];
+      const isOver = hPwr >= safetyDbfs;
+      const colX = rulerWidth + hCh * colWidth;
+
+      const tipW = 145;
+      const tipH = 50;
+      let tipX = colX + colWidth / 2 - tipW / 2;
+      tipX = Math.max(rulerWidth + 4, Math.min(width - rightMargin - tipW - 4, tipX));
+      const tipY = height - tipH - 12;
+
+      ctx.save();
+      ctx.fillStyle = "rgba(10, 2, 4, 0.96)";
+      ctx.strokeStyle = isOver ? "#ff0033" : "#ff9900";
+      ctx.lineWidth = 1.2;
+
+      ctx.beginPath();
+      ctx.roundRect(tipX, tipY, tipW, tipH, 4);
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.textAlign = "left";
+      ctx.textBaseline = "middle";
+
+      ctx.fillStyle = "#ff9900";
+      ctx.font = "bold 9px monospace";
+      ctx.fillText(`CH-${hCh < 10 ? "0" + hCh : hCh}: ${hFreq} MHz`, tipX + 8, tipY + 13);
+
+      ctx.fillStyle = isOver ? "#ff3333" : "#ffffff";
+      ctx.font = "bold 9px monospace";
+      ctx.fillText(isLive ? `PWR: ${hPwr.toFixed(1)} dBFS` : `STATUS: STANDBY (0 dBFS)`, tipX + 8, tipY + 26);
+
+      ctx.fillStyle = isOver ? "#ff0033" : isLive ? "#33ff66" : "#888888";
+      ctx.font = "bold 8.5px monospace";
+      ctx.fillText(
+        !isLive
+          ? "DISCONNECTED (FLAT LINE)"
+          : isOver
+          ? "⚠ THRESHOLD EXCEEDED"
+          : `SAFE (${(safetyDbfs - hPwr).toFixed(1)} dB margin)`,
+        tipX + 8,
+        tipY + 38
+      );
+      ctx.restore();
+    }
+  }
+
+  onMount(() => {
+    resizeCanvas();
+    resizeObserver = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        const entryW = Math.floor(entry.contentRect.width);
+        if (entryW > 0 && Math.abs(entryW - width) > 1) {
+          resizeCanvas();
+        }
+      }
+    });
+    if (container) resizeObserver.observe(container);
+
+    const loop = () => {
+      draw();
+      animId = requestAnimationFrame(loop);
+    };
+    animId = requestAnimationFrame(loop);
+  });
+
+  onDestroy(() => {
+    if (resizeObserver) resizeObserver.disconnect();
+    if (animId) cancelAnimationFrame(animId);
+  });
+</script>
+
+<div
+  bind:this={container}
+  class="sdr-polygraph-container relative w-full bg-[#020101] border border-[#3d0a0e] rounded select-none overflow-hidden font-mono text-xs flex flex-col"
+  style="height: 355px; min-height: 355px; max-height: 355px;"
+>
+  <!-- Interactive Canvas Viewport (Fixed Height, No blur) -->
+  <!-- svelte-ignore a11y_no_static_element_interactions -->
+  <div class="relative w-full overflow-hidden bg-[#020101]" style="height: 320px;">
+    <canvas
+      bind:this={canvas}
+      class="block cursor-crosshair"
+      style="width: 100%; height: 320px;"
+      onmousemove={handleMouseMove}
+      onmouseleave={handleMouseLeave}
+    ></canvas>
+  </div>
+
+  <!-- Bottom Telemetry & Controls Toolbar (Evangelion MAGI Amber/Crimson Styling) -->
+  <div
+    class="px-2.5 py-1 bg-[#060203] border-t border-[#26070a] flex flex-wrap items-center justify-between gap-1.5 text-[10px] text-neutral-400"
+  >
+    <div class="flex items-center gap-2">
+      <!-- Run / Pause Button -->
+      <button
+        type="button"
+        class="flex items-center gap-1 px-2 py-0.5 rounded cursor-pointer transition-all border {isRunning
+          ? 'bg-[#e64a19]/15 text-[#ff7700] border-[#ff5500]/40 hover:bg-[#e64a19]/25'
+          : 'bg-red-950/60 text-red-400 border-red-700 hover:bg-red-900/50'}"
+        onclick={() => (isRunning = !isRunning)}
+        title="Jalankan / Jeda pergerakan perekam kertas poligraf"
+      >
+        <span class="w-1.5 h-1.5 rounded-full {isRunning ? 'bg-[#ff7700]' : 'bg-red-500'}"></span>
+        <span class="font-bold">{isRunning ? "FEED: RUNNING" : "FEED: PAUSED"}</span>
+      </button>
+
+      <!-- Channel Count Toggle (7 wide channels like GIF vs 11) -->
+      <button
+        type="button"
+        class="flex items-center gap-1 px-1.5 py-0.5 rounded cursor-pointer transition-all border bg-neutral-950 text-neutral-300 border-neutral-800 hover:text-white"
+        onclick={() => (channelCount = channelCount === 7 ? 11 : 7)}
+        title="Ganti jumlah kolom kanal (7 kolom lebar ala GIF vs 11 kolom)"
+      >
+        <span class="text-neutral-500 font-bold">CH:</span>
+        <span class="text-[#ff9900] font-bold">{channelCount === 7 ? "7 (±30M)" : "11 (±50M)"}</span>
+      </button>
+
+      <!-- Speed Toggle -->
+      <button
+        type="button"
+        class="flex items-center gap-1 px-1.5 py-0.5 rounded cursor-pointer transition-all border bg-neutral-950 text-neutral-300 border-neutral-800 hover:text-white"
+        onclick={() => {
+          if (speed === 35) speed = 60;
+          else if (speed === 60) speed = 100;
+          else speed = 35;
+        }}
+        title="Ubah kecepatan gerak maju paper feed"
+      >
+        <span class="text-neutral-500 font-bold">SPD:</span>
+        <span class="text-[#ff9900] font-bold">{speed === 35 ? "1x" : speed === 60 ? "2x" : "3x"}</span>
+      </button>
+
+      <!-- Gain Toggle -->
+      <button
+        type="button"
+        class="flex items-center gap-1 px-1.5 py-0.5 rounded cursor-pointer transition-all border bg-neutral-950 text-neutral-300 border-neutral-800 hover:text-white"
+        onclick={() => {
+          if (gain === 1.0) gain = 1.4;
+          else if (gain === 1.4) gain = 1.8;
+          else gain = 1.0;
+        }}
+        title="Ubah sensitivitas/gain simpangan gelombang"
+      >
+        <span class="text-neutral-500 font-bold">GAIN:</span>
+        <span class="text-[#ff9900] font-bold">{gain}x</span>
+      </button>
+    </div>
+
+    <!-- Right Side Status -->
+    <!-- <div class="flex items-center gap-2.5 font-mono">
+      <span>CENTER: <strong class="text-[#ff9900]">{centerFreqMhz} MHz</strong></span>
+      <span>SPAN: <strong class="text-neutral-300">±{Math.floor(channelCount / 2) * 10} MHz (10M/CH)</strong></span>
+      {#if !isConnected}
+        <span class="px-1.5 py-0.2 rounded bg-neutral-900 text-neutral-400 font-bold border border-neutral-700">
+          STANDBY (STRAIGHT LINE)
+        </span>
+      {:else if hasBreach}
+        <span class="px-1.5 py-0.2 rounded bg-red-950 text-red-400 font-bold border border-red-700 animate-pulse">
+          OVER THRESHOLD
+        </span>
+      {:else}
+        <span class="px-1.5 py-0.2 rounded bg-[#ff5500]/15 text-[#ff8800] font-bold border border-[#ff5500]/30">
+          ALL CHANNELS SAFE
+        </span>
+      {/if}
+    </div> -->
+  </div>
+</div>
