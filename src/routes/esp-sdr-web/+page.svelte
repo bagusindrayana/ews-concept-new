@@ -399,13 +399,13 @@
     class="w-full mb-3 text-center p-1 z-10 bordered flex justify-center items-center relative overflow-hidden bg-black min-h-[58px]"
   >
     <div class="w-full overflow-hidden">
-      <StripeBar loop={true} duration={25} color="orange"></StripeBar>
+      <StripeBar loop={deviceInfo?.connected} duration={25} color="orange"></StripeBar>
     </div>
     <div
       class="absolute inset-0 flex flex-col justify-center items-center pointer-events-none"
     >
       <h1
-        class="text-lg md:text-xl font-black font-mono tracking-widest text-[#fa0] uppercase bg-black"
+        class="text-lg md:text-xl font-black tracking-widest text-[#fa0] uppercase bg-black"
       >
         ESP-WebSDR
       </h1>
@@ -420,7 +420,7 @@
         <Card className="border-[#fa0]/40 flex flex-col">
           {#snippet title()}
             <div
-              class="flex items-center justify-between w-full font-mono font-bold text-[#fa0] px-1"
+              class="flex items-center justify-between w-full font-bold text-[#fa0] px-1"
             >
               <div class="flex items-center gap-2">
                 <span>RECEIVER INFORMATION</span>
@@ -441,18 +441,18 @@
                   class="flex flex-col items-center justify-between p-1 w-full select-none"
                 >
                   <div
-                    class="text -characters text-2xl md:text-3xl font-black tracking-wider text-orange"
+                    class="text -characters  font-black tracking-wider text-orange"
                   >
                     ESP
                   </div>
-                  <div class="text text-2xl md:text-3xl font-black text-orange">
+                  <div class="text font-black text-orange">
                     {deviceInfo?.connected
                       ? deviceInfo.chipFamily === "ESP32"
                         ? "32"
                         : deviceInfo.chipFamily || "SDR"
                       : "SDR"}
                   </div>
-                  <!-- <div class="text-[8px] font-mono uppercase tracking-widest px-1 py-0.5 rounded border {deviceInfo?.connected ? (deviceInfo.simulated ? 'border-[#fa0]/40 text-[#fa0] bg-[#fa0]/10' : 'border-[#37c964]/40 text-[#37c964] bg-[#37c964]/10') : 'border-[#22333d] text-neutral-500'}">
+                  <!-- <div class="text-[8px] uppercase tracking-widest px-1 py-0.5 rounded border {deviceInfo?.connected ? (deviceInfo.simulated ? 'border-[#fa0]/40 text-[#fa0] bg-[#fa0]/10' : 'border-[#37c964]/40 text-[#37c964] bg-[#37c964]/10') : 'border-[#22333d] text-neutral-500'}">
                     {deviceInfo?.connected ? (deviceInfo.simulated ? 'DEMO' : (deviceInfo.chipFamily || 'ONLINE')) : 'OFFLINE'}
                   </div> -->
                 </div>
@@ -468,10 +468,10 @@
               </div>
 
               <div
-                class="bordered p-1.5 w-3/5 text-[9px] font-mono leading-tight flex flex-col justify-between overflow-x-hidden select-text"
+                class="bordered p-1.5 w-3/5 text-[9px] leading-tight flex flex-col justify-between overflow-x-hidden select-text"
               >
                 <table class="w-full">
-                  <tbody>
+                  <tbody style="font-size: 12px !important;">
                     <tr>
                       <td class="text-left py-[1.5px] text-orange font-semibold"
                         >CHIP</td
@@ -575,14 +575,7 @@
                         {/if}
                       </td>
                     </tr>
-                    <tr>
-                      <td class="text-left py-[1.5px] text-orange font-semibold"
-                        >FREQ/SPAN</td
-                      >
-                      <td class="text-right py-[1.5px] text-[#fa0] font-bold">
-                        {config.frequency}M / {config.rate / 1e6}M
-                      </td>
-                    </tr>
+                
                     <tr>
                       <td class="text-left py-[1.5px] text-orange font-semibold"
                         >RX GAIN</td
@@ -606,7 +599,7 @@
               onclick={() => (isHardwareModalOpen = true)}
             >
               {#if deviceInfo?.connected}
-                <span>[VIEW FULL HARDWARE REGISTERS & LOGS]</span>
+                <span>HARDWARE INFO</span>
               {:else}
                 <span>OFFLINE</span>
               {/if}
@@ -659,7 +652,7 @@
         <Card className="border-[#fa0]/40 flex flex-col">
           {#snippet title()}
             <div
-              class="flex items-center justify-between w-full font-mono font-bold text-[#fa0] px-1"
+              class="flex items-center justify-between w-full font-bold text-[#fa0] px-1"
             >
               <div class="flex items-center gap-2">
                 <span>FFT</span>
@@ -712,7 +705,7 @@
         <Card className="border-[#fa0]/40 flex flex-col">
           {#snippet title()}
             <div
-              class="flex items-center justify-between w-full font-mono font-bold text-[#fa0] px-1"
+              class="flex items-center justify-between w-full font-bold text-[#fa0] px-1"
             >
               <div class="flex items-center gap-2">
                 <span>SAMPLE RATE</span>
@@ -740,7 +733,7 @@
                           type="button"
                           class="w-full h-full cursor-pointer flex flex-col justify-center items-center {config.rate ===
                           rp.rate
-                            ? 'text-white font-black'
+                            ? 'text-black font-black'
                             : 'text-black font-bold'}"
                           onclick={() => handleRateChange(rp.rate)}
                         >
@@ -761,7 +754,7 @@
         <Card className="border-[#fa0]/40 flex flex-col">
           {#snippet title()}
             <div
-              class="flex items-center justify-between w-full font-mono font-bold text-[#fa0] px-1"
+              class="flex items-center justify-between w-full font-bold text-[#fa0] px-1"
             >
               <div class="flex items-center gap-2">
                 <span>FILTERS & SETTINGS</span>
@@ -819,7 +812,7 @@
         <Card className="border-[#ff2200]/40 flex flex-col">
           {#snippet title()}
             <div
-              class="flex items-center justify-between w-full font-mono font-bold text-[#ff2200] px-1"
+              class="flex items-center justify-between w-full font-bold text-[#ff2200] px-1"
             >
               <div class="flex items-center gap-2">
                 <span>RF BAND</span>
@@ -832,13 +825,11 @@
                 >
                 <span>•</span>
                 <span>±50M (10M/BAR)</span>
-                <span>•</span>
-                <span class="text-red font-bold">SAFETY: ±0 dBFS</span>
               </div>
             </div>
           {/snippet}
 
-          <div class="p-2 font-mono flex flex-col gap-2">
+          <div class="p-2 flex flex-col gap-2">
             <SdrSegmentedBarChart
               frame={latestFrame}
               centerFreqMhz={config.frequency}
@@ -847,7 +838,7 @@
               ceilingDbfs={10}
               safetyDbfs={0}
               stepMhz={10}
-              numBars={11}
+              numBars={7}
               numSegments={24}
               showSafetyBadge={false}
             />
@@ -858,7 +849,7 @@
         <Card className="border-[#ff2200]/40 flex flex-col">
           {#snippet title()}
             <div
-              class="flex items-center justify-between w-full font-mono font-bold text-[#ff2200] px-1"
+              class="flex items-center justify-between w-full font-bold text-[#ff2200] px-1"
             >
               <div class="flex items-center gap-2">
                 <span>RF POLYGRAPH</span>
@@ -876,7 +867,7 @@
             </div>
           {/snippet}
 
-          <div class="p-2 font-mono flex flex-col gap-2">
+          <div class="p-2 flex flex-col gap-2">
             <SdrPolygraphRecorder
               frame={latestFrame}
               centerFreqMhz={config.frequency}
@@ -885,7 +876,7 @@
               ceilingDbfs={10}
               safetyDbfs={0}
               stepMhz={10}
-              numChannels={11}
+              numChannels={7}
               isConnected={connectionStatus === "connected" ||
                 connectionStatus === "streaming"}
             />
@@ -900,7 +891,7 @@
         <Card className="border-[#1e8bb5]/40 w-full">
           {#snippet title()}
             <div
-              class="flex items-center justify-between w-full font-mono text-xs font-bold text-[#1e8bb5] px-1"
+              class="flex items-center justify-between w-full text-xs font-bold text-[#1e8bb5] px-1"
             >
               <div class="flex items-center gap-2">
                 <span>ESP32 CONNECTION & HARDWARE LOG</span>
@@ -926,7 +917,7 @@
 
           <div
             bind:this={logContainer}
-            class="bg-[#05080a] p-3 font-mono text-[11px] h-48 overflow-y-auto rounded border border-[#162127] flex flex-col gap-1 select-text scroll-smooth"
+            class="bg-[#05080a] p-3 text-[11px] h-48 overflow-y-auto rounded border border-[#162127] flex flex-col gap-1 select-text scroll-smooth"
           >
             {#if logs.length === 0}
               <div class="text-[#546e7a] italic">
@@ -1009,11 +1000,11 @@
         </div>
       {/snippet}
 
-      <div class="flex flex-col gap-4 w-full p-3 font-mono text-xs">
+      <div class="flex flex-col gap-4 w-full p-3 text-xs">
         <!-- Sample Rate / Capture Span (Kotak Lebih Tinggi, Orange Default, Red Selected) -->
         <div class="flex flex-col gap-1.5 pt-2 border-t border-[#1c2930]">
           <div
-            class="flex justify-between items-center text-[10px] font-mono text-orange uppercase px-1"
+            class="flex justify-between items-center text-[10px] text-orange uppercase px-1"
           >
             <p class="text-[#fa0] font-bold uppercase tracking-widest text-xs">
               Sample Rate / Capture Span:
@@ -1024,7 +1015,7 @@
             {#each ratePresets as r}
               <button
                 type="button"
-                class="h-8 flex flex-col items-center justify-center font-mono text-[10px] transition-all cursor-pointer {config.rate ===
+                class="h-8 flex flex-col items-center justify-center text-[10px] transition-all cursor-pointer {config.rate ===
                 r.rate
                   ? 'bg-red text-white'
                   : 'bg-orange text-black hover:bg-[#fa0]/30 font-bold'}"
@@ -1040,7 +1031,7 @@
         <!-- FFT Resolution & Hold (Kotak Lebih Tinggi, Orange Default, Red Selected) -->
         <div class="flex flex-col gap-1.5 pt-2 border-t border-[#1c2930]">
           <div
-            class="flex justify-between items-center text-[10px] font-mono text-orange uppercase px-1"
+            class="flex justify-between items-center text-[10px] text-orange uppercase px-1"
           >
             <p class="text-[#fa0] font-bold uppercase tracking-widest text-xs">
               FFT Resolution & Hold
@@ -1051,7 +1042,7 @@
             {#each fftPresets as f}
               <button
                 type="button"
-                class="h-8 flex flex-col items-center justify-center font-mono text-[10px] transition-all cursor-pointer {config.fft ===
+                class="h-8 flex flex-col items-center justify-center text-[10px] transition-all cursor-pointer {config.fft ===
                 f.bins
                   ? 'bg-red text-white'
                   : 'bg-orange text-black hover:bg-[#fa0]/30 font-bold'}"
@@ -1063,7 +1054,7 @@
             {/each}
             <button
               type="button"
-              class="h-8 flex flex-col items-center justify-center font-mono text-[10px] transition-all cursor-pointer {config.maxHold
+              class="h-8 flex flex-col items-center justify-center text-[10px] transition-all cursor-pointer {config.maxHold
                 ? 'bg-red text-white'
                 : 'bg-orange text-black hover:bg-[#fa0]/30 font-bold'}"
               onclick={() => {
@@ -1121,7 +1112,7 @@
               <div class="flex items-center gap-2">
                 <button
                   type="button"
-                  class="text-xs font-mono font-bold px-2 py-0.5 rounded transition-all cursor-pointer {config.gainMode === 'HARDWARE' ? 'bg-[#fa0] text-black shadow-sm' : 'bg-transparent text-neutral-400 hover:text-white'}"
+                  class="text-xs font-bold px-2 py-0.5 rounded transition-all cursor-pointer {config.gainMode === 'HARDWARE' ? 'bg-[#fa0] text-black shadow-sm' : 'bg-transparent text-neutral-400 hover:text-white'}"
                   onclick={() => {
                     config.gainMode = 'HARDWARE';
                     addLog('info', 'RX Gain Mode: AGC (Automatic Hardware Gain)');
@@ -1142,7 +1133,7 @@
                 </label>
                 <button
                   type="button"
-                  class="text-xs font-mono font-bold px-2 py-0.5 rounded transition-all cursor-pointer {config.gainMode === 'MANUAL' ? 'bg-red text-white shadow-sm' : 'bg-transparent text-neutral-400 hover:text-white'}"
+                  class="text-xs font-bold px-2 py-0.5 rounded transition-all cursor-pointer {config.gainMode === 'MANUAL' ? 'bg-red text-white shadow-sm' : 'bg-transparent text-neutral-400 hover:text-white'}"
                   onclick={() => {
                     config.gainMode = 'MANUAL';
                     addLog('info', `RX Gain Mode: MANUAL (Gain Index: ${config.gain})`);
@@ -1273,7 +1264,7 @@
       {/snippet}
 
       <div
-        class="flex flex-col gap-3.5 w-full p-3 font-mono text-xs overflow-y-auto custom-scrollbar"
+        class="flex flex-col gap-3.5 w-full p-3 text-xs overflow-y-auto custom-scrollbar"
       >
         <!-- 1. Silicon Architecture & SoC Specs -->
         <div class="flex flex-col gap-1.5">

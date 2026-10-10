@@ -10,7 +10,7 @@
     ceilingDbfs?: number;    // Maximum dBFS (default +10)
     safetyDbfs?: number;     // Level for SAFETY threshold (default 0)
     stepMhz?: number;        // Step size per channel in MHz (default 10)
-    numChannels?: number;    // Total channels (default 7 or 11)
+    numChannels?: number;    // Total channels (supports 1, 5, 6, 8, 11, etc.)
     initialSpeed?: number;   // Scroll speed in px/s (default 50)
     initialGain?: number;    // Waveform deflection gain (default 1.0)
     isConnected?: boolean;   // Live connection status from ESP32
@@ -24,7 +24,7 @@
     ceilingDbfs = 10,
     safetyDbfs = 0,
     stepMhz = 10,
-    numChannels = 7,         // Default 7 wide channels
+    numChannels = $bindable(11),
     initialSpeed = 50,
     initialGain = 1.0,
     isConnected = false,
@@ -41,7 +41,6 @@
   let isRunning = $state(true);
   let speed = $state(initialSpeed); // px/sec
   let gain = $state(initialGain);
-  let channelCount = $state(numChannels); // 7 or 11
   let hasBreach = $state(false);
   let hoveredChannel = $state<number | null>(null);
 
@@ -51,27 +50,15 @@
   const FIXED_HEIGHT = 320;
   const STEP_Y = 2.0;             // Vertical distance in pixels per history sample
   const MAX_HISTORY = 260;         // History sample depth per channel
+  const MAX_CHANNELS = 32;
 
-  // History ring buffer: each channel stores historical deflection offsets
-  let history = Array.from({ length: 11 }, () => new Float32Array(MAX_HISTORY));
-  const channelPowers = new Float32Array(11).fill(floor);
-  const channelBreaches = new Uint8Array(11).fill(0);
-  const channelPhases = new Float32Array(11).fill(0);
+  // History ring buffer: supports up to 32 channels without dynamic reallocation
+  let history = Array.from({ length: MAX_CHANNELS }, () => new Float32Array(MAX_HISTORY));
+  const channelPowers = new Float32Array(MAX_CHANNELS).fill(floor);
+  const channelBreaches = new Uint8Array(MAX_CHANNELS).fill(0);
+  const channelPhases = new Float32Array(MAX_CHANNELS).fill(0);
 
-  // Evangelion MAGI biometric labels from the reference GIF
-  const magiLabels = [
-    "TEMPORAL LOBE",
-    "AMYGDALA",
-    "HIPPOCAMPUS",
-    "PARIETAL LOBE",
-    "MOTOR CORTEX",
-    "SENSORY CORTEX",
-    "FRONTAL LOBE",
-    "OCCIPITAL LOBE",
-    "THALAMUS",
-    "CEREBELLUM",
-    "BRAINSTEM",
-  ];
+
 
   let scrollAccumulator = 0;
   let lastTime = performance.now();
@@ -128,14 +115,15 @@
     const dt = Math.min(0.08, (now - lastTime) / 1000);
     lastTime = now;
 
-    const curChannels = channelCount;
+    // Support any channel count from 1 to 25!
+    const curChannels = Math.max(1, Math.min(MAX_CHANNELS, numChannels));
 
     // 1. Compute frequency bins grouped by 10 MHz around center
     const roundedCenter = Math.round(centerFreqMhz / stepMhz) * stepMhz;
-    const halfSteps = Math.floor(curChannels / 2);
+    const startOffset = -Math.floor((curChannels - 1) / 2);
     const bucketFreqs: number[] = [];
-    for (let i = -halfSteps; i <= halfSteps; i++) {
-      bucketFreqs.push(roundedCenter + i * stepMhz);
+    for (let i = 0; i < curChannels; i++) {
+      bucketFreqs.push(roundedCenter + (startOffset + i) * stepMhz);
     }
 
     // 2. Live spectrum extraction or Disconnected Straight Line
@@ -197,8 +185,12 @@
     const rulerWidth = isMobile ? 24 : 32;
     const rightMargin = 4;
     const plotWidth = Math.max(10, width - rulerWidth - rightMargin);
-    const colWidth = plotWidth / curChannels;
-    const yLaser = 76; // Horizontal laser reference stylus line (px from top)
+
+    // If only 1 channel, center it cleanly with attractive column width
+    const colWidth = curChannels === 1
+      ? Math.min(plotWidth * 0.45, 200)
+      : plotWidth / curChannels;
+    const yLaser = 114; // Horizontal laser reference stylus line (px from top)
 
     // 4. Update polygraph history buffer when running (continuous paper feed)
     if (isRunning) {
@@ -214,7 +206,7 @@
           } else {
             // CONNECTED: Real measured RF power
             const pwr = channelPowers[ch];
-            const maxLaneDeflection = (colWidth * 0.42) * gain;
+            const maxLaneDeflection = (colWidth * 0.30) * gain;
 
             if (pwr <= floor + 2) {
               // Below/at noise floor: straight line
@@ -225,7 +217,7 @@
               channelPhases[ch] += 0.25;
               // Deflection proportional to real signal power
               const defl = Math.sin(channelPhases[ch]) * (norm * maxLaneDeflection);
-              const limit = colWidth * 0.46;
+              const limit = colWidth * 0.36;
               pushHistorySample(ch, Math.max(-limit, Math.min(limit, defl)));
             }
           }
@@ -234,43 +226,84 @@
     }
 
     // =========================================================================
-    // 5. RENDER BACKGROUND & ALTERNATING CRIMSON STRIPES (NO BLUR, NO GREEN)
+    // 5. RENDER BACKGROUND & CRIMSON STRIPES (EVANGELION MAGI PARTIAL-WIDTH STRIPES)
     // =========================================================================
-    // Pure pitch black base
+    // Base pitch black paper background
     ctx.fillStyle = "#020101";
     ctx.fillRect(0, 0, width, height);
 
-    for (let ch = 0; ch < curChannels; ch++) {
-      const colX = rulerWidth + ch * colWidth;
-      const isOdd = ch % 2 === 1;
+    // Partial-width red bars between channels (matching reference UI Image 2)
+    // The red bar does NOT fill the entire channel width, but only a partial vertical strip (~38% of channel width)
+    const redBarWidth = Math.max(8, Math.round(colWidth * 0.38));
 
-      if (isOdd) {
-        // Crisp deep crimson band
-        ctx.fillStyle = "#2b070a";
-        ctx.fillRect(colX, 0, colWidth, height);
-      } else {
-        // Pitch black band
-        ctx.fillStyle = "#050202";
-        ctx.fillRect(colX, 0, colWidth, height);
-      }
+    if (curChannels === 1) {
+      // Single channel mode: centered black lane flanked by red vertical bars
+      const colX = rulerWidth + (plotWidth - colWidth) / 2;
+      ctx.fillStyle = "#2a0508";
+      ctx.fillRect(Math.max(rulerWidth, colX - redBarWidth), 0, redBarWidth, height);
+      ctx.fillRect(colX + colWidth, 0, redBarWidth, height);
 
-      // Column vertical separator borders in crisp dark crimson
-      ctx.strokeStyle = "rgba(180, 20, 20, 0.25)";
+      ctx.strokeStyle = "rgba(180, 20, 25, 0.28)";
       ctx.lineWidth = 1;
       ctx.beginPath();
-      ctx.moveTo(colX, 0);
-      ctx.lineTo(colX, height);
+      ctx.moveTo(colX, 0); ctx.lineTo(colX, height);
+      ctx.moveTo(colX + colWidth, 0); ctx.lineTo(colX + colWidth, height);
       ctx.stroke();
 
-      // Faint centerline down the column
       const cx = colX + colWidth / 2;
       ctx.strokeStyle = "rgba(255, 60, 30, 0.08)";
       ctx.setLineDash([2, 5]);
       ctx.beginPath();
-      ctx.moveTo(cx, 0);
-      ctx.lineTo(cx, height);
+      ctx.moveTo(cx, 0); ctx.lineTo(cx, height);
       ctx.stroke();
       ctx.setLineDash([]);
+    } else {
+      // Multi-channel mode: draw red vertical bars at the boundaries between each channel
+      ctx.fillStyle = "#2a0508";
+      // Ruler edge red stripe
+      ctx.fillRect(rulerWidth, 0, Math.round(redBarWidth / 2), height);
+
+      // Far right edge red stripe
+      const totalPlotRight = rulerWidth + curChannels * colWidth;
+      ctx.fillRect(totalPlotRight - Math.round(redBarWidth / 2), 0, Math.round(redBarWidth / 2), height);
+
+      // Red vertical bars centered at the boundary between every channel pair
+      for (let ch = 1; ch < curChannels; ch++) {
+        const boundaryX = rulerWidth + ch * colWidth;
+        const rx = Math.round(boundaryX - redBarWidth / 2);
+
+        ctx.fillStyle = "#2a0508";
+        ctx.fillRect(rx, 0, redBarWidth, height);
+
+        ctx.strokeStyle = "rgba(180, 20, 25, 0.28)";
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(rx, 0);
+        ctx.lineTo(rx, height);
+        ctx.moveTo(rx + redBarWidth, 0);
+        ctx.lineTo(rx + redBarWidth, height);
+        ctx.stroke();
+      }
+
+      // Centerlines and breach highlights down each channel
+      for (let ch = 0; ch < curChannels; ch++) {
+        const colX = rulerWidth + ch * colWidth;
+        const cx = colX + colWidth / 2;
+        const isBreached = channelBreaches[ch] === 1;
+
+        if (isBreached) {
+          ctx.fillStyle = "rgba(255, 0, 30, 0.12)";
+          ctx.fillRect(colX, 0, colWidth, height);
+        }
+
+        ctx.strokeStyle = "rgba(255, 60, 30, 0.08)";
+        ctx.setLineDash([2, 5]);
+        ctx.beginPath();
+        ctx.moveTo(cx, 0);
+        ctx.lineTo(cx, height);
+        ctx.stroke();
+        ctx.setLineDash([]);
+      }
     }
 
     // =========================================================================
@@ -306,12 +339,14 @@
     }
 
     // =========================================================================
-    // 7. CHANNEL LABELS & ROTATED TYPOGRAPHY (EVANGELION MAGI STYLE)
+    // 7. CHANNEL LABELS & ROTATED TYPOGRAPHY (EVANGELION MAGI STYLE - UPPER HEADER)
     // =========================================================================
     let hoveredIdx: number | null = null;
 
     for (let ch = 0; ch < curChannels; ch++) {
-      const colX = rulerWidth + ch * colWidth;
+      const colX = curChannels === 1
+        ? rulerWidth + (plotWidth - colWidth) / 2
+        : rulerWidth + ch * colWidth;
       const cx = colX + colWidth / 2;
       const freq = bucketFreqs[ch];
       const isCenter = freq === roundedCenter;
@@ -325,8 +360,9 @@
       }
 
       const isHovered = hoveredIdx === ch;
+      const chStr = ch < 10 ? `0${ch}` : `${ch}`;
 
-      // Bold Amber Channel Number right above the red laser line (00, 01, 02...)
+      // 1. Bold Amber Channel Number right above the red laser line (00, 01, 02...)
       ctx.font = "900 13px monospace";
       ctx.textAlign = "center";
       ctx.textBaseline = "bottom";
@@ -337,27 +373,27 @@
         : isHovered
         ? "#ffffff"
         : "#e64a19";
+      ctx.fillText(chStr, cx, yLaser - 12);
 
-      const chStr = ch < 10 ? `0${ch}` : `${ch}`;
-      ctx.fillText(chStr, cx, yLaser - 14);
-
-      // Rotated Vertical Label running along the column (matching GIF text!)
-      const labelText = magiLabels[ch % magiLabels.length];
+      // 2. Rotated Vertical Frequency Text directly in the upper header zone
+      // e.g. "2390 MHz" running upwards, completely clear of the green trace lines
       ctx.save();
-      ctx.translate(cx + (colWidth > 60 ? 14 : 10), yLaser + 92);
+      ctx.translate(cx, yLaser - 26);
       ctx.rotate(-Math.PI / 2);
-      ctx.font = "900 9px monospace";
-      ctx.textAlign = "right";
+      ctx.font = "900 10px monospace";
+      ctx.textAlign = "left";
       ctx.textBaseline = "middle";
       ctx.fillStyle = isBreached
         ? "#ff0033"
         : isCenter
         ? "#ffaa00"
-        : "rgba(230, 74, 25, 0.85)";
-      ctx.fillText(`${labelText} • ${freq}MHz`, 0, 0);
+        : isHovered
+        ? "#ffffff"
+        : "rgba(255, 120, 30, 0.9)";
+      ctx.fillText(`${freq} MHz`, 0, 0);
       ctx.restore();
 
-      // Negative coordinates at the bottom of the track (matching GIF: -00, -01, -02...)
+      // 4. Negative coordinates at the bottom of the track (matching Image 2: -00, -01, -02...)
       ctx.font = "bold 9px monospace";
       ctx.textAlign = "center";
       ctx.textBaseline = "bottom";
@@ -370,7 +406,9 @@
     // 8. CRISP PHOSPHOR GREEN POLYGRAPH TRACE LINES (SOLID, NO BLUR/BLOOM)
     // =========================================================================
     for (let ch = 0; ch < curChannels; ch++) {
-      const colX = rulerWidth + ch * colWidth;
+      const colX = curChannels === 1
+        ? rulerWidth + (plotWidth - colWidth) / 2
+        : rulerWidth + ch * colWidth;
       const cx = colX + colWidth / 2;
       const isBreached = channelBreaches[ch] === 1;
       const buf = history[ch];
@@ -428,7 +466,9 @@
       const hFreq = bucketFreqs[hCh];
       const hPwr = channelPowers[hCh];
       const isOver = hPwr >= safetyDbfs;
-      const colX = rulerWidth + hCh * colWidth;
+      const colX = curChannels === 1
+        ? rulerWidth + (plotWidth - colWidth) / 2
+        : rulerWidth + hCh * colWidth;
 
       const tipW = 145;
       const tipH = 50;
@@ -514,83 +554,15 @@
     ></canvas>
   </div>
 
-  <!-- Bottom Telemetry & Controls Toolbar (Evangelion MAGI Amber/Crimson Styling) -->
+  <!-- Bottom Telemetry & Controls Toolbar with Channels Adjuster -->
   <div
     class="px-2.5 py-1 bg-[#060203] border-t border-[#26070a] flex flex-wrap items-center justify-between gap-1.5 text-[10px] text-neutral-400"
   >
-    <div class="flex items-center gap-2">
-      <!-- Run / Pause Button -->
-      <button
-        type="button"
-        class="flex items-center gap-1 px-2 py-0.5 rounded cursor-pointer transition-all border {isRunning
-          ? 'bg-[#e64a19]/15 text-[#ff7700] border-[#ff5500]/40 hover:bg-[#e64a19]/25'
-          : 'bg-red-950/60 text-red-400 border-red-700 hover:bg-red-900/50'}"
-        onclick={() => (isRunning = !isRunning)}
-        title="Jalankan / Jeda pergerakan perekam kertas poligraf"
-      >
-        <span class="w-1.5 h-1.5 rounded-full {isRunning ? 'bg-[#ff7700]' : 'bg-red-500'}"></span>
-        <span class="font-bold">{isRunning ? "FEED: RUNNING" : "FEED: PAUSED"}</span>
-      </button>
-
-      <!-- Channel Count Toggle (7 wide channels like GIF vs 11) -->
-      <button
-        type="button"
-        class="flex items-center gap-1 px-1.5 py-0.5 rounded cursor-pointer transition-all border bg-neutral-950 text-neutral-300 border-neutral-800 hover:text-white"
-        onclick={() => (channelCount = channelCount === 7 ? 11 : 7)}
-        title="Ganti jumlah kolom kanal (7 kolom lebar ala GIF vs 11 kolom)"
-      >
-        <span class="text-neutral-500 font-bold">CH:</span>
-        <span class="text-[#ff9900] font-bold">{channelCount === 7 ? "7 (±30M)" : "11 (±50M)"}</span>
-      </button>
-
-      <!-- Speed Toggle -->
-      <button
-        type="button"
-        class="flex items-center gap-1 px-1.5 py-0.5 rounded cursor-pointer transition-all border bg-neutral-950 text-neutral-300 border-neutral-800 hover:text-white"
-        onclick={() => {
-          if (speed === 35) speed = 60;
-          else if (speed === 60) speed = 100;
-          else speed = 35;
-        }}
-        title="Ubah kecepatan gerak maju paper feed"
-      >
-        <span class="text-neutral-500 font-bold">SPD:</span>
-        <span class="text-[#ff9900] font-bold">{speed === 35 ? "1x" : speed === 60 ? "2x" : "3x"}</span>
-      </button>
-
-      <!-- Gain Toggle -->
-      <button
-        type="button"
-        class="flex items-center gap-1 px-1.5 py-0.5 rounded cursor-pointer transition-all border bg-neutral-950 text-neutral-300 border-neutral-800 hover:text-white"
-        onclick={() => {
-          if (gain === 1.0) gain = 1.4;
-          else if (gain === 1.4) gain = 1.8;
-          else gain = 1.0;
-        }}
-        title="Ubah sensitivitas/gain simpangan gelombang"
-      >
-        <span class="text-neutral-500 font-bold">GAIN:</span>
-        <span class="text-[#ff9900] font-bold">{gain}x</span>
-      </button>
-    </div>
-
+    
     <!-- Right Side Status -->
-    <!-- <div class="flex items-center gap-2.5 font-mono">
+    <div class="flex items-center gap-2.5 font-mono">
       <span>CENTER: <strong class="text-[#ff9900]">{centerFreqMhz} MHz</strong></span>
-      <span>SPAN: <strong class="text-neutral-300">±{Math.floor(channelCount / 2) * 10} MHz (10M/CH)</strong></span>
-      {#if !isConnected}
-        <span class="px-1.5 py-0.2 rounded bg-neutral-900 text-neutral-400 font-bold border border-neutral-700">
-          STANDBY (STRAIGHT LINE)
-        </span>
-      {:else if hasBreach}
-        <span class="px-1.5 py-0.2 rounded bg-red-950 text-red-400 font-bold border border-red-700 animate-pulse">
-          OVER THRESHOLD
-        </span>
-      {:else}
-        <span class="px-1.5 py-0.2 rounded bg-[#ff5500]/15 text-[#ff8800] font-bold border border-[#ff5500]/30">
-          ALL CHANNELS SAFE
-        </span>
-      {/if}
-    </div> -->
+      
+    </div>
   </div>
 </div>

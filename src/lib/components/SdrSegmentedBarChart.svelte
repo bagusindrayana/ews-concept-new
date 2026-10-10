@@ -24,7 +24,7 @@
     ceilingDbfs = 10,
     safetyDbfs = 0,
     stepMhz = 10,
-    numBars = 11,
+    numBars = $bindable(11),
     numSegments = 24,
     showYellowCap = $bindable(true),
     showSafetyBadge = $bindable(false),
@@ -47,9 +47,10 @@
   let resizeObserver: ResizeObserver | null = null;
   let animId: number = 0;
 
-  // Non-reactive buffers for smooth 60 FPS ballistics (prevents any Svelte reactivity loop!)
-  const animatedLevels = new Float32Array(numBars).fill(floor);
-  const peakLevels = new Float32Array(numBars).fill(floor);
+  // Pre-allocated non-reactive buffers (supports up to 64 bars without reallocating in 60 FPS loop)
+  const MAX_BARS = 64;
+  const animatedLevels = new Float32Array(MAX_BARS).fill(floor);
+  const peakLevels = new Float32Array(MAX_BARS).fill(floor);
   let lastTime = performance.now();
 
   const FIXED_HEIGHT = 270;
@@ -125,17 +126,18 @@
     const normSafety = Math.max(0, Math.min(1, (safetyDbfs - floor) / (ceilingDbfs - floor)));
     const ySafety = topPadding + plotHeight * (1 - normSafety);
 
-    // 2. Compute 11 Frequency Buckets: e.g. 2360 ... 2410 ... 2460
+    // 2. Compute Frequency Buckets: supports 1, 5, 6, 8, 11 or any count!
     const roundedCenter = Math.round(centerFreqMhz / stepMhz) * stepMhz;
     centerBucketFreq = roundedCenter;
-    const halfSteps = Math.floor(numBars / 2);
+    const totalBars = Math.max(1, Math.min(MAX_BARS, numBars));
+    const startOffset = -Math.floor((totalBars - 1) / 2);
     const bucketFreqs: number[] = [];
-    for (let i = -halfSteps; i <= halfSteps; i++) {
-      bucketFreqs.push(roundedCenter + i * stepMhz);
+    for (let i = 0; i < totalBars; i++) {
+      bucketFreqs.push(roundedCenter + (startOffset + i) * stepMhz);
     }
 
     // 3. Process spectrum frame into target levels for each bucket
-    const targetLevels = new Float32Array(numBars);
+    const targetLevels = new Float32Array(totalBars);
     const f = frame;
 
     if (f && f.spectrum && f.spectrum.length > 0) {
@@ -149,7 +151,7 @@
       const minCapMhz = curCenter - halfSpanMhz;
       const maxCapMhz = curCenter + halfSpanMhz;
 
-      for (let b = 0; b < numBars; b++) {
+      for (let b = 0; b < totalBars; b++) {
         const bFreq = bucketFreqs[b];
         const bMin = bFreq - stepMhz / 2;
         const bMax = bFreq + stepMhz / 2;
@@ -178,14 +180,14 @@
       }
     } else {
       // Disconnected / idle mode: gentle baseline noise floor
-      for (let b = 0; b < numBars; b++) {
+      for (let b = 0; b < totalBars; b++) {
         targetLevels[b] = floor + (Math.sin(now * 0.002 + b) * 1.5 + Math.random() * 1.0);
       }
     }
 
     // 4. Instant Ballistics (Snap immediately when level drops or rises)
     let anyOverSafety = false;
-    for (let b = 0; b < numBars; b++) {
+    for (let b = 0; b < totalBars; b++) {
       const target = targetLevels[b];
       // Instant snap so bars and peak marker track signal in real time!
       animatedLevels[b] = target;
@@ -291,16 +293,20 @@
       ctx.restore();
     }
 
-    // 7. Draw The 11 Segmented Bars
-    const barGap = isNarrow ? 3 : isMobile ? 5 : 8;
-    const barWidth = Math.max(8, (plotWidth - (numBars - 1) * barGap) / numBars);
+    // 7. Draw The Segmented Bars (Supports 1, 5, 6, 8, 11 or any count)
+    const barGap = totalBars === 1 ? 0 : isNarrow ? 3 : isMobile ? 5 : 8;
+    const barWidth = totalBars === 1
+      ? Math.min(plotWidth * 0.45, 160)
+      : Math.max(8, (plotWidth - (totalBars - 1) * barGap) / totalBars);
     const segGap = 2.4;
     const segHeight = Math.max(3, (plotHeight - (numSegments - 1) * segGap) / numSegments);
 
     let hoveredIndex: number | null = null;
 
-    for (let b = 0; b < numBars; b++) {
-      const bx = leftPadding + b * (barWidth + barGap);
+    for (let b = 0; b < totalBars; b++) {
+      const bx = totalBars === 1
+        ? leftPadding + (plotWidth - barWidth) / 2
+        : leftPadding + b * (barWidth + barGap);
       const curLevel = animatedLevels[b];
       const peakLevel = peakLevels[b];
       const freqMhz = bucketFreqs[b];
@@ -409,7 +415,9 @@
       const hPeak = peakLevels[hb];
       const isOver = hVal > safetyDbfs;
 
-      const bx = leftPadding + hb * (barWidth + barGap);
+      const bx = totalBars === 1
+        ? leftPadding + (plotWidth - barWidth) / 2
+        : leftPadding + hb * (barWidth + barGap);
       const tipW = 145;
       const tipH = 56;
       let tipX = bx - tipW / 2 + barWidth / 2;
@@ -491,47 +499,13 @@
     ></canvas>
   </div>
 
-  <!-- Bottom Telemetry Status Strip -->
+  <!-- Bottom Telemetry Status Strip with BARS Count Adjuster -->
   <div class="px-3 py-1.5 bg-[#030608] border-t border-[#1a120b] flex flex-wrap items-center justify-between gap-2 text-[10px] text-neutral-400">
-    <!-- <div class="flex items-center gap-2.5">
-      <button
-        type="button"
-        class="flex items-center gap-1.5 px-2 py-0.5 rounded cursor-pointer transition-all border {showYellowCap ? 'bg-[#ffaa00]/15 text-[#ffaa00] border-[#ffaa00]/40 hover:bg-[#ffaa00]/25' : 'bg-[#ff2200]/15 text-[#ff2200] border-[#ff2200]/40 hover:bg-[#ff2200]/25'}"
-        onclick={() => (showYellowCap = !showYellowCap)}
-        title="Klik untuk ganti mode warna (Yellow Cap vs All Red)"
-      >
-        <span class="w-2 h-2 rounded-xs {showYellowCap ? 'bg-[#ffaa00]' : 'bg-[#ff2200]'}"></span>
-        <span class="font-bold">{showYellowCap ? 'PEAK: YELLOW CAP' : 'PEAK: ALL RED'}</span>
-      </button>
-
-      <button
-        type="button"
-        class="flex items-center gap-1.5 px-2 py-0.5 rounded cursor-pointer transition-all border {showSafetyBadge ? 'bg-[#ff9900]/15 text-[#ff9900] border-[#ff9900]/40 hover:bg-[#ff9900]/25' : 'bg-neutral-900 text-neutral-400 border-neutral-700 hover:text-white'}"
-        onclick={() => (showSafetyBadge = !showSafetyBadge)}
-        title="Klik untuk sembunyikan/tampilkan badge SAFETY LINE beserta padding kirinya"
-      >
-        <span class="w-2.5 h-1 rounded-xs border {showSafetyBadge ? 'bg-[#ff9900] border-[#ff9900]' : 'border-neutral-500'}"></span>
-        <span class="font-bold">{showSafetyBadge ? 'BADGE: ON' : 'BADGE: OFF'}</span>
-      </button>
-
-      <span class="flex items-center gap-1.5">
-        <span class="w-2.5 h-0.5 bg-[#ff9900]"></span>
-        <span class="text-[#ff9900] font-bold">SAFETY LINE: ±0 dBFS</span>
-      </span>
-    </div> -->
+    
 
     <div class="flex items-center gap-3 font-mono">
-      <span>CENTER: <strong class="text-[#ff9900]">{centerFreqMhz} MHz</strong> (BIN: {centerBucketFreq}M)</span>
-      <span>SPAN: <strong class="text-neutral-200">±50 MHz (10M/BAR)</strong></span>
-      {#if hasBreach}
-        <span class="px-1.5 py-0.2 rounded bg-red-950 text-red-400 font-bold border border-red-700 animate-pulse">
-          SAFETY BREACH
-        </span>
-      {:else}
-        <span class="px-1.5 py-0.2 rounded bg-[#37c964]/20 text-[#37c964] font-bold">
-          ALL BANDS SAFE
-        </span>
-      {/if}
+      <span>CENTER: <strong class="text-[#ff9900]">{centerFreqMhz} MHz</strong></span>
+      
     </div>
   </div>
 </div>
