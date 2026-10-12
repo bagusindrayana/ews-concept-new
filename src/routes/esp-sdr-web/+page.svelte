@@ -22,6 +22,7 @@
 
   // Connection & Driver State (keep driver instance outside Svelte state tracking)
   let driver: EspSdrDriver | null = null;
+  let loadingScreen = $state(true);
   let isSimulating = $state(false);
   let driverIdentity = $state("");
   let hasSpec = $state(false);
@@ -373,6 +374,10 @@
         `System ready. ${mode} interface available. Ready to connect ESP32 SDR or run Demo Simulation.`,
       );
     }
+
+    setInterval(() => {
+      loadingScreen = false;
+    }, 1000);
   });
 
   onDestroy(() => {
@@ -415,7 +420,8 @@
     class="w-full mb-3 text-center p-1 z-10 bordered flex justify-center items-center relative overflow-hidden bg-black min-h-[58px]"
   >
     <div class="w-full overflow-hidden">
-      <StripeBar loop={deviceInfo?.connected} duration={25} color="orange"></StripeBar>
+      <StripeBar loop={deviceInfo?.connected} duration={25} color="orange"
+      ></StripeBar>
     </div>
     <div
       class="absolute inset-0 flex flex-col justify-center items-center pointer-events-none"
@@ -430,7 +436,6 @@
 
   <div class="w-full flex flex-col gap-3">
     <div class="w-full flex flex-col lg:flex-row gap-2 justify-center">
-     
       <div class="w-full flex flex-col gap-2 min-w-0">
         <!-- 1. RECEIVER INFORMATION (Gambar 1 STATION INFORMATION style) -->
         <Card className=" flex flex-col">
@@ -457,7 +462,7 @@
                   class="flex flex-col items-center justify-between p-1 w-full select-none"
                 >
                   <div
-                    class="text -characters  font-black tracking-wider text-orange"
+                    class="text -characters font-black tracking-wider text-orange"
                   >
                     ESP
                   </div>
@@ -516,7 +521,7 @@
                         >ARCH</td
                       >
                       <td
-                        class="text-right py-[1.5px]  font-semibold truncate max-w-[125px]"
+                        class="text-right py-[1.5px] font-semibold truncate max-w-[125px]"
                         title={deviceInfo?.chipArch || "Espressif 32-bit SoC"}
                       >
                         {#if deviceInfo?.connected}
@@ -569,7 +574,7 @@
                         {/if}
                       </td>
                     </tr>
-                 
+
                     <tr>
                       <td class="text-left py-[1.5px] text-orange font-semibold"
                         >CAPS</td
@@ -591,22 +596,27 @@
                         {/if}
                       </td>
                     </tr>
-                
+
                     <tr>
                       <td class="text-left py-[1.5px] text-orange font-semibold"
                         >RX GAIN</td
                       >
-                      <td class="text-right py-[1.5px] font-bold {config.gainMode === 'MANUAL' ? 'text-red' : 'text-[#fa0]'}">
-                        {config.gainMode === 'MANUAL' ? `MANUAL (${config.gain} dB)` : 'AGC (AUTO)'}
+                      <td
+                        class="text-right py-[1.5px] font-bold {config.gainMode ===
+                        'MANUAL'
+                          ? 'text-red'
+                          : 'text-[#fa0]'}"
+                      >
+                        {config.gainMode === "MANUAL"
+                          ? `MANUAL (${config.gain} dB)`
+                          : "AGC (AUTO)"}
                       </td>
                     </tr>
-                   
                   </tbody>
                 </table>
               </div>
             </div>
 
-        
             <!-- Inspect Full Registers Button -->
             <button
               type="button"
@@ -779,7 +789,6 @@
           {/snippet}
 
           <div class="flex flex-col gap-2.5 p-2 font-mono">
-
             <button
               type="button"
               class="ews-btn ews-btn-primary w-full py-2.5 flex items-center justify-center gap-2 text-xs md:text-sm font-bold tracking-wider cursor-pointer"
@@ -788,8 +797,6 @@
               OPEN FILTERS & SETTINGS
             </button>
           </div>
-
-        
         </Card>
       </div>
 
@@ -822,8 +829,6 @@
         />
       </div>
       <div class="w-full flex flex-col gap-2">
-        
-
         <!-- 4. RF Band Segmented Bar Monitor (EVANGELION HUD / SAFETY LINE STYLE) -->
         <Card className="border-[#ff2200]/40 flex flex-col">
           {#snippet title()}
@@ -878,7 +883,6 @@
                 >
                 <span>•</span>
                 <span>±30M~±50M (10M/CH)</span>
-               
               </div>
             </div>
           {/snippet}
@@ -898,95 +902,91 @@
             />
           </div>
         </Card>
-
-       
       </div>
     </div>
     <div class="w-full">
-       <!-- Connection & Hardware Diagnostic Log Terminal Card (Full Width) -->
-        <Card borderColor="red" className="w-full">
-          {#snippet title()}
-            <div
-              class="flex items-center justify-between w-full text-xs font-bold text-red px-1"
-            >
-              <div class="flex items-center gap-2">
-                <span>LOG</span>
-              </div>
-              <div class="flex items-center gap-3 font-normal text-[11px]">
-                <label
-                  class="flex items-center gap-1 cursor-pointer text-orange"
-                >
-                  <input type="checkbox" bind:checked={autoScrollLog} />
-                  Auto-scroll
-                </label>
-                <button
-                  type="button"
-                  class="text-orange hover:text-white transition-colors cursor-pointer"
-                  onclick={handleClearLogs}
-                >
-                  Clear
-                </button>
-                <span class="text-[#546e7a]">({logs.length} entries)</span>
-              </div>
-            </div>
-          {/snippet}
-
+      <!-- Connection & Hardware Diagnostic Log Terminal Card (Full Width) -->
+      <Card borderColor="red" className="w-full">
+        {#snippet title()}
           <div
-            bind:this={logContainer}
-            class="bg-[#05080a] p-3 text-[11px] h-48 overflow-y-auto rounded border border-[#162127] flex flex-col gap-1 select-text scroll-smooth"
+            class="flex items-center justify-between w-full text-xs font-bold text-red px-1"
           >
-            {#if logs.length === 0}
-              <div class="text-[#546e7a] italic">
-                No connection log messages yet. Click "CONNECT ESP32" or "DEMO
-                SIMULATION" to begin.
-              </div>
-            {:else}
-              {#each logs as log (log.id)}
-                <div class="flex items-start gap-2 leading-relaxed">
-                  <span class="text-[#546e7a] shrink-0 font-medium"
-                    >[{log.timestamp}]</span
-                  >
-                  {#if log.type === "success"}
-                    <span
-                      class="px-1 py-0.2 rounded text-[10px] bg-[#37c964]/20 text-[#37c964] font-bold shrink-0"
-                    >
-                      OK
-                    </span>
-                    <span class="text-[#a5d6a7]">{log.message}</span>
-                  {:else if log.type === "error"}
-                    <span
-                      class="px-1 py-0.2 rounded text-[10px] bg-red-950 text-red-400 font-bold shrink-0"
-                    >
-                      ERR
-                    </span>
-                    <span class="text-red-300 font-medium">{log.message}</span>
-                  {:else if log.type === "warn"}
-                    <span
-                      class="px-1 py-0.2 rounded text-[10px] bg-amber-950 text-amber-400 font-bold shrink-0"
-                    >
-                      WARN
-                    </span>
-                    <span class="text-amber-200">{log.message}</span>
-                  {:else if log.type === "rx"}
-                    <span
-                      class="px-1 py-0.2 rounded text-[10px] bg-purple-950 text-purple-300 font-bold shrink-0"
-                    >
-                      RX
-                    </span>
-                    <span class="text-purple-200">{log.message}</span>
-                  {:else}
-                    <span
-                      class="px-1 py-0.2 rounded text-[10px] bg-[#1e8bb5]/20 text-[#1e8bb5] font-bold shrink-0"
-                    >
-                      INFO
-                    </span>
-                    <span class="text-[#b0bec5]">{log.message}</span>
-                  {/if}
-                </div>
-              {/each}
-            {/if}
+            <div class="flex items-center gap-2">
+              <span>LOG</span>
+            </div>
+            <div class="flex items-center gap-3 font-normal text-[11px]">
+              <label class="flex items-center gap-1 cursor-pointer text-orange">
+                <input type="checkbox" bind:checked={autoScrollLog} />
+                Auto-scroll
+              </label>
+              <button
+                type="button"
+                class="text-orange hover:text-white transition-colors cursor-pointer"
+                onclick={handleClearLogs}
+              >
+                Clear
+              </button>
+              <span class="text-[#546e7a]">({logs.length} entries)</span>
+            </div>
           </div>
-        </Card>
+        {/snippet}
+
+        <div
+          bind:this={logContainer}
+          class="bg-[#05080a] p-3 text-[11px] h-48 overflow-y-auto rounded border border-[#162127] flex flex-col gap-1 select-text scroll-smooth"
+        >
+          {#if logs.length === 0}
+            <div class="text-[#546e7a] italic">
+              No connection log messages yet. Click "CONNECT ESP32" or "DEMO
+              SIMULATION" to begin.
+            </div>
+          {:else}
+            {#each logs as log (log.id)}
+              <div class="flex items-start gap-2 leading-relaxed">
+                <span class="text-[#546e7a] shrink-0 font-medium"
+                  >[{log.timestamp}]</span
+                >
+                {#if log.type === "success"}
+                  <span
+                    class="px-1 py-0.2 rounded text-[10px] bg-[#37c964]/20 text-[#37c964] font-bold shrink-0"
+                  >
+                    OK
+                  </span>
+                  <span class="text-[#a5d6a7]">{log.message}</span>
+                {:else if log.type === "error"}
+                  <span
+                    class="px-1 py-0.2 rounded text-[10px] bg-red-950 text-red-400 font-bold shrink-0"
+                  >
+                    ERR
+                  </span>
+                  <span class="text-red-300 font-medium">{log.message}</span>
+                {:else if log.type === "warn"}
+                  <span
+                    class="px-1 py-0.2 rounded text-[10px] bg-amber-950 text-amber-400 font-bold shrink-0"
+                  >
+                    WARN
+                  </span>
+                  <span class="text-amber-200">{log.message}</span>
+                {:else if log.type === "rx"}
+                  <span
+                    class="px-1 py-0.2 rounded text-[10px] bg-purple-950 text-purple-300 font-bold shrink-0"
+                  >
+                    RX
+                  </span>
+                  <span class="text-purple-200">{log.message}</span>
+                {:else}
+                  <span
+                    class="px-1 py-0.2 rounded text-[10px] bg-[#1e8bb5]/20 text-[#1e8bb5] font-bold shrink-0"
+                  >
+                    INFO
+                  </span>
+                  <span class="text-[#b0bec5]">{log.message}</span>
+                {/if}
+              </div>
+            {/each}
+          {/if}
+        </div>
+      </Card>
     </div>
   </div>
 </div>
@@ -1120,39 +1120,64 @@
           <div class="flex flex-col gap-1">
             <div class="settings-item">
               <div class="flex flex-col">
-                <span class="text-sm font-semibold uppercase tracking-wider" style="color:var(--orange)">RX Gain Mode</span>
+                <span
+                  class="text-sm font-semibold uppercase tracking-wider"
+                  style="color:var(--orange)">RX Gain Mode</span
+                >
                 <span class="text-[10px] text-neutral-400">
-                  {config.gainMode === 'HARDWARE' ? 'AGC (Automatic Hardware Gain)' : 'Manual Gain Index Control'}
+                  {config.gainMode === "HARDWARE"
+                    ? "AGC (Automatic Hardware Gain)"
+                    : "Manual Gain Index Control"}
                 </span>
               </div>
               <div class="flex items-center gap-2">
                 <button
                   type="button"
-                  class="text-xs font-bold px-2 py-0.5 rounded transition-all cursor-pointer {config.gainMode === 'HARDWARE' ? 'bg-[#fa0] text-black shadow-sm' : 'bg-transparent text-neutral-400 hover:text-white'}"
+                  class="text-xs font-bold px-2 py-0.5 rounded transition-all cursor-pointer {config.gainMode ===
+                  'HARDWARE'
+                    ? 'bg-[#fa0] text-black shadow-sm'
+                    : 'bg-transparent text-neutral-400 hover:text-white'}"
                   onclick={() => {
-                    config.gainMode = 'HARDWARE';
-                    addLog('info', 'RX Gain Mode: AGC (Automatic Hardware Gain)');
+                    config.gainMode = "HARDWARE";
+                    addLog(
+                      "info",
+                      "RX Gain Mode: AGC (Automatic Hardware Gain)",
+                    );
                   }}
                 >
                   AGC
                 </button>
-                <label class="toggle-switch" title="Toggle between AGC and Manual Gain">
+                <label
+                  class="toggle-switch"
+                  title="Toggle between AGC and Manual Gain"
+                >
                   <input
                     type="checkbox"
-                    checked={config.gainMode === 'MANUAL'}
+                    checked={config.gainMode === "MANUAL"}
                     onchange={(e) => {
-                      config.gainMode = e.currentTarget.checked ? 'MANUAL' : 'HARDWARE';
-                      addLog('info', `RX Gain Mode: ${config.gainMode === 'MANUAL' ? 'MANUAL' : 'AGC (Automatic)'}`);
+                      config.gainMode = e.currentTarget.checked
+                        ? "MANUAL"
+                        : "HARDWARE";
+                      addLog(
+                        "info",
+                        `RX Gain Mode: ${config.gainMode === "MANUAL" ? "MANUAL" : "AGC (Automatic)"}`,
+                      );
                     }}
                   />
                   <span class="toggle-slider"></span>
                 </label>
                 <button
                   type="button"
-                  class="text-xs font-bold px-2 py-0.5 rounded transition-all cursor-pointer {config.gainMode === 'MANUAL' ? 'bg-red text-white shadow-sm' : 'bg-transparent text-neutral-400 hover:text-white'}"
+                  class="text-xs font-bold px-2 py-0.5 rounded transition-all cursor-pointer {config.gainMode ===
+                  'MANUAL'
+                    ? 'bg-red text-white shadow-sm'
+                    : 'bg-transparent text-neutral-400 hover:text-white'}"
                   onclick={() => {
-                    config.gainMode = 'MANUAL';
-                    addLog('info', `RX Gain Mode: MANUAL (Gain Index: ${config.gain})`);
+                    config.gainMode = "MANUAL";
+                    addLog(
+                      "info",
+                      `RX Gain Mode: MANUAL (Gain Index: ${config.gain})`,
+                    );
                   }}
                 >
                   MANUAL
@@ -1536,5 +1561,15 @@
         </div>
       </div>
     </Card>
+  </div>
+{/if}
+
+{#if loadingScreen}
+  <div
+    class="fixed m-auto top-0 bottom-0 left-0 right-0 flex flex-col justify-center items-center overlay-bg text-center z-10 -red"
+    id="loading-screen"
+  >
+    <span class="loader"></span>
+    <p class="my-2 red-color p-2">LOADING PAGE</p>
   </div>
 {/if}
