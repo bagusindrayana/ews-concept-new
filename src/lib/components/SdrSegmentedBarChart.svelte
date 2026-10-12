@@ -61,7 +61,8 @@
     const newWidth = Math.floor(rect.width);
     if (newWidth <= 0) return;
 
-    const dpr = Math.min(typeof window !== "undefined" ? window.devicePixelRatio || 1 : 1, 2);
+    const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
+    const dpr = isMobile ? 1 : Math.min(typeof window !== "undefined" ? window.devicePixelRatio || 1 : 1, 1.5);
     width = newWidth;
     height = FIXED_HEIGHT;
 
@@ -74,6 +75,8 @@
     if (ctx) {
       ctx.setTransform(1, 0, 0, 1, 0, 0);
       ctx.scale(dpr, dpr);
+      ctx.shadowBlur = 0;
+      ctx.shadowColor = "transparent";
     }
   }
 
@@ -249,8 +252,6 @@
       const badgeY = ySafety - badgeH / 2;
 
       ctx.save();
-      ctx.shadowColor = "rgba(255, 153, 0, 0.6)";
-      ctx.shadowBlur = 4;
       ctx.strokeStyle = "#ff9900";
       ctx.lineWidth = 1.6;
       ctx.fillStyle = "#050302";
@@ -272,8 +273,6 @@
       ctx.save();
       ctx.strokeStyle = "#ff9900";
       ctx.lineWidth = 1.6;
-      ctx.shadowColor = "rgba(255, 153, 0, 0.4)";
-      ctx.shadowBlur = 3;
       ctx.beginPath();
       ctx.moveTo(badgeX + badgeW, ySafety);
       ctx.lineTo(width - rightPadding, ySafety);
@@ -284,8 +283,6 @@
       ctx.save();
       ctx.strokeStyle = "#ff9900";
       ctx.lineWidth = 1.6;
-      ctx.shadowColor = "rgba(255, 153, 0, 0.4)";
-      ctx.shadowBlur = 3;
       ctx.beginPath();
       ctx.moveTo(axisX, ySafety);
       ctx.lineTo(width - rightPadding, ySafety);
@@ -352,18 +349,12 @@
           if (isTopCap && showYellowCap && activeCount > 1) {
             // Yellow cap strictly on topmost segment of active bar (snaps instantly with bar!)
             ctx.fillStyle = isAboveSafety ? "#ffcc00" : "#ffaa00";
-            ctx.shadowColor = "rgba(255, 170, 0, 0.75)";
-            ctx.shadowBlur = 6;
           } else if (isAboveSafety) {
             // Alert crimson above safety line
             ctx.fillStyle = "#ff0033";
-            ctx.shadowColor = "rgba(255, 0, 50, 0.9)";
-            ctx.shadowBlur = 8;
           } else {
             // Active glowing red LED brick
             ctx.fillStyle = "#ff2200";
-            ctx.shadowColor = "rgba(255, 34, 0, 0.7)";
-            ctx.shadowBlur = 5;
           }
           ctx.beginPath();
           ctx.roundRect(bx, sy, barWidth, segHeight, 2);
@@ -425,8 +416,6 @@
       const tipY = topPadding + 4;
 
       ctx.save();
-      ctx.shadowColor = "rgba(0,0,0,0.9)";
-      ctx.shadowBlur = 10;
       ctx.fillStyle = "rgba(6, 9, 12, 0.95)";
       ctx.strokeStyle = isOver ? "#ff0033" : "#ff9900";
       ctx.lineWidth = 1.2;
@@ -457,24 +446,40 @@
     }
   }
 
-  onMount(() => {
-    resizeCanvas();
-    resizeObserver = new ResizeObserver((entries) => {
-      for (const entry of entries) {
-        const entryW = Math.floor(entry.contentRect.width);
-        if (entryW > 0 && Math.abs(entryW - width) > 1) {
-          resizeCanvas();
-        }
-      }
-    });
-    if (container) resizeObserver.observe(container);
+    let lastDrawTime = 0;
+    let lastRenderedSeq = -1;
 
-    const loop = () => {
-      draw();
+    onMount(() => {
+      resizeCanvas();
+      resizeObserver = new ResizeObserver((entries) => {
+        for (const entry of entries) {
+          const entryW = Math.floor(entry.contentRect.width);
+          if (entryW > 0 && Math.abs(entryW - width) > 1) {
+            resizeCanvas();
+          }
+        }
+      });
+      if (container) resizeObserver.observe(container);
+
+      const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
+      const minInterval = isMobile ? 33 : 16;
+
+      const loop = (timestamp: number) => {
+        animId = requestAnimationFrame(loop);
+        if (timestamp - lastDrawTime < minInterval) return;
+
+        const frameChanged = frame && frame.sequence !== lastRenderedSeq;
+        const mouseActive = mouseX !== null && mouseY !== null;
+        if (!frameChanged && !mouseActive && timestamp - lastDrawTime < 250) {
+          return;
+        }
+
+        lastDrawTime = timestamp;
+        if (frame) lastRenderedSeq = frame.sequence;
+        draw();
+      };
       animId = requestAnimationFrame(loop);
-    };
-    animId = requestAnimationFrame(loop);
-  });
+    });
 
   onDestroy(() => {
     if (resizeObserver) resizeObserver.disconnect();

@@ -164,11 +164,19 @@
     }
   }
 
-  // React to new incoming frame
+  let lastPushTime = 0;
+
+  // React to new incoming frame (throttled to avoid exhausting mobile GPU texture bandwidth)
   $effect(() => {
     if (frame && frame.sequence !== lastSequence && frame.spectrum) {
       lastSequence = frame.sequence;
-      pushSpectrumRow(frame.spectrum);
+      const now = performance.now();
+      const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
+      const minInterval = isMobile ? 35 : 16;
+      if (now - lastPushTime >= minInterval) {
+        lastPushTime = now;
+        pushSpectrumRow(frame.spectrum);
+      }
     }
   });
 
@@ -208,8 +216,8 @@
       <canvas bind:this={waterfallCanvas} class="block w-full h-full"></canvas>
 
       {#if !isConnected && (!frame || frame.sequence === 0)}
-        <!-- Empty State Overlay -->
-        <div class="absolute inset-0 flex flex-col items-center justify-center bg-black/75 backdrop-blur-xs text-center p-4">
+        <!-- Empty State Overlay (no backdrop-blur for mobile GPU performance) -->
+        <div class="absolute inset-0 flex flex-col items-center justify-center bg-black/85 text-center p-4">
           
           <h3 class="text-sm font-bold tracking-widest text-[#fa0] uppercase font-mono mb-1">
             CONNECT ESP-SDR TO START

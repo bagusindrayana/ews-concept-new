@@ -1,7 +1,10 @@
 /**
- * WebSerial SDR Driver for ESP32 running ESP-SDR firmware.
+ * WebSerial & WebUSB SDR Driver for ESP32 running ESP-SDR firmware.
  * Based on ESP-WebSDR (https://github.com/ESPARGOS/esp-web-sdr)
  */
+import { SerialConnection, NativeUSBPort } from './serialTransport';
+
+export { SerialConnection, NativeUSBPort };
 
 export interface CaptureConfig {
   frequency: number; // Center frequency in MHz (e.g. 2412)
@@ -582,7 +585,19 @@ export class EspSdrDriver {
   }
 
   static isSupported(): boolean {
-    return typeof navigator !== 'undefined' && 'serial' in navigator;
+    return SerialConnection.isSupported();
+  }
+
+  static isWebSerialSupported(): boolean {
+    return SerialConnection.isWebSerialSupported();
+  }
+
+  static isWebUsbSupported(): boolean {
+    return SerialConnection.isWebUsbSupported();
+  }
+
+  static isMobile(): boolean {
+    return SerialConnection.isMobile();
   }
 
   log(type: 'info' | 'success' | 'warn' | 'error' | 'rx', message: string) {
@@ -848,25 +863,26 @@ export class EspSdrDriver {
     }
   }
 
-  async connect(baudRate = 2000000, selectedPort: any = null): Promise<void> {
+  async connect(baudRate = 2000000, selectedPort: any = null, transport?: 'webusb' | 'webserial'): Promise<void> {
     if (this.isSimulating) {
       this.stopSimulation();
     }
 
     if (!EspSdrDriver.isSupported()) {
-      const err = new Error('WebSerial API is not supported in this browser. Please use Chrome, Edge, or Opera.');
+      const err = new Error('Neither WebSerial nor WebUSB API is supported in this browser. Please use Chrome, Edge, or Opera.');
       this.log('error', err.message);
       this.onStatusChange?.('error');
       throw err;
     }
 
+    const preferred = transport || SerialConnection.defaultTransport();
     this.onStatusChange?.('connecting');
-    this.log('info', 'Requesting serial port authorization...');
+    this.log('info', `Requesting ${preferred === 'webusb' ? 'WebUSB (native CDC)' : 'WebSerial'} port authorization...`);
 
     let port = selectedPort;
     if (!port) {
       try {
-        port = await (navigator as any).serial.requestPort();
+        port = await SerialConnection.requestPort(preferred);
       } catch (e: any) {
         this.log('warn', `Port selection cancelled or failed: ${e.message}`);
         this.onStatusChange?.('disconnected');
@@ -879,7 +895,8 @@ export class EspSdrDriver {
       usbVendorId: info.usbVendorId,
       usbProductId: info.usbProductId
     };
-    this.log('success', `Selected port: VID 0x${(info.usbVendorId || 0).toString(16)}, PID 0x${(info.usbProductId || 0).toString(16)}`);
+    const transportType = port.kind === 'webusb' ? 'WebUSB' : 'WebSerial';
+    this.log('success', `Selected ${transportType} port: VID 0x${(info.usbVendorId || 0).toString(16)}, PID 0x${(info.usbProductId || 0).toString(16)}`);
 
     return this.run(async () => {
       await this.disconnect();
@@ -1398,9 +1415,22 @@ export class EspSdrDriver {
   }
 
   private getSimInterval(fft: number): number {
+    const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+    if (isMobile) {
+      // On mobile, clamp simulation interval to ~30 FPS (>= 32ms) to prevent mobile CPU/GPU throttling
+      switch (fft) {
+        case 256: return 32;   // ~31 FPS
+        case 512: return 35;   // ~28 FPS
+        case 1024: return 40;  // ~25 FPS
+        case 2048: return 50;  // ~20 FPS
+        case 4096: return 85;  // ~12 FPS
+        default: return 35;
+      }
+    }
+
     switch (fft) {
-      case 256: return 11;   // ~90 FPS - very fast waterfall scroll, simple stepped waveform!
-      case 512: return 18;   // ~55 FPS
+      case 256: return 16;   // ~60 FPS
+      case 512: return 20;   // ~50 FPS
       case 1024: return 30;  // ~33 FPS
       case 2048: return 50;  // ~20 FPS - slow waterfall scroll, smooth high-res waveform
       case 4096: return 85;  // ~12 FPS - slowest waterfall

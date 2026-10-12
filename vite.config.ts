@@ -5,4 +5,7 @@ import tailwindcss from "@tailwindcss/vite";
 
 export default defineConfig({
   plugins: [tailwindcss(), sveltekit()],
+  server: {
+    host: "0.0.0.0",
+  },
 });

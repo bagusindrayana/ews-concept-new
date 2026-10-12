@@ -11,6 +11,7 @@
   import SdrPolygraphRecorder from "$lib/components/SdrPolygraphRecorder.svelte";
   import {
     EspSdrDriver,
+    SerialConnection,
     type CaptureConfig,
     type SpectrumFrame,
     type LogEntry,
@@ -144,9 +145,13 @@
   async function handleConnect() {
     if (!driver) return;
     try {
+      const mode =
+        SerialConnection.defaultTransport() === "webusb"
+          ? "WebUSB"
+          : "WebSerial";
       addLog(
         "info",
-        `Initiating WebSerial connection at ${baudRate / 1e6} MBaud...`,
+        `Initiating ${mode} connection at ${baudRate / 1e6} MBaud...`,
       );
       await driver.connect(baudRate);
       if (driver) {
@@ -317,7 +322,14 @@
       }
     };
 
+    let lastMobileFrameTime = 0;
     driver.onFrame = (frame) => {
+      // Throttle Svelte reactivity state assignment on mobile to ~30 FPS (33ms) to prevent main thread starvation
+      if (typeof window !== "undefined" && window.innerWidth < 768) {
+        const now = performance.now();
+        if (now - lastMobileFrameTime < 33) return;
+        lastMobileFrameTime = now;
+      }
       latestFrame = frame;
     };
 
@@ -349,12 +361,16 @@
     if (!isWebSerialSupported) {
       addLog(
         "warn",
-        "WebSerial is NOT supported in this browser. Please use Google Chrome, Microsoft Edge, or Opera.",
+        "Neither WebSerial nor WebUSB is supported in this browser. Please use Google Chrome, Microsoft Edge, or Opera over HTTPS/localhost.",
       );
     } else {
+      const mode =
+        SerialConnection.defaultTransport() === "webusb"
+          ? "WebUSB (Mobile Mode)"
+          : "WebSerial";
       addLog(
         "info",
-        "System ready. WebSerial API available. Ready to connect ESP32 SDR or run Demo Simulation.",
+        `System ready. ${mode} interface available. Ready to connect ESP32 SDR or run Demo Simulation.`,
       );
     }
   });
@@ -413,7 +429,7 @@
   </div>
 
   <div class="w-full flex flex-col gap-3">
-    <div class="w-full flex flex-col-reverse lg:flex-row gap-2 justify-center">
+    <div class="w-full flex flex-col lg:flex-row gap-2 justify-center">
      
       <div class="w-full flex flex-col gap-2 min-w-0">
         <!-- 1. RECEIVER INFORMATION (Gambar 1 STATION INFORMATION style) -->
@@ -678,7 +694,7 @@
                         clipContent={true}
                         color={config.fft === fp.bins ? "red" : "orange"}
                         className={config.fft === fp.bins
-                          ? "blink blink-fast drop-shadow-[0_0_8px_rgba(255,59,48,0.8)]"
+                          ? "blink blink-fast"
                           : ""}
                       >
                         <button
@@ -726,7 +742,7 @@
                         clipContent={true}
                         color={config.rate === rp.rate ? "red" : "orange"}
                         className={config.rate === rp.rate
-                          ? "blink blink-fast drop-shadow-[0_0_8px_rgba(255,59,48,0.8)]"
+                          ? "blink blink-fast"
                           : ""}
                       >
                         <button
@@ -977,7 +993,7 @@
 
 {#if isSettingsOpen}
   <div
-    class="fixed inset-0 z-[100] flex items-center justify-center bg-black/85 backdrop-blur-sm p-4 select-none"
+    class="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 p-4 select-none"
   >
     <Card className="w-full max-w-2xl shadow-2xl border-[#fa0]">
       {#snippet title()}
@@ -1238,7 +1254,7 @@
 
 {#if isHardwareModalOpen}
   <div
-    class="fixed inset-0 z-[100] flex items-center justify-center bg-black/85 backdrop-blur-sm p-4 select-none"
+    class="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 p-4 select-none"
   >
     <Card
       className="w-full max-w-2xl shadow-2xl border-[#fa0] max-h-[90vh] flex flex-col"

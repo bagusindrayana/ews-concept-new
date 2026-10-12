@@ -277,14 +277,10 @@
         ctx.fill();
       }
 
-      // Max Hold trace (golden glow line)
+      // Max Hold trace (golden crisp line, zero shadowBlur for mobile performance)
       if (showMaxHold && frame.maxHoldSpectrum) {
         const mh = frame.maxHoldSpectrum;
         ctx.strokeStyle = "#e6b969";
-        if (enableGlow) {
-          ctx.shadowColor = "#e6b969";
-          ctx.shadowBlur = 8;
-        }
         ctx.lineWidth = 1.5;
         ctx.beginPath();
         for (let i = 0; i < len; i++) {
@@ -298,14 +294,9 @@
         ctx.stroke();
       }
 
-      // Live waveform line with neon glow (matches WaveformChart seismograph aesthetic)
+      // Live waveform line (crisp, solid vector stroke, zero shadowBlur for mobile performance)
       ctx.strokeStyle = waveformColor;
-      if (enableGlow) {
-        ctx.shadowColor = waveformColor;
-        // High resolution (1024, 2048) has smooth ambient glow; lower resolution (256, 512) has tight crisp glow
-        ctx.shadowBlur = len <= 512 ? 4 : 10;
-      }
-      ctx.lineWidth = len <= 256 ? 1.8 : 2.2;
+      ctx.lineWidth = len <= 256 ? 1.8 : 2.0;
       ctx.lineJoin = len <= 256 ? "miter" : "round";
       ctx.beginPath();
 
@@ -374,10 +365,9 @@
   function resizeCanvas() {
     if (!container || !canvas) return;
     const rect = container.getBoundingClientRect();
-    const dpr = Math.min(
-      typeof window !== "undefined" ? window.devicePixelRatio || 1 : 1,
-      2,
-    );
+    const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
+    // Cap DPR to 1 on mobile to avoid 4x-9x pixel fill rate lag on Android
+    const dpr = isMobile ? 1 : Math.min(typeof window !== "undefined" ? window.devicePixelRatio || 1 : 1, 1.5);
 
     width = Math.floor(rect.width);
     height = 325;
@@ -388,7 +378,11 @@
     canvas.style.height = `${height}px`;
 
     ctx = canvas.getContext("2d");
-    if (ctx) ctx.scale(dpr, dpr);
+    if (ctx) {
+      ctx.scale(dpr, dpr);
+      ctx.shadowBlur = 0;
+      ctx.shadowColor = "transparent";
+    }
 
     draw();
   }
@@ -407,14 +401,32 @@
     draw();
   }
 
+  let lastDrawTime = 0;
+  let lastRenderedSeq = -1;
+
   onMount(() => {
     resizeCanvas();
     resizeObserver = new ResizeObserver(() => resizeCanvas());
     if (container) resizeObserver.observe(container);
 
-    const loop = () => {
-      draw();
+    const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
+    // 30 FPS throttle on mobile (33ms) to save CPU/GPU; 60 FPS (16ms) on desktop
+    const minInterval = isMobile ? 33 : 16;
+
+    const loop = (timestamp: number) => {
       animId = requestAnimationFrame(loop);
+      if (timestamp - lastDrawTime < minInterval) return;
+
+      // Skip redrawing static frames when no frame update or mouse interaction occurred
+      const frameChanged = frame && frame.sequence !== lastRenderedSeq;
+      const mouseActive = mouseX !== null && mouseY !== null;
+      if (!frameChanged && !mouseActive && timestamp - lastDrawTime < 250) {
+        return;
+      }
+
+      lastDrawTime = timestamp;
+      if (frame) lastRenderedSeq = frame.sequence;
+      draw();
     };
     animId = requestAnimationFrame(loop);
   });
@@ -469,7 +481,7 @@
 
     <!-- top left -->
     <div
-      class="absolute right-2 lg:right-0 lg:top-6 left-4 lg:left-24 pointer-events-none z-5 max-w-100 flex flex-col justify-center items-end lg:items-start gap-1"
+      class="absolute right-auto top-4 lg:right-0 lg:top-6 left-4 lg:left-24 pointer-events-none z-5 max-w-100 flex flex-col justify-center items-end lg:items-start gap-1"
     >
       <div
         class="rounded-sm bordered text-3xl bg-black/60 shadow-lg h-10 text-center flex justify-center items-center px-1"

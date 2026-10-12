@@ -71,7 +71,8 @@
     const newWidth = Math.floor(rect.width);
     if (newWidth <= 0) return;
 
-    const dpr = Math.min(typeof window !== "undefined" ? window.devicePixelRatio || 1 : 1, 2);
+    const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
+    const dpr = isMobile ? 1 : Math.min(typeof window !== "undefined" ? window.devicePixelRatio || 1 : 1, 1.5);
     width = newWidth;
     height = FIXED_HEIGHT;
 
@@ -84,6 +85,8 @@
     if (ctx) {
       ctx.setTransform(1, 0, 0, 1, 0, 0);
       ctx.scale(dpr, dpr);
+      ctx.shadowBlur = 0;
+      ctx.shadowColor = "transparent";
     }
   }
 
@@ -102,9 +105,8 @@
 
   function pushHistorySample(ch: number, deflection: number) {
     const buf = history[ch];
-    for (let i = MAX_HISTORY - 1; i > 0; i--) {
-      buf[i] = buf[i - 1];
-    }
+    // Fast native memory copy instead of manual JS for-loop
+    buf.copyWithin(1, 0, MAX_HISTORY - 1);
     buf[0] = deflection;
   }
 
@@ -512,6 +514,8 @@
     }
   }
 
+  let lastDrawTime = 0;
+
   onMount(() => {
     resizeCanvas();
     resizeObserver = new ResizeObserver((entries) => {
@@ -524,9 +528,14 @@
     });
     if (container) resizeObserver.observe(container);
 
-    const loop = () => {
-      draw();
+    const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
+    const minInterval = isMobile ? 33 : 16;
+
+    const loop = (timestamp: number) => {
       animId = requestAnimationFrame(loop);
+      if (timestamp - lastDrawTime < minInterval) return;
+      lastDrawTime = timestamp;
+      draw();
     };
     animId = requestAnimationFrame(loop);
   });
