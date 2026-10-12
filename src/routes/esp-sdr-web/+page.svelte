@@ -433,7 +433,7 @@
      
       <div class="w-full flex flex-col gap-2 min-w-0">
         <!-- 1. RECEIVER INFORMATION (Gambar 1 STATION INFORMATION style) -->
-        <Card className="border-[#fa0]/40 flex flex-col">
+        <Card className=" flex flex-col">
           {#snippet title()}
             <div
               class="flex items-center justify-between w-full font-bold text-[#fa0] px-1"
@@ -516,7 +516,7 @@
                         >ARCH</td
                       >
                       <td
-                        class="text-right py-[1.5px] text-white font-semibold truncate max-w-[125px]"
+                        class="text-right py-[1.5px]  font-semibold truncate max-w-[125px]"
                         title={deviceInfo?.chipArch || "Espressif 32-bit SoC"}
                       >
                         {#if deviceInfo?.connected}
@@ -904,13 +904,13 @@
     </div>
     <div class="w-full">
        <!-- Connection & Hardware Diagnostic Log Terminal Card (Full Width) -->
-        <Card className="border-[#1e8bb5]/40 w-full">
+        <Card borderColor="red" className="w-full">
           {#snippet title()}
             <div
-              class="flex items-center justify-between w-full text-xs font-bold text-[#1e8bb5] px-1"
+              class="flex items-center justify-between w-full text-xs font-bold text-red px-1"
             >
               <div class="flex items-center gap-2">
-                <span>ESP32 CONNECTION & HARDWARE LOG</span>
+                <span>LOG</span>
               </div>
               <div class="flex items-center gap-3 font-normal text-[11px]">
                 <label

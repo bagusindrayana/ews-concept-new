@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onMount, onDestroy } from "svelte";
   import type { SpectrumFrame } from "$lib/esp-sdr/radioDriver";
+  import Card from "./Card.svelte";
 
   interface Props {
     frame: SpectrumFrame | null;
@@ -318,7 +319,9 @@
           if (spec[i] > floor + 18) {
             const x = leftPadding + (i / (len - 1)) * drawWidth;
             const normY = 1 - (spec[i] - floor) / range;
-            const y = topPadding + Math.max(0, Math.min(drawHeight, normY * drawHeight));
+            const y =
+              topPadding +
+              Math.max(0, Math.min(drawHeight, normY * drawHeight));
             ctx.fillRect(x - 1, y - 1, 2.5, 2.5);
           }
         }
@@ -367,7 +370,12 @@
     const rect = container.getBoundingClientRect();
     const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
     // Cap DPR to 1 on mobile to avoid 4x-9x pixel fill rate lag on Android
-    const dpr = isMobile ? 1 : Math.min(typeof window !== "undefined" ? window.devicePixelRatio || 1 : 1, 1.5);
+    const dpr = isMobile
+      ? 1
+      : Math.min(
+          typeof window !== "undefined" ? window.devicePixelRatio || 1 : 1,
+          1.5,
+        );
 
     width = Math.floor(rect.width);
     height = 325;
@@ -445,136 +453,141 @@
   let rbwHz = $derived(1.44 * (activeSpan / activeBins));
 </script>
 
-<div
-  bind:this={container}
-  class="w-full flex flex-col bg-black border-2 border-[#fa0] rounded overflow-hidden shadow-2xl select-none"
->
-  <!-- Chart Header Bar (Evangelion Style with Neon Border) -->
-  <div
-    class="flex items-center justify-between px-3 py-1.5 bg-[#080808] border-b-2 border-[#fa0] text-xs font-mono"
-  >
-    <div class="flex items-center gap-2">
-      <span class="text-[#fa0] font-black tracking-wider uppercase"
-        >SPECTRUM WAVEFORM MONITOR</span
-      >
-      {#if showMaxHold}
-        <span
-          class="text-[10px] text-[#e6b969] px-1.5 py-0.2 bg-[#e6b969]/10 rounded border border-[#e6b969]/40"
+<Card>
+  {#snippet title()}
+    <div class="flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <span class="text-[#fa0] font-black tracking-wider uppercase"
+          >SPECTRUM WAVEFORM MONITOR</span
         >
-          MAX HOLD
-        </span>
-      {/if}
+        {#if showMaxHold}
+          <span
+            class="text-[10px] text-[#e6b969] px-1.5 py-0.2 bg-[#e6b969]/10 rounded border border-[#e6b969]/40"
+          >
+            MAX HOLD
+          </span>
+        {/if}
+      </div>
+      <div class="text-[#fa0] font-bold font-mono tracking-wide">
+        {cursorText}
+      </div>
     </div>
-    <div class="text-[#fa0] font-bold font-mono tracking-wide">
-      {cursorText}
-    </div>
-  </div>
-
-  <!-- Spectrum Main Canvas with WaveformChart Aesthetics -->
-  <!-- svelte-ignore a11y_no_static_element_interactions -->
+  {/snippet}
   <div
-    class="relative w-full cursor-crosshair bg-black"
-    onmousemove={handleMouseMove}
-    onmouseleave={handleMouseLeave}
+    bind:this={container}
+    class="w-full flex flex-col bg-black  overflow-hidden select-none"
   >
-    <canvas bind:this={canvas} class="block w-full"></canvas>
+    <!-- Chart Header Bar (Evangelion Style with Neon Border) -->
 
-    <!-- top left -->
+    <!-- Spectrum Main Canvas with WaveformChart Aesthetics -->
+    <!-- svelte-ignore a11y_no_static_element_interactions -->
     <div
-      class="absolute right-auto top-4 lg:right-0 lg:top-6 left-4 lg:left-24 pointer-events-none z-5 max-w-100 flex flex-col justify-center items-end lg:items-start gap-1"
+      class="relative w-full cursor-crosshair bg-black"
+      onmousemove={handleMouseMove}
+      onmouseleave={handleMouseLeave}
     >
+      <canvas bind:this={canvas} class="block w-full"></canvas>
+
+      <!-- top left -->
       <div
-        class="rounded-sm bordered text-3xl bg-black/60 shadow-lg h-10 text-center flex justify-center items-center px-1"
+        class="absolute right-auto top-4 lg:right-0 lg:top-6 left-4 lg:left-24 pointer-events-none z-5 max-w-100 flex flex-col justify-center items-end lg:items-start gap-1"
       >
-        <div class="font-bold md:text-3xl uppercase ews-title">
-          {deviceInfo?.connected ? deviceInfo.chipFamily : "OFFLINE"}
+        <div
+          class="rounded-sm bordered text-3xl bg-black/60 shadow-lg h-10 text-center flex justify-center items-center px-1"
+        >
+          <div class="font-bold md:text-3xl uppercase ews-title">
+            {deviceInfo?.connected ? deviceInfo.chipFamily : "OFFLINE"}
+          </div>
         </div>
+
+        {#if deviceInfo != null && deviceInfo?.connected}
+          <div class="font-bold tracking-widest text-sm md:text-xl ews-title">
+            BUFFER : {deviceInfo?.maxSamples
+              ? `${deviceInfo.maxSamples.toLocaleString()} spl`
+              : "16,380 spl"}
+          </div>
+
+          <div class="font-bold tracking-widest text-sm md:text-xl ews-title">
+            RF RANGE : {deviceInfo?.tuneRange
+              ? `${deviceInfo.tuneRange[0]}-${deviceInfo.tuneRange[1]} MHz`
+              : "2400-2484 MHz"}
+          </div>
+        {/if}
       </div>
 
-      {#if deviceInfo != null && deviceInfo?.connected}
-        <div class="font-bold tracking-widest text-sm md:text-xl ews-title">
-          BUFFER : {deviceInfo?.maxSamples
-            ? `${deviceInfo.maxSamples.toLocaleString()} spl`
-            : "16,380 spl"}
-        </div>
-
-        <div class="font-bold tracking-widest text-sm md:text-xl ews-title">
-          RF RANGE : {deviceInfo?.tuneRange
-            ? `${deviceInfo.tuneRange[0]}-${deviceInfo.tuneRange[1]} MHz`
-            : "2400-2484 MHz"}
-        </div>
-      {/if}
-    </div>
-
-    <!-- Top Right -->
-    <div
-      class="absolute bottom-16 lg:bottom-auto top-auto lg:top-10 md:top-4 right-2 lg:right-16 pointer-events-none flex flex-col items-end z-5"
-    >
-      <div class="rounded-lg p-1 inline-block bg-black/60 shadow-lg">
-        <div class="bordered px-3 py-1 flex flex-col text-3xl">
-          {#if frame != null}
-            <div
-              class="font-bold text-[10px] md:text-sm tracking-widest leading-none mb-1 ews-title"
-            >
-              FFT SPEED:
-            </div>
-            <div
-              class="font-bold text-lg md:text-xl tracking-widest leading-none text-right ews-title"
-            >
-              <span class="text-[#fa0]"
-                >{deviceStats?.fftsPerSec || (frame?.fps ? frame.fps * 8 : 0)}/s
-                ({frame?.fps || 0} fps)</span
+      <!-- Top Right -->
+      <div
+        class="absolute bottom-16 lg:bottom-auto top-auto lg:top-10 md:top-4 right-2 lg:right-16 pointer-events-none flex flex-col items-end z-5"
+      >
+        <div class="rounded-lg p-1 inline-block bg-black/60 shadow-lg">
+          <div class="bordered px-3 py-1 flex flex-col text-3xl">
+            {#if frame != null}
+              <div
+                class="font-bold text-[10px] md:text-sm tracking-widest leading-none mb-1 ews-title"
               >
-            </div>
-          {:else}
-            <div class="font-bold md:text-3xl uppercase ews-title">OFFLINE</div>
-          {/if}
+                FFT SPEED:
+              </div>
+              <div
+                class="font-bold text-lg md:text-xl tracking-widest leading-none text-right ews-title"
+              >
+                <span class="text-[#fa0]"
+                  >{deviceStats?.fftsPerSec ||
+                    (frame?.fps ? frame.fps * 8 : 0)}/s ({frame?.fps || 0} fps)</span
+                >
+              </div>
+            {:else}
+              <div class="font-bold md:text-3xl uppercase ews-title">
+                OFFLINE
+              </div>
+            {/if}
+          </div>
         </div>
       </div>
     </div>
-  </div>
 
-  <!-- Measurement Specs Row (Evangelion Monospace Palette) -->
-  <div
-    class="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 px-3 py-1.5 bg-[#050505] border-t border-[#fa0]/40 text-[11px] font-mono text-[#8a9ba3]"
-  >
-    <div>
-      <span class="text-[#fa0]">START:</span>
-      <b class="text-red">{fmtHz(activeCenter - activeSpan / 2)}</b>
-    </div>
-    <div>
-      <span class="text-[#fa0]">CENTER:</span>
-      <b class="text-red">{fmtHz(activeCenter)}</b>
-    </div>
-    <div>
-      <span class="text-[#fa0]">SPAN:</span>
-      <b class="text-red">{fmtHz(activeSpan)}</b>
-    </div>
-    <div>
-      <span class="text-[#fa0]">STOP:</span>
-      <b class="text-red">{fmtHz(activeCenter + activeSpan / 2)}</b>
-    </div>
-    <div>
-      <span class="text-[#fa0]">RBW:</span>
-      <b class="text-red">{fmtHz(rbwHz)}</b>
-    </div>
-    <div>
-      <span class="text-[#fa0]">BINS:</span>
-      <b class="text-red">{activeBins}</b>
-    </div>
-    <div>
-      <span class="text-[#fa0]">REF:</span>
-      <b class="text-red">{floor + range} dBFS</b>
-    </div>
-    <div>
-      <span class="text-[#fa0]">DIV:</span>
-      <b class="text-red">{range / 4} dB</b>
-    </div>
-    <div>
-      <span class="text-[#fa0]">DET:</span> <b class="text-red">AVERAGE</b>
-    </div>
-    <div>
-      <span class="text-[#fa0]">MODE:</span> <b class="text-red">{modeName}</b>
+    <!-- Measurement Specs Row (Evangelion Monospace Palette) -->
+    <div
+      class="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 px-3 py-1.5 bg-[#050505] border-t border-[#fa0]/40 text-[11px] font-mono text-[#8a9ba3]"
+    >
+      <div>
+        <span class="text-[#fa0]">START:</span>
+        <b class="text-red">{fmtHz(activeCenter - activeSpan / 2)}</b>
+      </div>
+      <div>
+        <span class="text-[#fa0]">CENTER:</span>
+        <b class="text-red">{fmtHz(activeCenter)}</b>
+      </div>
+      <div>
+        <span class="text-[#fa0]">SPAN:</span>
+        <b class="text-red">{fmtHz(activeSpan)}</b>
+      </div>
+      <div>
+        <span class="text-[#fa0]">STOP:</span>
+        <b class="text-red">{fmtHz(activeCenter + activeSpan / 2)}</b>
+      </div>
+      <div>
+        <span class="text-[#fa0]">RBW:</span>
+        <b class="text-red">{fmtHz(rbwHz)}</b>
+      </div>
+      <div>
+        <span class="text-[#fa0]">BINS:</span>
+        <b class="text-red">{activeBins}</b>
+      </div>
+      <div>
+        <span class="text-[#fa0]">REF:</span>
+        <b class="text-red">{floor + range} dBFS</b>
+      </div>
+      <div>
+        <span class="text-[#fa0]">DIV:</span>
+        <b class="text-red">{range / 4} dB</b>
+      </div>
+      <div>
+        <span class="text-[#fa0]">DET:</span> <b class="text-red">AVERAGE</b>
+      </div>
+      <div>
+        <span class="text-[#fa0]">MODE:</span>
+        <b class="text-red">{modeName}</b>
+      </div>
     </div>
   </div>
-</div>
+</Card>

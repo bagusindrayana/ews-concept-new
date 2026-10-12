@@ -1,11 +1,15 @@
 <script lang="ts">
   import { onMount, onDestroy } from "svelte";
-  import { createWaterfallLut, type SpectrumFrame } from "$lib/esp-sdr/radioDriver";
+  import {
+    createWaterfallLut,
+    type SpectrumFrame,
+  } from "$lib/esp-sdr/radioDriver";
+  import Card from "./Card.svelte";
 
   interface Props {
     frame: SpectrumFrame | null;
-    floor?: number;       // dBFS min, default -100
-    range?: number;       // dBFS range, default 80
+    floor?: number; // dBFS min, default -100
+    range?: number; // dBFS range, default 80
     isConnected?: boolean;
     axesColor?: string;
   }
@@ -15,7 +19,7 @@
     floor = -100,
     range = 80,
     isConnected = false,
-    axesColor = "#fa0"
+    axesColor = "#fa0",
   }: Props = $props();
 
   let container: HTMLDivElement;
@@ -100,7 +104,9 @@
     ctx.lineTo(rw, rh);
 
     ctx.fillStyle = axesColor;
-    ctx.font = isMobile ? 'bold 9px "Inter", sans-serif' : 'bold 11px "Inter", sans-serif';
+    ctx.font = isMobile
+      ? 'bold 9px "Inter", sans-serif'
+      : 'bold 11px "Inter", sans-serif';
     ctx.textAlign = "right";
     ctx.textBaseline = "middle";
 
@@ -108,7 +114,7 @@
       { text: "TOP", y: 10 },
       { text: "HIST", y: rh * 0.33 },
       { text: "SPAN", y: rh * 0.66 },
-      { text: "END", y: rh - 10 }
+      { text: "END", y: rh - 10 },
     ];
 
     for (const item of labels) {
@@ -191,79 +197,93 @@
   });
 </script>
 
-<div
-  bind:this={container}
-  class="w-full flex flex-col bg-black border-2 border-[#fa0] rounded overflow-hidden shadow-2xl select-none"
->
-  <!-- Waterfall Header -->
-  <div class="flex items-center justify-between px-3 py-1.5 bg-[#080808] border-b border-[#fa0]/40 text-xs font-mono">
-    <div class="flex items-center gap-2">
-    
-      <span class="text-[#fa0] font-black tracking-wider uppercase">WATERFALL SPECTROGRAM MONITOR</span>
+<Card>
+  {#snippet title()}
+    <!-- Waterfall Header -->
+    <div class="flex items-center justify-between text-xs">
+      <div class="flex items-center gap-2">
+        <span class="text-[#fa0] font-black tracking-wider uppercase"
+          >WATERFALL SPECTROGRAM MONITOR</span
+        >
+      </div>
+      <div class="text-[#fa0] font-bold font-mono">
+        {floor} → {floor + range} dBFS
+      </div>
     </div>
-    <div class="text-[#fa0] font-bold font-mono">
-      {floor} → {floor + range} dBFS
-    </div>
-  </div>
-
-  <!-- Waterfall Canvas Area with Matching Left Orange Ruler -->
-  <div class="relative w-full h-[325px] bg-black flex items-stretch">
-    <!-- Left Orange Ruler (Aligns with Spectrum left ruler) -->
-    <canvas bind:this={rulerCanvas} class="block shrink-0"></canvas>
-
-    <!-- Main Waterfall Canvas (Aligns with Spectrum drawWidth) -->
-    <div class="relative grow overflow-hidden bg-[#03070a]">
-      <canvas bind:this={waterfallCanvas} class="block w-full h-full"></canvas>
-
-      {#if !isConnected && (!frame || frame.sequence === 0)}
-        <!-- Empty State Overlay (no backdrop-blur for mobile GPU performance) -->
-        <div class="absolute inset-0 flex flex-col items-center justify-center bg-black/85 text-center p-4">
-          
-          <h3 class="text-sm font-bold tracking-widest text-[#fa0] uppercase font-mono mb-1">
-            CONNECT ESP-SDR TO START
-          </h3>
-          <p class="text-[11px] text-[#8a9ba3] max-w-xs font-mono">
-            Connect via WebSerial or launch Demo Simulation.
-          </p>
-        </div>
-      {/if}
-    </div>
-
-    <!-- Right Margin to match Spectrum right padding -->
-    <div class="w-3 md:w-6 shrink-0 bg-black"></div>
-  </div>
-
-  <!-- Footer Diagnostic Stats Bar -->
+  {/snippet}
   <div
-    class="flex flex-wrap items-start justify-between gap-x-4 gap-y-1 px-3 py-1.5 bg-[#050505] border-t border-[#fa0]/40 text-[11px] font-mono text-[#8a9ba3] "
+    bind:this={container}
+    class="w-full flex flex-col overflow-hidden select-none"
   >
-    <div class="flex items-center gap-1.5">
-      <span class="text-[#fa0]">SPEED:</span>
-      <b class="text-red font-semibold">{frame?.fps || 0} spectra/s</b>
+    <!-- Waterfall Canvas Area with Matching Left Orange Ruler -->
+    <div class="relative w-full h-[325px] bg-black flex items-stretch">
+      <!-- Left Orange Ruler (Aligns with Spectrum left ruler) -->
+      <canvas bind:this={rulerCanvas} class="block shrink-0"></canvas>
+
+      <!-- Main Waterfall Canvas (Aligns with Spectrum drawWidth) -->
+      <div class="relative grow overflow-hidden bg-[#03070a]">
+        <canvas bind:this={waterfallCanvas} class="block w-full h-full"
+        ></canvas>
+
+        {#if !isConnected && (!frame || frame.sequence === 0)}
+          <!-- Empty State Overlay (no backdrop-blur for mobile GPU performance) -->
+          <div
+            class="absolute inset-0 flex flex-col items-center justify-center bg-black/85 text-center p-4"
+          >
+            <h3
+              class="text-sm font-bold tracking-widest text-[#fa0] uppercase font-mono mb-1"
+            >
+              CONNECT ESP-SDR TO START
+            </h3>
+            <p class="text-[11px] text-[#8a9ba3] max-w-xs font-mono">
+              Connect via WebSerial or launch Demo Simulation.
+            </p>
+          </div>
+        {/if}
+      </div>
+
+      <!-- Right Margin to match Spectrum right padding -->
+      <div class="w-3 md:w-6 shrink-0 bg-black"></div>
     </div>
 
-    <div class="flex items-center gap-1.5">
-      <span class="text-[#fa0]">THROUGHPUT:</span>
-      <b class="text-red font-semibold">{frame?.deliveredKsps || 0} kB/s over USB · {(frame ? frame.rate / 1e6 : 80)} MS/s</b>
-    </div>
+    <!-- Footer Diagnostic Stats Bar -->
+    <div
+      class="flex flex-wrap items-start justify-between gap-x-4 gap-y-1 px-3 py-1.5 bg-[#050505] border-t border-[#fa0]/40 text-[11px] font-mono text-[#8a9ba3]"
+    >
+      <div class="flex items-center gap-1.5">
+        <span class="text-[#fa0]">SPEED:</span>
+        <b class="text-red font-semibold">{frame?.fps || 0} spectra/s</b>
+      </div>
 
-    <div class="flex items-center gap-1.5">
-      <span class="text-[#fa0]">LATENCY:</span>
-      <b class="text-red font-semibold">{frame?.elapsedMs || 0} ms</b>
-    </div>
+      <div class="flex items-center gap-1.5">
+        <span class="text-[#fa0]">THROUGHPUT:</span>
+        <b class="text-red font-semibold"
+          >{frame?.deliveredKsps || 0} kB/s over USB · {frame
+            ? frame.rate / 1e6
+            : 80} MS/s</b
+        >
+      </div>
 
-    <div class="flex items-center gap-1.5">
-      <span class="text-[#fa0]">PEAK:</span>
-      <b class="text-red font-semibold">{(frame ? frame.peakHz / 1e6 : 2412).toFixed(4)} MHz</b>
-    </div>
+      <div class="flex items-center gap-1.5">
+        <span class="text-[#fa0]">LATENCY:</span>
+        <b class="text-red font-semibold">{frame?.elapsedMs || 0} ms</b>
+      </div>
 
-    <div class="flex items-center gap-1.5">
-      <span class={frame?.crcOk ? "text-[#33cc55]" : "text-red-400"}>
-        {frame?.crcOk ? `CRC OK · #${frame.sequence}` : "CRC ERR"}
-      </span>
-      {#if frame?.dropped}
-        <span class="text-red-400">({frame.dropped} dropped)</span>
-      {/if}
+      <div class="flex items-center gap-1.5">
+        <span class="text-[#fa0]">PEAK:</span>
+        <b class="text-red font-semibold"
+          >{(frame ? frame.peakHz / 1e6 : 2412).toFixed(4)} MHz</b
+        >
+      </div>
+
+      <div class="flex items-center gap-1.5">
+        <span class={frame?.crcOk ? "text-[#33cc55]" : "text-red-400"}>
+          {frame?.crcOk ? `CRC OK · #${frame.sequence}` : "CRC ERR"}
+        </span>
+        {#if frame?.dropped}
+          <span class="text-red-400">({frame.dropped} dropped)</span>
+        {/if}
+      </div>
     </div>
   </div>
-</div>
+</Card>

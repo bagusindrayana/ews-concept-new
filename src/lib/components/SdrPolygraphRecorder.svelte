@@ -375,7 +375,7 @@
         : isHovered
         ? "#ffffff"
         : "#e64a19";
-      ctx.fillText(chStr, cx, yLaser - 12);
+      ctx.fillText(chStr, cx, yLaser - 8);
 
       // 2. Rotated Vertical Frequency Text directly in the upper header zone
       // e.g. "2390 MHz" running upwards, completely clear of the green trace lines
@@ -400,7 +400,9 @@
       ctx.textAlign = "center";
       ctx.textBaseline = "bottom";
       ctx.fillStyle = isCenter ? "#ff9900" : "#a83515";
-      ctx.fillText(`-${chStr}`, cx, height - 6);
+      // ctx.fillText(`-${chStr}`, cx, height - 6);
+      const hPwr = channelPowers[ch];
+      ctx.fillText(`${hPwr.toFixed(1)}`, cx, height);
     }
     hoveredChannel = hoveredIdx;
 
@@ -454,10 +456,10 @@
     // 9. CRISP HORIZONTAL RED LASER REFERENCE SCANLINE (SOLID, NO BLUR)
     // =========================================================================
     ctx.strokeStyle = "#ff1a2b";
-    ctx.lineWidth = 1.5;
+    ctx.lineWidth = 2;
     ctx.beginPath();
     ctx.moveTo(rulerWidth - 3, yLaser);
-    ctx.lineTo(width - rightMargin, yLaser);
+    ctx.lineTo(width - rightMargin, yLaser-2);
     ctx.stroke();
 
     // =========================================================================

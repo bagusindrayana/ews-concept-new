@@ -11,14 +11,14 @@
     onToggle?: () => void;
   }
 
-  let { children, title, footer, className = "", onToggle }: Props = $props();
+  let { children, title, footer, className = "", borderColor, onToggle }: Props = $props();
   let open = $state(false);
 </script>
 
-<div class="ews-card {className}" class:open>
+<div class="ews-card {className} bordered-{borderColor}" class:open>
   {#if title}
-    <div
-      class="ews-card-header"
+    <div 
+      class="ews-card-header bordered-{borderColor}-bottom"
       onclick={() => {
         open = !open;
         onToggle?.();
