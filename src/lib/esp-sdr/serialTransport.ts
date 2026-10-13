@@ -273,13 +273,17 @@ export class SerialConnection {
   }
 
   static defaultTransport(): 'webusb' | 'webserial' {
-    const mobile = SerialConnection.isMobile();
     const nav = typeof navigator !== 'undefined' ? (navigator as any) : null;
     if (!nav) return 'webserial';
-    if (mobile) {
-      return nav.usb ? 'webusb' : (nav.serial ? 'webserial' : 'webusb');
+    // Always prefer WebSerial if supported (on both desktop and mobile/Android)
+    // Because WebSerial accesses serial without low-level USB cdc_acm kernel claim conflicts!
+    if (nav.serial) {
+      return 'webserial';
     }
-    return nav.serial ? 'webserial' : (nav.usb ? 'webusb' : 'webserial');
+    if (nav.usb) {
+      return 'webusb';
+    }
+    return 'webserial';
   }
 
   static async requestPort(transport?: 'webusb' | 'webserial'): Promise<any> {

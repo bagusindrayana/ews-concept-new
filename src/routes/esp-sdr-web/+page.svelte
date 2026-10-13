@@ -367,7 +367,7 @@
     } else {
       const mode =
         SerialConnection.defaultTransport() === "webusb"
-          ? "WebUSB (Mobile Mode)"
+          ? "WebUSB"
           : "WebSerial";
       addLog(
         "info",
