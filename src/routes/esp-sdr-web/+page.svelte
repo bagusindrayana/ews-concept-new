@@ -9,6 +9,7 @@
   import SdrWaterfallChart from "$lib/components/SdrWaterfallChart.svelte";
   import SdrSegmentedBarChart from "$lib/components/SdrSegmentedBarChart.svelte";
   import SdrPolygraphRecorder from "$lib/components/SdrPolygraphRecorder.svelte";
+  import SdrSignalAnalysis from "$lib/components/SdrSignalAnalysis.svelte";
   import {
     EspSdrDriver,
     SerialConnection,
@@ -35,6 +36,11 @@
   let deviceInfo = $state<EspDeviceInfo | null>(null);
   let deviceStats = $state<EspDeviceStats | null>(null);
   let isHardwareModalOpen = $state(false);
+  let isScanning = $state(false);
+  let scanLabel = $state("START WEB SCAN");
+  let scanTimer: ReturnType<typeof setInterval> | null = null;
+  let scanReturnFrequency = 2412;
+  let scanIndex = 0;
 
   // SDR Configuration
   let config = $state<CaptureConfig>({
@@ -174,6 +180,7 @@
   async function handleDisconnect() {
     if (!driver) return;
     try {
+      stopWebScan(false);
       addLog("info", "Disconnecting ESP-SDR...");
       await driver.disconnect();
       isSimulating = false;
@@ -181,6 +188,51 @@
     } catch (err: any) {
       addLog("error", `Disconnect error: ${err.message}`);
     }
+  }
+
+  function stopWebScan(restoreFrequency = true) {
+    if (scanTimer) {
+      clearInterval(scanTimer);
+      scanTimer = null;
+    }
+    const wasScanning = isScanning;
+    isScanning = false;
+    scanLabel = "START WEB SCAN";
+    if (restoreFrequency && wasScanning) {
+      config.frequency = scanReturnFrequency;
+      addLog("info", `Web RF scan stopped; returned to ${scanReturnFrequency} MHz.`);
+    }
+  }
+
+  function handleToggleWebScan() {
+    if (isScanning) {
+      stopWebScan();
+      return;
+    }
+    if (!driver || (!driver.isConnected && !driver.isSimulating)) {
+      addLog("warn", "Connect an ESP-SDR or start Demo Simulation before scanning.");
+      return;
+    }
+
+    const frequencies = channelPresets
+      .filter((preset) => preset.freq < 3000 || deviceInfo?.chipFamily === "C5")
+      .map((preset) => preset.freq);
+    scanReturnFrequency = config.frequency;
+    scanIndex = frequencies.findIndex((freq) => freq === config.frequency);
+    if (scanIndex < 0) scanIndex = 0;
+    isScanning = true;
+    scanLabel = `SCANNING ${frequencies[scanIndex]} MHz`;
+    addLog("info", `Starting web RF scan across ${frequencies.length} frequency presets.`);
+
+    const advance = () => {
+      if (!isScanning) return;
+      scanIndex = (scanIndex + 1) % frequencies.length;
+      config.frequency = frequencies[scanIndex];
+      scanLabel = `SCANNING ${frequencies[scanIndex]} MHz`;
+    };
+
+    config.frequency = frequencies[scanIndex];
+    scanTimer = setInterval(advance, 900);
   }
 
   function handleToggleSimulation() {
@@ -381,6 +433,7 @@
   });
 
   onDestroy(() => {
+    stopWebScan(false);
     if (typeof window !== "undefined") {
       if (unhandledRejectionListener) {
         window.removeEventListener(
@@ -826,6 +879,15 @@
           range={config.range}
           isConnected={connectionStatus === "connected" ||
             connectionStatus === "streaming"}
+        />
+        <SdrSignalAnalysis
+          frame={latestFrame}
+          floor={config.floor}
+          isConnected={connectionStatus === "connected" ||
+            connectionStatus === "streaming"}
+          scanning={isScanning}
+          scanLabel={scanLabel}
+          onToggleScan={handleToggleWebScan}
         />
       </div>
       <div class="w-full flex flex-col gap-2">
