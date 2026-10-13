@@ -999,14 +999,8 @@
       {#snippet title()}
         <div class="flex justify-between items-center w-full px-1">
           <div class="flex items-center gap-2">
-            <Icon
-              icon="lucide:sliders-horizontal"
-              width="18"
-              height="18"
-              class="text-[#fa0]"
-            />
             <p class="text-xl ews-title text-[#fa0]">
-              SETTING RECEIVER & RF FILTERS
+              SETTINGS
             </p>
           </div>
           <button
